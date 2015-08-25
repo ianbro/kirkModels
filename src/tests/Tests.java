@@ -1,11 +1,14 @@
 package tests;
 
-import java.awt.Color;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import kirkModels.db.exceptions.IntegrityException;
+import kirkModels.objects.IntegerField;
+import kirkModels.objects.VarChar;
 
 public abstract class Tests {
 	
@@ -22,7 +25,16 @@ public abstract class Tests {
 			e.printStackTrace();
 			System.out.println("No Connection to " + dbURL);
 		}
-		System.out.println();
-		throw new IntegrityException("model_name", "id", "1");
+		VarChar string = new VarChar("Name", false, "Hello", false, 10);
+		System.out.println(string);
+		string.set("I am Cool!");
+		System.out.println(string);
+		System.out.println(string.sqlString());
+		
+		IntegerField integer = new IntegerField("id", false, 1, true, true, 10000);
+		System.out.println(integer);
+		integer.set(5);
+		System.out.println(integer);
+		System.out.println(integer.sqlString());
 	}
 }

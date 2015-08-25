@@ -18,14 +18,14 @@ public abstract class Settings {
 	 * - password<br>
 	 */
 	public static HashMap<String, String[]> DATABASES_MAP = new HashMap<String, String[]>(){{
-		put("postgres",
+		put("vagrant",
 				new String[]{
 						"jdbc:postgresql",
 						"localhost",
 						"5432",
-						"testdb",
-						"postgres",
-						"password"
+						"vagrant",
+						"vagrant",
+						"vagrant"
 						}
 		);
 		
@@ -46,7 +46,7 @@ public abstract class Settings {
 	 * <br>
 	 * <p>String used to call the database that will be used in the program. This will be called by <b>Settings.DATABASE</b> to get the corresponding database array of attributes by key. This variable is the key that will be used.</p>
 	 */
-	public static String DB_TO_USE = "mysql";
+	public static String DB_TO_USE = "vagrant";
 	
 	/**
 	 * <h1>public static String[] DATABASE</h1>
