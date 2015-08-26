@@ -8,7 +8,7 @@ import java.sql.Statement;
 
 import kirkModels.db.exceptions.IntegrityException;
 import kirkModels.objects.IntegerField;
-import kirkModels.objects.VarChar;
+import kirkModels.objects.CharField;
 
 public abstract class Tests {
 	
@@ -25,7 +25,7 @@ public abstract class Tests {
 			e.printStackTrace();
 			System.out.println("No Connection to " + dbURL);
 		}
-		VarChar string = new VarChar("Name", false, "Hello", false, 10);
+		CharField string = new CharField("Name", false, "Hello", false, 10);
 		System.out.println(string);
 		string.set("I am Cool!");
 		System.out.println(string);

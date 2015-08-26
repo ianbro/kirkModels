@@ -1,22 +1,57 @@
 package kirkModels.objects;
 
-public class ForeignKey<T extends Model> extends IntegerField {
+import java.util.HashMap;
 
+public final class ForeignKey<T extends Model> extends IntegerField {
+
+	protected final Class<T> tableRef;
+	protected String onDelete;
 	
-
-	public ForeignKey(String label, boolean isNull, T defaultValue, boolean unique) {
-		super(label, isNull, ((IntegerField)defaultValue.fields.get("id")).get(), unique, false, 16777215);
+	public ForeignKey(Class<T> reference, String label, boolean isNull, T defaultValue, boolean unique, String onDelete) {
+		super(label, isNull, (Integer) defaultValue.getField("id"), unique, false, 16777215);
+		this.tableRef = reference;
+		this.onDelete = onDelete;
 	}
 
 	@Override
 	public String sqlString() {
-		// TODO Auto-generated method stub
+		String sql = super.sqlString();
+		sql = sql + "%" + "FOREIGN KEY (" + this.tableRef.getSimpleName() + "_id, " + this.label + ")\n  REFERENCES " + this.tableRef.getSimpleName() + "(id)\n  ON UPDATE CASCADE ON DELETE " + this.onDelete;
 		return null;
+	}
+	
+	@Deprecated
+	@Override
+	public void set(Integer val){
+		
+	}
+	
+	public void set(T value){
+		// T in this case is not an int, but the object instance that is being referenced
+		int valueID = (Integer)value.getField("id");
+		this.value = valueID;
+	}
+	
+	@Deprecated
+	@Override
+	public Integer get(){
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public T getRef(){
+		Integer ref_id = this.value;
+		HashMap<String, Object> conditions = new HashMap<String, Object>(){{
+			put("id", ref_id);
+		}};
+		T ref = (T) T.get(conditions);
+		return ref;
 	}
 	
 	@Override
 	public String toString(){
-		return null;
+		T ref_value = this.getRef();
+		return ref_value.toString();
 	}
 
 }
