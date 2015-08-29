@@ -2,7 +2,7 @@ package kirkModels.objects;
 
 public abstract class SQLField<T> {
 
-	protected String label;
+	public String label;
 	public boolean isNull;
 	protected T value;
 	public boolean unique;
@@ -27,10 +27,11 @@ public abstract class SQLField<T> {
 	/**
 	 * Used almost exactly like the "=" operator. This will set <b>val</b> to the callable value of this field.
 	 * <br>
-	 * @param val - The value to set this field to
+	 * @param value - The value to set this field to
 	 */
-	public void set(T val){
-		this.value = val;
+	@SuppressWarnings("unchecked")
+	public void set(Object value){
+		this.value = (T) value;
 	}
 	
 	/**

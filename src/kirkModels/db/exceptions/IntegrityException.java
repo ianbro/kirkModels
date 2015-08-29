@@ -3,6 +3,7 @@ package kirkModels.db.exceptions;
 /*
  * Exception raised when the relational integrity of the database is affected, e.g. a foreign key check fails, duplicate key, etc
  */
+@SuppressWarnings("serial")
 public class IntegrityException extends Exception {
 
 	public IntegrityException(){

@@ -2,23 +2,27 @@ package tests;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
+import kirkModels.db.SQLHandler;
 import kirkModels.db.exceptions.IntegrityException;
-import kirkModels.objects.IntegerField;
 import kirkModels.objects.CharField;
+import kirkModels.objects.IntegerField;
 
 public abstract class Tests {
 	
 	public static Connection systemConnection;
 	public static String dbURL = Settings.DATABASE[0] + "://" + Settings.DATABASE[1] + ":" + Settings.DATABASE[2] + "/" + Settings.DATABASE[3];
+	public static SQLHandler sqlHandler;
 	
 	public static void main(String[] args) throws IntegrityException{
 		// TODO Auto-generated method stub
 		try {
 			systemConnection = DriverManager.getConnection(dbURL, Settings.DATABASE[4], Settings.DATABASE[5]);
+			sqlHandler = new SQLHandler(systemConnection);
+			backend.Settings.database = Settings.DATABASE;
+			backend.Settings.sqlHandler = sqlHandler;
+			backend.Settings.systemConnection = systemConnection;
 			System.out.println("Got connection to " + dbURL);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -36,5 +40,11 @@ public abstract class Tests {
 		integer.set(5);
 		System.out.println(integer);
 		System.out.println(integer.sqlString());
+		
+		TestModel test = new TestModel("Ian Kirkpatrick", 19);
+		System.out.println(test.getField("name"));
+		System.out.println(test.getField("age"));
+		test.sqlFields.get("age").set(20);
+		System.out.println(test.getField("age"));
 	}
 }

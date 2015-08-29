@@ -7,13 +7,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import backend.Settings;
+import kirkModels.db.SQLHandler;
 import kirkModels.db.exceptions.IntegrityException;
+import kirkModels.db.exceptions.MultipleResultsException;
 
 /**
  * An object can be saved to a database and contains a {@link HashMap} of sqlFields that can be saved with it.
  * @author Ian Kirkpatrick
  */
-public abstract class Model extends Object {
+public abstract class Model <M extends Model> extends Object {
 
 	public final HashMap<String, SQLField<?>> sqlFields;
 	
@@ -27,8 +30,13 @@ public abstract class Model extends Object {
 	 * Used to save the instantiated model object to the database. If the object already exists, it will update.
 	 * @throws IntegrityException
 	 */
-	public static void save() throws IntegrityException, SQLException {
-		
+	public void save() throws IntegrityException, SQLException {
+		if(Settings.sqlHandler.checkExists(this)){
+			Settings.sqlHandler.updateInstance(this);
+		}
+		else{
+			Settings.sqlHandler.saveNewInstance(this);
+		}
 	}
 	
 	/**
@@ -36,9 +44,22 @@ public abstract class Model extends Object {
 	 * Used to instantiate a class that extends model and then save it to the database in the same method. Calling this method will instantiate AND save to the database.
 	 * @param args - {@link HashMap}<{@link String}, {@link Object}> <b>args</b> - Attributes for this object to save
 	 * @throws IntegrityException
+	 * @throws SQLException 
 	 */
-	public static void create(HashMap<String, Object> args) throws IntegrityException{
-		
+	public static <M extends Model> M create(Class<M> model, HashMap<String, Object> args) throws IntegrityException, SQLException{
+		M instance = null;
+		try {
+			instance = model.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		for(String field: args.keySet()){
+			Object val = args.get(field);
+			instance.sqlFields.get(field).set(val);
+		}
+		instance.save();
+		return instance;
 	}
 	
 	/**
@@ -47,9 +68,19 @@ public abstract class Model extends Object {
 	 * @return {@link ArrayList}<{@link Model}> list of objects that meet the conditions given
 	 * @param args - {@link HashMap}<{@link String}, {@link Object}> <b>args</b> - Attributes for this object to save
 	 * @throws IntegrityException
+	 * @throws SQLException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	public static ArrayList<Model> getOrCreate(HashMap<String, Object> args) throws IntegrityException{
-		ArrayList<Model> results = new ArrayList<Model>();
+	public static <M extends Model> ArrayList<M> getOrCreate(Class<M> model, HashMap<String, Object> conditions) throws IntegrityException, SQLException{
+		ArrayList<M> results = null;
+		results = filter(model, conditions);
+		
+		if(results.size() == 0){
+			M instance = create(model, conditions);
+			results.add(instance);
+		}
+		
 		return results;
 	}
 	
@@ -60,10 +91,24 @@ public abstract class Model extends Object {
 	 * <p>
 	 * @param conditions - {@link HashMap}<{@link String}, {@link Object}> <b>conditions</b> - Conditions that determine which row to return.
 	 * @return {@link Model} the type that extends Model
+	 * @throws SQLException 
+	 * @throws MultipleResultsException 
 	 */
-	public static Model get(HashMap<String, Object> conditions) {
-		Model value = null;
-		return value;
+	public static <M extends Model> M get(Class<M> model, HashMap<String, Object> conditions) throws SQLException, MultipleResultsException {
+		ArrayList<M> instances = null;
+		try {
+			instances = Settings.sqlHandler.getInstances(model, conditions);
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(instances.size() > 1){
+			throw new MultipleResultsException();
+		}
+		else {
+			return instances.get(0);
+		}
 	}
 	
 	/**
@@ -72,9 +117,18 @@ public abstract class Model extends Object {
 	 * <p>
 	 * @return {@link ArrayList}<{@link Model}> list of objects that meet the conditions given
 	 * @param args - {@link HashMap}<{@link String}, {@link Object}> <b>args</b> - Conditions that must be met to return an instance
+	 * @throws SQLException 
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	public static ArrayList<Model> filter(HashMap<String, Object> args){
-		ArrayList<Model> results = new ArrayList<Model>();
+	public static <M extends Model> ArrayList<M> filter(Class<M> model, HashMap<String, Object> conditions) throws SQLException{
+		ArrayList<M> results = null;
+		try {
+			results = Settings.sqlHandler.getInstances(model, conditions);
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return results;
 	}
 	

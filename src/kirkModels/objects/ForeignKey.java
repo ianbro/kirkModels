@@ -20,25 +20,13 @@ public final class ForeignKey<T extends Model> extends IntegerField {
 		return null;
 	}
 	
-	@Deprecated
-	@Override
-	public void set(Integer val){
-		
-	}
-	
-	public void set(T value){
+	public void setObject(T value){
 		// T in this case is not an int, but the object instance that is being referenced
 		int valueID = (Integer)value.getField("id");
 		this.value = valueID;
 	}
 	
-	@Deprecated
-	@Override
-	public Integer get(){
-		return null;
-	}
-	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "serial" })
 	public T getRef(){
 		Integer ref_id = this.value;
 		HashMap<String, Object> conditions = new HashMap<String, Object>(){{
