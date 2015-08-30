@@ -3,7 +3,9 @@
  */
 package kirkModels.objects;
 
+import java.beans.Statement;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -16,11 +18,11 @@ import kirkModels.db.exceptions.MultipleResultsException;
  * An object can be saved to a database and contains a {@link HashMap} of sqlFields that can be saved with it.
  * @author Ian Kirkpatrick
  */
-public abstract class Model <M extends Model> extends Object {
+public abstract class Model <M extends Model>{
 
-	public final HashMap<String, SQLField<?>> sqlFields;
+	public final HashMap<String, SQLField> sqlFields;
 	
-	public Model(HashMap<String, SQLField<?>> sqlFields){
+	public Model(HashMap<String, SQLField> sqlFields){
 		sqlFields.put("id", new IntegerField("id", false, 1, true, true, 2147483647));
 		this.sqlFields = sqlFields;
 	}
@@ -56,7 +58,7 @@ public abstract class Model <M extends Model> extends Object {
 		}
 		for(String field: args.keySet()){
 			Object val = args.get(field);
-			instance.sqlFields.get(field).set(val);
+			((SQLField) instance.sqlFields.get(field)).set(val);
 		}
 		instance.save();
 		return instance;
@@ -136,5 +138,14 @@ public abstract class Model <M extends Model> extends Object {
 	public Object getField(String label){
 		SQLField sQLField = sqlFields.get(label);
 		return sQLField.value;
+	}
+	
+	public static void delete(ArrayList<Model> instances) throws SQLException{
+		Settings.sqlHandler.delete(instances);
+	}
+	
+	@SuppressWarnings("serial")
+	public void delete() throws SQLException{
+		Settings.sqlHandler.delete(new ArrayList<Model>(){{addAll(this);}});
 	}
 }

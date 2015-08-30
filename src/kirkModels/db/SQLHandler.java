@@ -2,6 +2,7 @@ package kirkModels.db;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import backend.Settings;
+import kirkModels.objects.ForeignKey;
 import kirkModels.objects.Model;
 import kirkModels.objects.SQLField;
 
@@ -54,9 +56,10 @@ public final class SQLHandler {
 		}
 		
 		T instance = model.newInstance();
-		for (String fieldName : instance.sqlFields.keySet()) {
-			SQLField field = instance.sqlFields.get(fieldName);
-			field.set(instance.sqlFields.get(fieldName).JAVA_TYPE.cast(fields.get(fieldName)));
+		for (Object fieldNameObject : instance.sqlFields.keySet()) {
+			String fieldName = (String) fieldNameObject;
+			SQLField fieldValue = (SQLField) instance.sqlFields.get(fieldName);
+			fieldValue.set(fieldValue.JAVA_TYPE.cast(fields.get(fieldName)));
 		}
 		return instance;
 	}
@@ -65,7 +68,8 @@ public final class SQLHandler {
 		Statement statement = this.dbConnection.createStatement();
 		
 		String sql = "UPDATE" + this.dbName + "." + instance.getClass().getSimpleName() + " SET";
-		for(String field: instance.sqlFields.keySet()){
+		for(Object fieldObject: instance.sqlFields.keySet()){
+			String field = (String) fieldObject;
 			if(!field.equals(instance.sqlFields.keySet().toArray()[0])){
 				sql = sql + ", ";
 			}
@@ -80,18 +84,20 @@ public final class SQLHandler {
 	public void saveNewInstance(Model instance) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
 		String sql = "INSERT INTO " + this.dbName + "." + instance.getClass().getSimpleName() + " (";
-		for(String field: instance.sqlFields.keySet()){
+		for(Object fieldObject: instance.sqlFields.keySet()){
+			SQLField field = (SQLField) fieldObject;
 			if(!field.equals(instance.sqlFields.keySet().toArray()[0])){
 				sql = sql + ", ";
 			}
 			sql = sql + field;
 		}
 		sql = sql + ") VALUES (";
-		for(SQLField<?> field: instance.sqlFields.values()){
+		for(Object fieldObject: instance.sqlFields.values()){
+			SQLField field = (SQLField) fieldObject;
 			if(!field.equals(instance.sqlFields.values().toArray()[0])){
 				sql = sql + ", ";
 			}
-			sql = sql + field.get();
+			sql = sql + (field).get();
 		}
 		sql = sql + ");";
 		
@@ -109,5 +115,35 @@ public final class SQLHandler {
 		else {
 			return false;
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public void delete(ArrayList<Model> instances) throws SQLException{
+		Statement statement = this.dbConnection.createStatement();
+		for(Model instance: instances){
+			String sql = "DELETE FROM " + this.dbName + "." + instance.getClass().getSimpleName() + " WHERE id=" + instance.getField("id");
+			statement.executeQuery(sql);
+		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private String getForeignKeyStrings(Model instance){
+		String sql = "";
+		for(Object fieldObject: instance.sqlFields.values()){
+			SQLField field = (SQLField)fieldObject;
+			if(field.getClass().equals(ForeignKey.class)){
+				sql = sql + field.sqlString().split("<SPLIT>")[1];
+			}
+			if(!fieldObject.equals(instance.sqlFields.values().toArray()[0])){
+				sql = sql + ",\n";
+			}
+		}
+		return sql;
+	}
+	
+	private String getPrimaryKeyStrings(Model instance){
+		String sql = "";
+		
+		return sql;
 	}
 }

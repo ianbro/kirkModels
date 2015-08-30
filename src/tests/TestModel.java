@@ -12,18 +12,18 @@ public class TestModel extends Model {
 	public String name;
 	public Integer age;
 
-	@SuppressWarnings("serial")
+	@SuppressWarnings({ "serial", "unchecked" })
 	public TestModel(String name, int age) {
 		super(new HashMap<String, SQLField<?>>(){{
 			put("name", new CharField("name", false, "Nothing", true, 20));
 			put("age", new IntegerField("age", true, null, false, false, 150));
 		}});
 		// TODO Auto-generated constructor stub
-		this.sqlFields.get("name").set(name);
-		this.sqlFields.get("age").set(age);
+		((SQLField<String>) this.sqlFields.get("name")).set(name);
+		((SQLField<Integer>) this.sqlFields.get("age")).set(age);
 	}
 	
-	@SuppressWarnings("serial")
+	@SuppressWarnings({ "serial", "unchecked" })
 	public TestModel(){
 		super(new HashMap<String, SQLField<?>>(){{
 			put("name", new CharField("name", false, "Nothing", true, 20));

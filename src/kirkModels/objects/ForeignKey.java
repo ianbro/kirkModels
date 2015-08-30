@@ -1,6 +1,9 @@
 package kirkModels.objects;
 
+import java.sql.SQLException;
 import java.util.HashMap;
+
+import kirkModels.db.exceptions.MultipleResultsException;
 
 public final class ForeignKey<T extends Model> extends IntegerField {
 
@@ -16,7 +19,7 @@ public final class ForeignKey<T extends Model> extends IntegerField {
 	@Override
 	public String sqlString() {
 		String sql = super.sqlString();
-		sql = sql + "%" + "FOREIGN KEY (" + this.tableRef.getSimpleName() + "_id, " + this.label + ")\n  REFERENCES " + this.tableRef.getSimpleName() + "(id)\n  ON UPDATE CASCADE ON DELETE " + this.onDelete;
+		sql = sql + "<SPLIT>" + "FOREIGN KEY (" + this.tableRef.getSimpleName() + "_id, " + this.label + ")\n  REFERENCES " + this.tableRef.getSimpleName() + "(id)\n  ON UPDATE CASCADE ON DELETE " + this.onDelete;
 		return null;
 	}
 	
@@ -27,18 +30,24 @@ public final class ForeignKey<T extends Model> extends IntegerField {
 	}
 	
 	@SuppressWarnings({ "unchecked", "serial" })
-	public T getRef(){
+	public T getRef() throws SQLException, MultipleResultsException{
 		Integer ref_id = this.value;
 		HashMap<String, Object> conditions = new HashMap<String, Object>(){{
 			put("id", ref_id);
 		}};
-		T ref = (T) T.get(conditions);
+		T ref = (T) T.get(tableRef, conditions);
 		return ref;
 	}
 	
 	@Override
 	public String toString(){
-		T ref_value = this.getRef();
+		T ref_value = null;
+		try {
+			ref_value = this.getRef();
+		} catch (SQLException | MultipleResultsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return ref_value.toString();
 	}
 

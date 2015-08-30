@@ -8,6 +8,7 @@ import kirkModels.db.SQLHandler;
 import kirkModels.db.exceptions.IntegrityException;
 import kirkModels.objects.CharField;
 import kirkModels.objects.IntegerField;
+import kirkModels.objects.SQLField;
 
 public abstract class Tests {
 	
@@ -19,10 +20,10 @@ public abstract class Tests {
 		// TODO Auto-generated method stub
 		try {
 			systemConnection = DriverManager.getConnection(dbURL, Settings.DATABASE[4], Settings.DATABASE[5]);
-			sqlHandler = new SQLHandler(systemConnection);
 			backend.Settings.database = Settings.DATABASE;
 			backend.Settings.sqlHandler = sqlHandler;
 			backend.Settings.systemConnection = systemConnection;
+			sqlHandler = new SQLHandler(systemConnection);
 			System.out.println("Got connection to " + dbURL);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -44,7 +45,7 @@ public abstract class Tests {
 		TestModel test = new TestModel("Ian Kirkpatrick", 19);
 		System.out.println(test.getField("name"));
 		System.out.println(test.getField("age"));
-		test.sqlFields.get("age").set(20);
+		((SQLField<Integer>) test.sqlFields.get("age")).set(20);
 		System.out.println(test.getField("age"));
 	}
 }

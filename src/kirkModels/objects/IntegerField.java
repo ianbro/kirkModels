@@ -48,6 +48,9 @@ public class IntegerField extends SQLField<Integer> {
 		if(this.autoIncrement){
 			sql = sql + " AUTO_INCREMENT";
 		}
+		if(this.label.equals("id")){
+			sql = sql + " PRIMARY KEY";
+		}
 		return sql;
 	}
 }
