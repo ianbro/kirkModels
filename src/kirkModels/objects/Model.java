@@ -22,9 +22,10 @@ public abstract class Model <M extends Model>{
 
 	public final HashMap<String, SQLField> sqlFields;
 	
-	public Model(HashMap<String, SQLField> sqlFields){
-		sqlFields.put("id", new IntegerField("id", false, 1, true, true, 2147483647));
-		this.sqlFields = sqlFields;
+	public Model(HashMap<String, SQLField> fields){
+		fields.put("id", new IntegerField("id", false, 1, true, true, 2147483647));
+		this.sqlFields = fields;
+		this.sqlFields.get("id").set(count(this.getClass())+1);
 	}
 	
 	/**
@@ -39,6 +40,17 @@ public abstract class Model <M extends Model>{
 		else{
 			Settings.sqlHandler.saveNewInstance(this);
 		}
+	}
+	
+	public static <T extends Model> ArrayList<T> getAll(Class<T> model) throws SQLException{
+		ArrayList<T> results = new ArrayList<T>();
+		try {
+			results = Settings.sqlHandler.getInstances(model, null);
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return results;
 	}
 	
 	/**
@@ -147,5 +159,16 @@ public abstract class Model <M extends Model>{
 	@SuppressWarnings("serial")
 	public void delete() throws SQLException{
 		Settings.sqlHandler.delete(new ArrayList<Model>(){{addAll(this);}});
+	}
+	
+	public static <M> int count(Class<M> model){
+		int total = 0;
+		try {
+			total = Settings.sqlHandler.count(model);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return total;
 	}
 }

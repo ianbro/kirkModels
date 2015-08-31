@@ -19,6 +19,9 @@ public class IntegerField extends SQLField<Integer> {
 		<IntegerField>super(label, isNull, unique);
 		
 		this.autoIncrement = autoIncrement;
+		if(defaultValue == null){
+			defaultValue = null;
+		}
 		this.value = defaultValue;
 		this.maxVal = maxValue;
 		this.JAVA_TYPE = Integer.class;

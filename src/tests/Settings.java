@@ -35,7 +35,7 @@ public abstract class Settings {
 						"jdbc:mysql",
 						"localhost",
 						"3306",
-						"library",
+						"test",
 						"root",
 						"saline54"
 						}

@@ -14,7 +14,7 @@ public class TestModel extends Model {
 
 	@SuppressWarnings({ "serial", "unchecked" })
 	public TestModel(String name, int age) {
-		super(new HashMap<String, SQLField<?>>(){{
+		super(new HashMap<String, SQLField>(){{
 			put("name", new CharField("name", false, "Nothing", true, 20));
 			put("age", new IntegerField("age", true, null, false, false, 150));
 		}});
