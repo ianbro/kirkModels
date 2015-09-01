@@ -16,7 +16,7 @@ public class TestModel extends Model {
 	public TestModel(String name, int age) {
 		super(new HashMap<String, SQLField>(){{
 			put("name", new CharField("name", false, "Nothing", true, 20));
-			put("age", new IntegerField("age", true, null, false, false, 150));
+			put("age", new IntegerField("age", true, null, false, 150));
 		}});
 		// TODO Auto-generated constructor stub
 		((SQLField<String>) this.sqlFields.get("name")).set(name);
@@ -27,7 +27,7 @@ public class TestModel extends Model {
 	public TestModel(){
 		super(new HashMap<String, SQLField<?>>(){{
 			put("name", new CharField("name", false, "Nothing", true, 20));
-			put("age", new IntegerField("age", true, null, false, false, 150));
+			put("age", new IntegerField("age", true, null, false, 150));
 		}});
 	}
 

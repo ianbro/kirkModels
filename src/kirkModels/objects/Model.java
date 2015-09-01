@@ -23,9 +23,15 @@ public abstract class Model <M extends Model>{
 	public final HashMap<String, SQLField> sqlFields;
 	
 	public Model(HashMap<String, SQLField> fields){
-		fields.put("id", new IntegerField("id", false, 1, true, true, 2147483647));
+		fields.put("id", new IntegerField("id", false, 1, true, 2147483647));
 		this.sqlFields = fields;
-		this.sqlFields.get("id").set(count(this.getClass())+1);
+		try{
+			this.sqlFields.get("id").set(1);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			this.sqlFields.get("id").set(count(this.getClass())+1);
+		}
 	}
 	
 	/**

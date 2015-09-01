@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import backend.Settings;
+import kirkModels.db.scripts.MySqlScript;
+import kirkModels.db.scripts.PSqlScript;
+import kirkModels.db.scripts.SqlScript;
 import kirkModels.objects.ForeignKey;
 import kirkModels.objects.Model;
 import kirkModels.objects.SQLField;
@@ -19,10 +22,17 @@ public final class SQLHandler {
 	
 	public Connection dbConnection;
 	public String dbName;
+	private SqlScript sqlScript;
+	
+	private HashMap<String, SqlScript> lanuages = new HashMap<String, SqlScript>(){{
+		put("MySQL",		new MySqlScript(dbName));
+		put("postgreSQL",		new PSqlScript());
+	}};
 	
 	public SQLHandler(Connection conn) throws SQLException{
 		this.dbConnection = conn;
 		this.dbName = Settings.database[3];
+		this.sqlScript = this.lanuages.get(Settings.database[6]);
 	}
 
 	public <T extends Model> ArrayList<T> getInstances(Class<T> model, HashMap<String, Object> conditions) throws SQLException, InstantiationException, IllegalAccessException{
@@ -30,21 +40,7 @@ public final class SQLHandler {
 		Statement statement = this.dbConnection.createStatement();
 		
 		//////Setting up Query//////
-		String sql = "SELECT * FROM " + this.dbName + "." + model.getSimpleName().toLowerCase();
-		if(conditions != null){
-			sql = sql + " WHERE";
-			for(String var: conditions.keySet()){
-				if(!var.equals(String.valueOf(conditions.keySet().toArray()[0]))){
-					sql = sql + " AND";
-				}
-				Object val = conditions.get(var);
-				if(val.getClass().equals(String.class)){
-					val = "'" + val + "'";
-				}
-				sql = sql + " " + var + "=" + val.toString();
-			}
-		}
-		sql = sql + ";";
+		String sql = this.sqlScript.getSelectString(model, conditions);
 		System.out.println(sql);
 		//////Executing and getting Query//////
 		ResultSet results = statement.executeQuery(sql);
@@ -75,21 +71,7 @@ public final class SQLHandler {
 	public void updateInstance(Model instance) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
 		
-		String sql = "UPDATE " + this.dbName + "." + instance.getClass().getSimpleName().toLowerCase() + " SET ";
-		for(Object fieldObject: instance.sqlFields.keySet()){
-			String field = (String) fieldObject;
-			
-			Object fieldValue = ((SQLField) instance.sqlFields.get(fieldObject)).get();
-			if(fieldValue.getClass().equals(String.class)){
-				fieldValue = "'" + fieldValue + "'";
-			}
-			
-			if(!field.equals(instance.sqlFields.keySet().toArray()[0])){
-				sql = sql + ", ";
-			}
-			sql = sql + field + "=" + fieldValue;
-		}
-		sql = sql + " WHERE id=" + instance.getField("id") + ";";
+		String sql = this.sqlScript.getUpdateString(instance);
 		System.out.println(sql);
 		statement.execute(sql);
 	}
@@ -97,34 +79,14 @@ public final class SQLHandler {
 	@SuppressWarnings("rawtypes")
 	public void saveNewInstance(Model instance) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
-		String sql = "INSERT INTO " + this.dbName + "." + instance.getClass().getSimpleName().toLowerCase() + " (";
-		for(Object fieldObject: instance.sqlFields.keySet()){
-			String field = (String) fieldObject;
-			if(!field.equals(instance.sqlFields.keySet().toArray()[0])){
-				sql = sql + ", ";
-			}
-			sql = sql + field;
-		}
-		sql = sql + ") VALUES (";
-		for(Object fieldObject: instance.sqlFields.values()){
-			Object field = ((SQLField) fieldObject).get();
-			if(field.getClass().equals(String.class)){
-				field = "'" + field + "'";
-			}
-			
-			if(!fieldObject.equals(instance.sqlFields.values().toArray()[0])){
-				sql = sql + ", ";
-			}
-			sql = sql + (field);
-		}
-		sql = sql + ");";
+		String sql = this.sqlScript.getSaveNewInstanceString(instance);
 		System.out.println(sql);
 		statement.execute(sql);
 	}
 	
 	public boolean checkExists(Model instance) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
-		String sql = "SELECT id FROM " + this.dbName + "." + instance.getClass().getSimpleName().toLowerCase() + " WHERE id=" + instance.getField("id") + ";";
+		String sql = this.sqlScript.getCheckExistsString(instance);
 		System.out.println(sql);
 		ResultSet results = statement.executeQuery(sql);
 		if(results.next()){
@@ -146,58 +108,15 @@ public final class SQLHandler {
 	public void delete(ArrayList<Model> instances) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
 		for(Model instance: instances){
-			String sql = "DELETE FROM " + this.dbName + "." + instance.getClass().getSimpleName().toLowerCase() + " WHERE id=" + instance.getField("id");
+			String sql = this.sqlScript.getDeleteString(instance);
 			statement.executeQuery(sql);
 		}
 	}
 	
 	public void createTable(Model model) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
-		String sql = this.getTableString(model);
+		String sql = this.sqlScript.getTableString(model);
 		statement.execute(sql);
-	}
-	
-	public String getTableString(Model model){
-		String sql = "CREATE TABLE " + this.dbName + "." + model.getClass().getSimpleName().toLowerCase() + " (\n";
-		sql = sql + getFieldStrings(model) + getForeignKeyStrings(model);
-		sql = sql + "\n);";
-		return sql;
-	}
-	
-	private String getFieldStrings(Model instance){
-		String sql = "";
-		for(Object fieldObject: instance.sqlFields.values()){
-			SQLField field = (SQLField) fieldObject;
-			if(field.getClass().equals(ForeignKey.class)){
-				sql = sql + field.sqlString().split("<SPLIT>")[0];
-			}
-			else {
-				sql = sql + "\t" + field.sqlString();
-			}
-			if(!fieldObject.equals(instance.sqlFields.values().toArray()[instance.sqlFields.size()-1])){
-				sql = sql + ",\n";
-			}
-		}
-		return sql;
-	}
-	
-	@SuppressWarnings("rawtypes")
-	private String getForeignKeyStrings(Model instance){
-		String sql = "";
-		
-		for(Object fieldObject: instance.sqlFields.values()){
-			SQLField field = (SQLField)fieldObject;
-			if(field.getClass().equals(ForeignKey.class)){
-				if(fieldObject.equals(instance.sqlFields.values().toArray()[0])){
-					sql = sql + ",/n";
-				}
-				sql = sql + "\t" + field.sqlString().split("<SPLIT>")[1];
-				if(!fieldObject.equals(instance.sqlFields.values().toArray()[instance.sqlFields.size()-1])){
-					sql = sql + ",\n";
-				}
-			}
-		}
-		return sql;
 	}
 	
 	public <T> Integer count(Class<T> type) throws SQLException{

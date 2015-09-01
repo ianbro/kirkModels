@@ -11,7 +11,7 @@ public final class ForeignKey<T extends Model> extends IntegerField {
 	protected String onDelete;
 	
 	public ForeignKey(Class<T> reference, String label, boolean isNull, T defaultValue, boolean unique, String onDelete) {
-		super(label, isNull, (Integer) defaultValue.getField("id"), unique, false, 16777215);
+		super(label, isNull, (Integer) defaultValue.getField("id"), unique, 16777215);
 		this.tableRef = reference;
 		this.onDelete = onDelete;
 	}

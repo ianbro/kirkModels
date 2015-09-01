@@ -16,6 +16,7 @@ public abstract class Settings {
 	 * - schema name<br>
 	 * - username<br>
 	 * - password<br>
+	 * - language<br>
 	 */
 	@SuppressWarnings("serial")
 	public static HashMap<String, String[]> DATABASES_MAP = new HashMap<String, String[]>(){{
@@ -26,7 +27,8 @@ public abstract class Settings {
 						"5432",
 						"vagrant",
 						"vagrant",
-						"vagrant"
+						"vagrant",
+						"postgreSQL"
 						}
 		);
 		
@@ -37,7 +39,8 @@ public abstract class Settings {
 						"3306",
 						"test",
 						"root",
-						"saline54"
+						"saline54",
+						"MySql"
 						}
 		);
 	}};
@@ -47,7 +50,7 @@ public abstract class Settings {
 	 * <br>
 	 * <p>String used to call the database that will be used in the program. This will be called by <b>Settings.DATABASE</b> to get the corresponding database array of attributes by key. This variable is the key that will be used.</p>
 	 */
-	public static String DB_TO_USE = "mysql";
+	public static String DB_TO_USE = "vagrant";
 	
 	/**
 	 * <h1>public static String[] DATABASE</h1>

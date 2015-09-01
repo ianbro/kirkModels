@@ -4,7 +4,6 @@ public class IntegerField extends SQLField<Integer> {
 
 	public final String SQL_TYPE;
 	public Integer maxVal;
-	public boolean autoIncrement;
 	
 	/**
 	 * A field that, when called, will return an {@link Integer}. This field can be saved to a database and, depending on the maxValue parameter, will be saved as a TINYINT, SMALLINT, or a MEDIUMINT in SQL.
@@ -15,10 +14,9 @@ public class IntegerField extends SQLField<Integer> {
 	 * @param autoIncrement - whether this field will automatically increment
 	 * @param maxValue - the maximum value that this field is allowed to be
 	 */
-	public IntegerField(String label, boolean isNull, Integer defaultValue, boolean unique, boolean autoIncrement, Integer maxValue) {
+	public IntegerField(String label, boolean isNull, Integer defaultValue, boolean unique, Integer maxValue) {
 		<IntegerField>super(label, isNull, unique);
 		
-		this.autoIncrement = autoIncrement;
 		if(defaultValue == null){
 			defaultValue = null;
 		}
@@ -47,9 +45,6 @@ public class IntegerField extends SQLField<Integer> {
 		String sql = this.label + " " + this.SQL_TYPE;
 		if(!this.isNull){
 			sql = sql + " NOT NULL";
-		}
-		if(this.autoIncrement){
-			sql = sql + " AUTO_INCREMENT";
 		}
 		if(this.label.equals("id")){
 			sql = sql + " PRIMARY KEY";
