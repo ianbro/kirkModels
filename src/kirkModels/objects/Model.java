@@ -39,20 +39,25 @@ public abstract class Model <M extends Model>{
 	 * Used to save the instantiated model object to the database. If the object already exists, it will update.
 	 * @throws IntegrityException
 	 */
-	public void save() throws IntegrityException, SQLException {
-		if(Settings.sqlHandler.checkExists(this)){
-			Settings.sqlHandler.updateInstance(this);
-		}
-		else{
-			Settings.sqlHandler.saveNewInstance(this);
+	public void save(){
+		try {
+			if(Settings.sqlHandler.checkExists(this)){
+				Settings.sqlHandler.updateInstance(this);
+			}
+			else{
+				Settings.sqlHandler.saveNewInstance(this);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
-	public static <T extends Model> ArrayList<T> getAll(Class<T> model) throws SQLException{
+	public static <T extends Model> ArrayList<T> getAll(Class<T> model){
 		ArrayList<T> results = new ArrayList<T>();
 		try {
 			results = Settings.sqlHandler.getInstances(model, null);
-		} catch (InstantiationException | IllegalAccessException e) {
+		} catch (InstantiationException | IllegalAccessException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -66,7 +71,7 @@ public abstract class Model <M extends Model>{
 	 * @throws IntegrityException
 	 * @throws SQLException 
 	 */
-	public static <M extends Model> M create(Class<M> model, HashMap<String, Object> args) throws IntegrityException, SQLException{
+	public static <M extends Model> M create(Class<M> model, HashMap<String, Object> args){
 		M instance = null;
 		try {
 			instance = model.newInstance();
@@ -92,7 +97,7 @@ public abstract class Model <M extends Model>{
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
 	 */
-	public static <M extends Model> ArrayList<M> getOrCreate(Class<M> model, HashMap<String, Object> conditions) throws IntegrityException, SQLException{
+	public static <M extends Model> ArrayList<M> getOrCreate(Class<M> model, HashMap<String, Object> conditions){
 		ArrayList<M> results = null;
 		results = filter(model, conditions);
 		
@@ -114,17 +119,26 @@ public abstract class Model <M extends Model>{
 	 * @throws SQLException 
 	 * @throws MultipleResultsException 
 	 */
-	public static <M extends Model> M get(Class<M> model, HashMap<String, Object> conditions) throws SQLException, MultipleResultsException {
+	public static <M extends Model> M get(Class<M> model, HashMap<String, Object> conditions){
 		ArrayList<M> instances = null;
 		try {
 			instances = Settings.sqlHandler.getInstances(model, conditions);
 		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		if(instances.size() > 1){
-			throw new MultipleResultsException();
+			try {
+				throw new MultipleResultsException();
+			} catch (MultipleResultsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
 		}
 		else {
 			if(instances.size() == 0){
@@ -146,11 +160,14 @@ public abstract class Model <M extends Model>{
 	 * @throws IllegalAccessException 
 	 * @throws InstantiationException 
 	 */
-	public static <M extends Model> ArrayList<M> filter(Class<M> model, HashMap<String, Object> conditions) throws SQLException{
+	public static <M extends Model> ArrayList<M> filter(Class<M> model, HashMap<String, Object> conditions){
 		ArrayList<M> results = null;
 		try {
 			results = Settings.sqlHandler.getInstances(model, conditions);
 		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -163,13 +180,23 @@ public abstract class Model <M extends Model>{
 		return sQLField.value;
 	}
 	
-	public static void delete(ArrayList<Model> instances) throws SQLException{
-		Settings.sqlHandler.delete(instances);
+	public static void delete(ArrayList<Model> instances){
+		try {
+			Settings.sqlHandler.delete(instances);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@SuppressWarnings("serial")
-	public void delete() throws SQLException{
-		Settings.sqlHandler.delete(new ArrayList<Model>(){{addAll(this);}});
+	public void delete(){
+		try {
+			Settings.sqlHandler.delete(new ArrayList<Model>(){{addAll(this);}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static <M> int count(Class<M> model){

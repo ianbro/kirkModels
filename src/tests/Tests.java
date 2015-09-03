@@ -42,27 +42,12 @@ public abstract class Tests {
 //			e.printStackTrace();
 //		}
 		
-//		try {
-//			TestModel test = TestModel.create(TestModel.class, new HashMap<String, Object>(){{put("name", "Joe Zimbo"); put("age", 23);}});
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+//		TestModel test = TestModel.create(TestModel.class, new HashMap<String, Object>(){{put("name", "Joe Zimbo"); put("age", 23);}});
 		
-		TestModel test1 = null;
-		try {
-			test1 = TestModel.get(TestModel.class, new HashMap<String, Object>(){{put("name", "Joe Zimbo");}});
-		} catch (SQLException | MultipleResultsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		((IntegerField)test1.sqlFields.get("age")).set(28);
-		try {
-			test1.save();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println(test1);
+//		TestModel test1 = null;
+//		test1 = TestModel.get(TestModel.class, new HashMap<String, Object>(){{put("name", "Joe Zimbo");}});
+//		((IntegerField)test1.sqlFields.get("age")).set(28);
+//		test1.save();
+//		System.out.println(test1);
 	}
 }

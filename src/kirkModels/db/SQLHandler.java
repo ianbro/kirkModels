@@ -139,4 +139,10 @@ public final class SQLHandler {
 		
 		return total;
 	}
+	
+	public void updateTable(Model model) throws SQLException{
+		Statement statement = this.dbConnection.createStatement();
+		String sql = null;
+		statement.execute(sql);
+	}
 }
