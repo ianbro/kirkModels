@@ -43,8 +43,14 @@ public abstract class SQLField<T> {
 	}
 	
 	/**
-	 * Used when saving this field to the database. This method converts the field into the SQL equivalent of this field. For instance, an IntegerField will be returned as "INT [ <b>properties</b> ]"
-	 * @return String - the SQL equivalent of this field.
+	 * Used when saving this field to the database. This method converts the field into the MySQL equivalent of this field. For instance, an IntegerField will be returned as "INT [ <b>properties</b> ]"
+	 * @return String - the MySQL equivalent of this field.
 	 */
-	public abstract String sqlString();
+	public abstract String MySqlString();
+	
+	/**
+	 * Used when saving this field to the database. This method converts the field into the PostgreSQL equivalent of this field. For instance, an IntegerField will be returned as "INT [ <b>properties</b> ]"
+	 * @return String - the PostgreSQL equivalent of this field.
+	 */
+	public abstract String PSqlString();
 }

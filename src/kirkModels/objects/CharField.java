@@ -2,7 +2,8 @@ package kirkModels.objects;
 
 public class CharField extends SQLField<String> {
 
-	public final String SQL_TYPE;
+	public final String MYSQL_TYPE;
+	public final String PSQL_TYPE;
 	public int maxLength;
 	
 	/**
@@ -18,13 +19,23 @@ public class CharField extends SQLField<String> {
 		
 		this.value = defaultValue;
 		this.maxLength = maxLength;
-		this.SQL_TYPE = "VARCHAR(" + this.maxLength + ")";
+		this.MYSQL_TYPE = "VARCHAR(" + this.maxLength + ")";
+		this.PSQL_TYPE = "varchar(" + this.maxLength + ")";
 		this.JAVA_TYPE = String.class;
 	}
 
 	@Override
-	public String sqlString() {
-		String sql = this.label + " " + this.SQL_TYPE;
+	public String MySqlString() {
+		String sql = this.label + " " + this.MYSQL_TYPE;
+		if(!this.isNull){
+			sql = sql + " NOT NULL";
+		}
+		return sql;
+	}
+
+	@Override
+	public String PSqlString() {
+		String sql = this.label + " " + this.PSQL_TYPE;
 		if(!this.isNull){
 			sql = sql + " NOT NULL";
 		}

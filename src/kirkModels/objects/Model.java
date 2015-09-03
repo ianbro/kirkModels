@@ -127,7 +127,12 @@ public abstract class Model <M extends Model>{
 			throw new MultipleResultsException();
 		}
 		else {
-			return instances.get(0);
+			if(instances.size() == 0){
+				return null;
+			}
+			else{
+				return instances.get(0);
+			}
 		}
 	}
 	

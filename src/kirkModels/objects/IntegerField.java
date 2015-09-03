@@ -1,8 +1,12 @@
 package kirkModels.objects;
 
+import kirkModels.db.scripts.MySqlScript;
+import kirkModels.db.scripts.PSqlScript;
+
 public class IntegerField extends SQLField<Integer> {
 
-	public final String SQL_TYPE;
+	public final String MYSQL_TYPE;
+	public final String PSQL_TYPE;
 	public Integer maxVal;
 	
 	/**
@@ -24,25 +28,25 @@ public class IntegerField extends SQLField<Integer> {
 		this.maxVal = maxValue;
 		this.JAVA_TYPE = Integer.class;
 		
-		if(this.maxVal != null){
-			if(this.maxVal < 255){
-				this.SQL_TYPE = "TINYINT";
-			}
-			else if(this.maxVal < 65535){
-				this.SQL_TYPE = "SMALLINT";
-			}
-			else {
-				this.SQL_TYPE = "MEDIUMINT";
-			}
-		}
-		else {
-			this.SQL_TYPE = "MEDIUMINT";
-		}
+		this.MYSQL_TYPE = MySqlScript.getIntType(maxValue);
+		this.PSQL_TYPE = PSqlScript.getIntType(maxValue);
 	}
 
 	@Override
-	public String sqlString() {
-		String sql = this.label + " " + this.SQL_TYPE;
+	public String MySqlString() {
+		String sql = this.label + " " + this.MYSQL_TYPE;
+		if(!this.isNull){
+			sql = sql + " NOT NULL";
+		}
+		if(this.label.equals("id")){
+			sql = sql + " PRIMARY KEY";
+		}
+		return sql;
+	}
+	
+	@Override
+	public String PSqlString() {
+		String sql = this.label + " " + this.PSQL_TYPE;
 		if(!this.isNull){
 			sql = sql + " NOT NULL";
 		}

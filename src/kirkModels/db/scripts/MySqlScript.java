@@ -27,10 +27,10 @@ public final class MySqlScript extends SqlScript{
 		for(Object fieldObject: instance.sqlFields.values()){
 			SQLField field = (SQLField) fieldObject;
 			if(field.getClass().equals(ForeignKey.class)){
-				sql = sql + field.sqlString().split("<SPLIT>")[0];
+				sql = sql + field.MySqlString().split("<SPLIT>")[0];
 			}
 			else {
-				sql = sql + "\t" + field.sqlString();
+				sql = sql + "\t" + field.MySqlString();
 			}
 			if(!fieldObject.equals(instance.sqlFields.values().toArray()[instance.sqlFields.size()-1])){
 				sql = sql + ",\n";
@@ -49,7 +49,7 @@ public final class MySqlScript extends SqlScript{
 				if(fieldObject.equals(instance.sqlFields.values().toArray()[0])){
 					sql = sql + ",/n";
 				}
-				sql = sql + "\t" + field.sqlString().split("<SPLIT>")[1];
+				sql = sql + "\t" + field.MySqlString().split("<SPLIT>")[1];
 				if(!fieldObject.equals(instance.sqlFields.values().toArray()[instance.sqlFields.size()-1])){
 					sql = sql + ",\n";
 				}
@@ -133,5 +133,22 @@ public final class MySqlScript extends SqlScript{
 		}
 		sql = sql + ";";
 		return sql;
+	}
+
+	public static String getIntType(Integer maxVal) {
+		if(maxVal != null){
+			if(maxVal < 255){
+				return "TINYINT";
+			}
+			else if(maxVal < 65535){
+				return "SMALLINT";
+			}
+			else {
+				return "MEDIUMINT";
+			}
+		}
+		else {
+			return "MEDIUMINT";
+		}
 	}
 }

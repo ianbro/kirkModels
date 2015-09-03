@@ -17,8 +17,14 @@ public final class ForeignKey<T extends Model> extends IntegerField {
 	}
 
 	@Override
-	public String sqlString() {
-		String sql = super.sqlString();
+	public String MySqlString() {
+		String sql = super.MySqlString();
+		sql = sql + "<SPLIT>" + "FOREIGN KEY (" + this.tableRef.getSimpleName() + "_id, " + this.label + ")\n  REFERENCES " + this.tableRef.getSimpleName() + "(id)\n  ON UPDATE CASCADE ON DELETE " + this.onDelete;
+		return null;
+	}
+	
+	public String PSqlString(){
+		String sql = super.PSqlString();
 		sql = sql + "<SPLIT>" + "FOREIGN KEY (" + this.tableRef.getSimpleName() + "_id, " + this.label + ")\n  REFERENCES " + this.tableRef.getSimpleName() + "(id)\n  ON UPDATE CASCADE ON DELETE " + this.onDelete;
 		return null;
 	}

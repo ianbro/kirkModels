@@ -51,7 +51,7 @@ public abstract class Tests {
 		
 		TestModel test1 = null;
 		try {
-			test1 = TestModel.get(TestModel.class, new HashMap<String, Object>(){{put("name", "Ian Kirkpatrick");}});
+			test1 = TestModel.get(TestModel.class, new HashMap<String, Object>(){{put("name", "Joe Zimbo");}});
 		} catch (SQLException | MultipleResultsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -63,5 +63,6 @@ public abstract class Tests {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println(test1);
 	}
 }

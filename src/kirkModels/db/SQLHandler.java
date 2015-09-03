@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +57,12 @@ public final class SQLHandler {
 	private <T extends Model> T getNextInstance(Class<T> model, ResultSet results) throws SQLException, InstantiationException, IllegalAccessException{
 		HashMap<String, Object> fields = new HashMap<String, Object>();
 		for(Field field: model.getDeclaredFields()){
-			fields.put(field.getName(), results.getObject(field.getName(), field.getType()));
+			try{
+				fields.put(field.getName(), results.getObject(field.getName(), field.getType()));
+			}
+			catch (SQLFeatureNotSupportedException e) {
+				fields.put(field.getName(), field.getType().cast(results.getObject(field.getName())));
+			}
 		}
 		
 		T instance = model.newInstance();
