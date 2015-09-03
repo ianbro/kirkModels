@@ -144,4 +144,13 @@ public final class PSqlScript extends SqlScript {
 			return "integer";
 		}
 	}
+
+	@Override
+	public String getCountString(Class type) {
+		String sql = "SELECT COUNT(*) FROM " + type.getSimpleName().toLowerCase();
+		
+		sql =  sql + "<SPLIT>" + "count";
+		
+		return sql;
+	}
 }

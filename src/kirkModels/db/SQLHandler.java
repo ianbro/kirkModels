@@ -129,12 +129,12 @@ public final class SQLHandler {
 	public <T> Integer count(Class<T> type) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
 		
-		String sql = "SELECT COUNT(*) FROM " + type.getSimpleName().toLowerCase();
+		String[] sql = this.sqlScript.getCountString(type).split("<SPLIT>");
 		
-		ResultSet result = statement.executeQuery(sql);
+		ResultSet result = statement.executeQuery(sql[0]);
 		Integer total = 0;
 		if(result.next()){
-			total = result.getInt("COUNT(*)");
+			total = result.getInt(sql[1]);
 		}
 		
 		return total;

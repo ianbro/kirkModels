@@ -18,4 +18,6 @@ public abstract class SqlScript {
 	public abstract String getUpdateString(Model instance);
 	
 	public abstract String getSelectString(Class model, HashMap<String, Object> conditions);
+	
+	public abstract String getCountString(Class type);
 }

@@ -1,5 +1,7 @@
 package kirkModels.db.scripts;
 
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -150,5 +152,14 @@ public final class MySqlScript extends SqlScript{
 		else {
 			return "MEDIUMINT";
 		}
+	}
+	
+	@Override
+	public String getCountString(Class type){
+		String sql = "SELECT COUNT(*) FROM " + type.getSimpleName().toLowerCase();
+		
+		sql =  sql + "<SPLIT>" + "COUNT(*)";
+		
+		return sql;
 	}
 }

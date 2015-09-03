@@ -2,7 +2,7 @@ package tests;
 
 import java.util.HashMap;
 
-public abstract class Settings {
+public abstract class SettingsTest {
 	
 	/**
 	 * <h1>public static HashMap<String, String[]> DATABASES_MAP</h1>
@@ -48,14 +48,14 @@ public abstract class Settings {
 	/**
 	 * <h1>public static String DB_TO_USE</h1>
 	 * <br>
-	 * <p>String used to call the database that will be used in the program. This will be called by <b>Settings.DATABASE</b> to get the corresponding database array of attributes by key. This variable is the key that will be used.</p>
+	 * <p>String used to call the database that will be used in the program. This will be called by <b>SettingsTest.DATABASE</b> to get the corresponding database array of attributes by key. This variable is the key that will be used.</p>
 	 */
 	public static String DB_TO_USE = "vagrant";
 	
 	/**
 	 * <h1>public static String[] DATABASE</h1>
 	 * <br>
-	 * <p>This variable will use <b>Settings.DB_TO_USE</b> as a key to call the array of database attributes from <b>Settings.DATABASES_MAP.</b><p>
+	 * <p>This variable will use <b>SettingsTest.DB_TO_USE</b> as a key to call the array of database attributes from <b>SettingsTest.DATABASES_MAP.</b><p>
 	 */
 	public static String[] DATABASE = DATABASES_MAP.get(DB_TO_USE);
 }

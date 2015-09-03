@@ -15,15 +15,15 @@ import kirkModels.objects.SQLField;
 public abstract class Tests {
 	
 	public static Connection systemConnection;
-	public static String dbURL = Settings.DATABASE[0] + "://" + Settings.DATABASE[1] + ":" + Settings.DATABASE[2] + "/" + Settings.DATABASE[3];
+	public static String dbURL = SettingsTest.DATABASE[0] + "://" + SettingsTest.DATABASE[1] + ":" + SettingsTest.DATABASE[2] + "/" + SettingsTest.DATABASE[3];
 	public static SQLHandler sqlHandler;
 	
 	@SuppressWarnings("serial")
 	public static void main(String[] args) throws IntegrityException{
 		// TODO Auto-generated method stub
 		try {
-			systemConnection = DriverManager.getConnection(dbURL, Settings.DATABASE[4], Settings.DATABASE[5]);
-			backend.Settings.database = Settings.DATABASE;
+			systemConnection = DriverManager.getConnection(dbURL, SettingsTest.DATABASE[4], SettingsTest.DATABASE[5]);
+			backend.Settings.database = SettingsTest.DATABASE;
 			backend.Settings.systemConnection = systemConnection;
 			sqlHandler = new SQLHandler(systemConnection);
 			backend.Settings.sqlHandler = sqlHandler;
