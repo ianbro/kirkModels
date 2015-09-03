@@ -24,14 +24,15 @@ public final class SQLHandler {
 	public String dbName;
 	private SqlScript sqlScript;
 	
-	private HashMap<String, SqlScript> lanuages = new HashMap<String, SqlScript>(){{
-		put("MySQL",		new MySqlScript(dbName));
-		put("postgreSQL",		new PSqlScript());
-	}};
+	private HashMap<String, SqlScript> lanuages;
 	
 	public SQLHandler(Connection conn) throws SQLException{
 		this.dbConnection = conn;
 		this.dbName = Settings.database[3];
+		this.lanuages = new HashMap<String, SqlScript>(){{
+			put("MySQL",		new MySqlScript(dbName));
+			put("postgreSQL",		new PSqlScript());
+		}};
 		this.sqlScript = this.lanuages.get(Settings.database[6]);
 	}
 

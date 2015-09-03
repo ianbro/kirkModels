@@ -34,13 +34,13 @@ public abstract class Tests {
 			System.out.println("No Connection to " + dbURL);
 		}
 		
-		TestModel migrator = new TestModel("Test Name", 19);
-		try {
-			backend.Settings.sqlHandler.createTable(migrator);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		TestModel migrator = new TestModel("Test Name", 19);
+//		try {
+//			backend.Settings.sqlHandler.createTable(migrator);
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 //		try {
 //			TestModel test = TestModel.create(TestModel.class, new HashMap<String, Object>(){{put("name", "Joe Zimbo"); put("age", 23);}});
@@ -49,19 +49,19 @@ public abstract class Tests {
 //			e.printStackTrace();
 //		}
 		
-//		TestModel test1 = null;
-//		try {
-//			test1 = TestModel.get(TestModel.class, new HashMap<String, Object>(){{put("name", "Ian Kirkpatrick");}});
-//		} catch (SQLException | MultipleResultsException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		((IntegerField)test1.sqlFields.get("age")).set(24);
-//		try {
-//			test1.save();
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		TestModel test1 = null;
+		try {
+			test1 = TestModel.get(TestModel.class, new HashMap<String, Object>(){{put("name", "Ian Kirkpatrick");}});
+		} catch (SQLException | MultipleResultsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		((IntegerField)test1.sqlFields.get("age")).set(28);
+		try {
+			test1.save();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
