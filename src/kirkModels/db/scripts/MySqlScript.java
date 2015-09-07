@@ -98,7 +98,7 @@ public final class MySqlScript extends SqlScript{
 	}
 
 	@Override
-	public String getUpdateString(Model instance) {
+	public String getUpdateInstanceString(Model instance) {
 		String sql = "UPDATE " + this.dbName + "." + instance.getClass().getSimpleName().toLowerCase() + " SET ";
 		for(Object fieldObject: instance.sqlFields.keySet()){
 			String field = (String) fieldObject;
@@ -118,7 +118,7 @@ public final class MySqlScript extends SqlScript{
 	}
 
 	@Override
-	public String getSelectString(Class model, HashMap<String, Object> conditions) {
+	public <M extends Model> String getSelectString(Class<M> model, HashMap<String, Object> conditions) {
 		String sql = "SELECT * FROM " + this.dbName + "." + model.getSimpleName().toLowerCase();
 		if(conditions != null){
 			sql = sql + " WHERE";
@@ -155,7 +155,7 @@ public final class MySqlScript extends SqlScript{
 	}
 	
 	@Override
-	public String getCountString(Class type){
+	public <M extends Model> String getCountString(Class<M> type){
 		String sql = "SELECT COUNT(*) FROM " + type.getSimpleName().toLowerCase();
 		
 		sql =  sql + "<SPLIT>" + "COUNT(*)";

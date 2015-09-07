@@ -117,7 +117,7 @@ public final class SQLHandler {
 	public void updateInstance(Model instance) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
 		
-		String sql = this.sqlScript.getUpdateString(instance);
+		String sql = this.sqlScript.getUpdateInstanceString(instance);
 		System.out.println(sql);
 		statement.execute(sql);
 	}
