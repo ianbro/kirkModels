@@ -174,12 +174,25 @@ public abstract class Model <M extends Model>{
 		return results;
 	}
 	
+	/**
+	 * <p>
+	 * Used to get the JAVA_TYPE value of a given field.
+	 * <p>
+	 * @param label - the label of the desired field
+	 * @return {@link Object} - the JAVA_TYPE value of the field: label
+	 */
 	@SuppressWarnings({ "rawtypes" })
 	public Object getField(String label){
 		SQLField sQLField = sqlFields.get(label);
 		return sQLField.value;
 	}
 	
+	/**
+	 * <p>
+	 * Used to delete a set of instances given by the parameter <b>instances</b>
+	 * <p>
+	 * @param instances - the set of instances desired to delete from the database
+	 */
 	public static void delete(ArrayList<Model> instances){
 		try {
 			Settings.sqlHandler.delete(instances);
@@ -189,6 +202,11 @@ public abstract class Model <M extends Model>{
 		}
 	}
 	
+	/**
+	 * <p>
+	 * Used to delete this instance
+	 * <p>
+	 */
 	@SuppressWarnings("serial")
 	public void delete(){
 		try {
@@ -199,6 +217,13 @@ public abstract class Model <M extends Model>{
 		}
 	}
 	
+	/**
+	 * <p>
+	 * Returns the number of instances of <b>M</b>
+	 * <p>
+	 * @param model - the class of which to return a total
+	 * @return int - the total number of instances for model <b>M</b>
+	 */
 	public static <M> int count(Class<M> model){
 		int total = 0;
 		try {
