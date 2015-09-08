@@ -224,7 +224,7 @@ public abstract class Model <M extends Model>{
 	 * @param model - the class of which to return a total
 	 * @return int - the total number of instances for model <b>M</b>
 	 */
-	public static <M> int count(Class<M> model){
+	public static <M extends Model> int count(Class<M> model){
 		int total = 0;
 		try {
 			total = Settings.sqlHandler.count(model);

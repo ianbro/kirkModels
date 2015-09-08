@@ -202,7 +202,7 @@ public final class SQLHandler {
 	 * @return {@link Integer} - the total number of rows for the <b>type</b> given
 	 * @throws SQLException
 	 */
-	public <T> Integer count(Class<T> type) throws SQLException{
+	public <T extends Model> Integer count(Class<T> type) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
 		
 		String[] sql = this.sqlScript.getCountString(type).split("<SPLIT>");
