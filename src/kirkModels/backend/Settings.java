@@ -1,4 +1,4 @@
-package backend;
+package kirkModels.backend;
 
 import java.sql.Connection;
 

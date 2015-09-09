@@ -23,10 +23,10 @@ public abstract class Tests {
 		// TODO Auto-generated method stub
 		try {
 			systemConnection = DriverManager.getConnection(dbURL, SettingsTest.DATABASE[4], SettingsTest.DATABASE[5]);
-			backend.Settings.database = SettingsTest.DATABASE;
-			backend.Settings.systemConnection = systemConnection;
+			kirkModels.backend.Settings.database = SettingsTest.DATABASE;
+			kirkModels.backend.Settings.systemConnection = systemConnection;
 			sqlHandler = new SQLHandler(systemConnection);
-			backend.Settings.sqlHandler = sqlHandler;
+			kirkModels.backend.Settings.sqlHandler = sqlHandler;
 			System.out.println("Got connection to " + dbURL);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -36,7 +36,7 @@ public abstract class Tests {
 		
 		Profile migrator = new Profile();
 		try {
-			backend.Settings.sqlHandler.createTable(migrator);
+			kirkModels.backend.Settings.sqlHandler.createTable(migrator);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -9,7 +9,7 @@ import java.sql.SQLXML;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import backend.Settings;
+import kirkModels.backend.Settings;
 import kirkModels.db.SQLHandler;
 import kirkModels.db.exceptions.IntegrityException;
 import kirkModels.db.exceptions.MultipleResultsException;

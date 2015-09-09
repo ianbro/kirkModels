@@ -6,8 +6,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
-import backend.Settings;
+import kirkModels.backend.Settings;
 import kirkModels.db.scripts.MySqlScript;
 import kirkModels.db.scripts.PSqlScript;
 import kirkModels.db.scripts.SqlScript;
