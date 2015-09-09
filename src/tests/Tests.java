@@ -34,20 +34,12 @@ public abstract class Tests {
 			System.out.println("No Connection to " + dbURL);
 		}
 		
-		TestModel migrator = new TestModel("Test Name", 19);
+		Profile migrator = new Profile();
 		try {
 			backend.Settings.sqlHandler.createTable(migrator);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-//		TestModel test = TestModel.create(TestModel.class, new HashMap<String, Object>(){{put("name", "Joe Zimbo"); put("age", 23);}});
-		
-//		TestModel test1 = null;
-//		test1 = TestModel.get(TestModel.class, new HashMap<String, Object>(){{put("name", "Joe Zimbo");}});
-//		((IntegerField)test1.sqlFields.get("age")).set(28);
-//		test1.save();
-//		System.out.println(test1);
 	}
 }

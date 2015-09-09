@@ -7,6 +7,6 @@ public abstract class SQLOperation {
 	protected String modelName;
 	
 	public SQLOperation(String modelName){
-		
+		this.modelName = modelName;
 	}
 }

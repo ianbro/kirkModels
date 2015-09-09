@@ -191,6 +191,7 @@ public final class SQLHandler {
 	public void createTable(Model model) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
 		String sql = this.sqlScript.getTableString(model);
+		System.out.println(sql);
 		statement.execute(sql);
 	}
 	
