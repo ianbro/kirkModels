@@ -2,8 +2,6 @@ package kirkModels.fields;
 
 public class IntegerField extends SavableField<Integer> {
 
-	public String MYSQL_TYPE;
-	public String PSQL_TYPE;
 	public Integer maxVal;
 	
 	/**
@@ -18,9 +16,6 @@ public class IntegerField extends SavableField<Integer> {
 	public IntegerField(String label, boolean isNull, Integer defaultValue, boolean unique, Integer maxValue) {
 		super(label, isNull, unique);
 		
-		if(defaultValue == null){
-			defaultValue = null;
-		}
 		this.value = defaultValue;
 		this.maxVal = maxValue;
 		this.JAVA_TYPE = Integer.class;

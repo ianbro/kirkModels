@@ -1,18 +1,9 @@
 package kirkModels.fields;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 
 public abstract class SavableField <T> {
-	
-	public static HashMap<String, Class<?>> FIELD_MAP = new HashMap<String, Class<?>>()
-	{{
-		/* name of class (with package extension) maps to specific SavableField's
-		  ex:
-		  put("java.lang.Integer", IntegerField.class);
-		 */
-		
-		put("java.lang.Integer", IntegerField.class);
-	}};
 	
 	//database info
 	public String label;
@@ -22,7 +13,8 @@ public abstract class SavableField <T> {
 	//used by java only
 	public Class<T> JAVA_TYPE;
 	protected T value;
-	protected String SQLType;
+	public String MYSQL_TYPE;
+	public String PSQL_TYPE;
 	
 	public SavableField(String label, boolean isNull, boolean unique){
 		this.isNull = isNull;
@@ -53,7 +45,7 @@ public abstract class SavableField <T> {
 	 * Used to return the value of this field. This will return the value as this sqlFields JAVA_TYPE type. for instance, if called on an IntegerField, it will return an Integer, not an IntegerField. a CharField will return a String and so on. Relationship sqlFields will return 1 or more instantiated objects that math the reference.
 	 * @return T - the value that is stored in this field
 	 */
-	public T get(){
+	public T val(){
 		return this.value;
 	}
 	
