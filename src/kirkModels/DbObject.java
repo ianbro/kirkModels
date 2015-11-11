@@ -1,6 +1,7 @@
 package kirkModels;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import kirkModels.fields.CharField;
@@ -14,6 +15,7 @@ public abstract class DbObject {
 	public static DbManager objects = new DbManager();
 	
 	public IntegerField id = new IntegerField("id", false, 1, true, null);
+	public ArrayList<String> savableFields = new ArrayList<String>();
 	
 	/**
 	 * When instantiating a DbObject, if it contains a many to many field, you must call manyToManyfield.setHostId(id).
@@ -28,6 +30,7 @@ public abstract class DbObject {
 			}
 			else{
 				System.out.println("initializing field: " + field.getName());
+				this.savableFields.add(field.getName());
 			}
 		}
 	}
@@ -38,6 +41,10 @@ public abstract class DbObject {
 	
 	public void save() {
 		
+	}
+	
+	public boolean exists(){
+		return false;
 	}
 	
 	/**
