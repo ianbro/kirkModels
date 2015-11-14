@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
 import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
@@ -36,15 +37,21 @@ public abstract class DbObject {
 	}
 	
 	public void delete() {
-		
+		if(this.exists()){
+			Settings.database.dbHandler.deleteFrom(this);
+		}
 	}
 	
 	public void save() {
-		
+		if(!this.exists()){
+			Settings.database.dbHandler.insertInto(this);
+		} else {
+			Settings.database.dbHandler.update(this);
+		}
 	}
 	
 	public boolean exists(){
-		return false;
+		return Settings.database.dbHandler.checkExists(this);
 	}
 	
 	/**

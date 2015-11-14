@@ -1,0 +1,25 @@
+{
+	"databases": {
+		"vagrant": {
+			"urlHeader": "jdbc:postgresql",
+			"host": "localhost",
+			"port": "5432",
+			"schema": "vagrant",
+			"username": "vagrant",
+			"password": "vagrant",
+			"language": "postgreSQL"
+		},
+		
+		"mysql": {
+			"urlHeader": "jdbc:mysql",
+			"host": "localhost",
+			"port": "3306",
+			"schema": "test",
+			"username": "root",
+			"password": "saline54",
+			"language": "MySQL"
+		}
+	},
+	
+	"defaultDb": "vagrant"
+}

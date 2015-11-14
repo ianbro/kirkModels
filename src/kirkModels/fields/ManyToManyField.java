@@ -39,9 +39,9 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 
 	@Override
-	public void create(HashMap<String, Object> kwargs) {
+	public void create(HashMap<String, Object> kwargs, Class<T> type) {
 		// TODO Auto-generated method stub
-		this.objects.create(kwargs);
+		this.objects.create(kwargs, null);
 	}
 
 	@Override
