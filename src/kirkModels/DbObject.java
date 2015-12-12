@@ -9,11 +9,11 @@ import kirkModels.fields.CharField;
 import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
-import kirkModels.orm.DbManager;
+import kirkModels.orm.QuerySet;
 
 public abstract class DbObject {
 
-	public static DbManager objects = new DbManager();
+	public static QuerySet objects;
 	
 	public IntegerField id = new IntegerField("id", false, 1, true, null);
 	public ArrayList<String> savableFields = new ArrayList<String>();
@@ -30,7 +30,6 @@ public abstract class DbObject {
 				continue;
 			}
 			else{
-				System.out.println("initializing field: " + field.getName());
 				this.savableFields.add(field.getName());
 			}
 		}

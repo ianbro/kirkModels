@@ -13,11 +13,11 @@ public interface Savable {
 	
 	public DbObject get(HashMap<String, Object> kwargs) throws SQLException;
 	
-	public QuerySet getOrCreate(HashMap<String, Object> kwargs);
+	public QuerySet getOrCreate(HashMap<String, Object> kwargs) throws SQLException;
 	
-	public QuerySet filter(HashMap<String, Object> kwargs);
+	public QuerySet filter(HashMap<String, Object> kwargs) throws SQLException;
 	
-	public void delete(HashMap<String, Object> kwargs);
+	public void delete(HashMap<String, Object> kwargs) throws SQLException;
 	
 	public int count();
 }

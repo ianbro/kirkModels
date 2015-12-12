@@ -10,27 +10,35 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import kirkModels.config.MetaDatabase;
+import kirkModels.config.Settings;
 import kirkModels.orm.backend.scripts.PSqlScript;
+import kirkModels.orm.backend.sync.DbSync;
 
 public abstract class TestModels {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
+		MetaDatabase db = null;
+		try {
+			Settings.syncSettings(new File("settings/settings.json"));
+		} catch (FileNotFoundException | ParseException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		Person p = new Person();
 		p.initializeManyToManyFields();
 		p.age.set(19);
 		p.name.set("Ian Kirkpatrick");
-		PSqlScript a = new PSqlScript("person");
-		System.out.println(a.getSaveNewInstanceString(p));
-		MetaDatabase db = null;
+		
+		DbSync syncer = new DbSync(Settings.database.dbConnection, Settings.database.schema);
 		try {
-			db = new MetaDatabase("vagrant", new File("settings/settings.json"));
-		} catch (SQLException | ParseException e) {
+			syncer.migrateModel(Person.class);
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println(db.getConnectionURL());
 	}
 
 }

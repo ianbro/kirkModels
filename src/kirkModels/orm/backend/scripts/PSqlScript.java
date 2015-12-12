@@ -16,7 +16,7 @@ public class PSqlScript extends Script {
 
 	@Override
 	public String getTableString(DbObject testInstance) {
-		String sql = "CREATE TABLE " + testInstance.getClass().getSimpleName().toLowerCase() + " (";
+		String sql = "CREATE TABLE " + testInstance.getClass().getName().replace('.', '_') + " (";
 		sql = sql + this.getFieldStrings(testInstance);
 		sql = sql + "\n);";
 		return sql;
@@ -24,13 +24,13 @@ public class PSqlScript extends Script {
 
 	@Override
 	public String getDeleteString(DbObject instance) {
-		String sql = "DELETE FROM " + instance.getClass().getSimpleName().toLowerCase() + " WHERE id=" + instance.id.val() + ";";
+		String sql = "DELETE FROM " + instance.getClass().getName() + " WHERE id=" + instance.id.val() + ";";
 		return sql;
 	}
 
 	@Override
 	public String getCheckExistsString(DbObject instance) {
-		String sql = "SELECT exists(SELECT id FROM " + instance.getClass().getSimpleName().toLowerCase() + " WHERE id=" + instance.id.val() + ");";
+		String sql = "SELECT exists(SELECT id FROM " + instance.getClass().getName() + " WHERE id=" + instance.id.val() + ");";
 		return sql;
 	}
 
@@ -51,24 +51,14 @@ public class PSqlScript extends Script {
 				sql = sql + ",";
 			}
 		}
-		String foreignKeys = this.getPrimaryKeyConstraintStrings(instance);
-		if (!foreignKeys.equals("")) {
-			sql = sql + ",\n" + foreignKeys;
-		}
 		
-		return sql;
-	}
-
-	@Override
-	public String getPrimaryKeyConstraintStrings(DbObject instance) {
-		String sql = "\tPRIMARY KEY ( id )";
 		return sql;
 	}
 
 	@Override
 	public String getSaveNewInstanceString(DbObject instance) {
 		//INSERT INTO person ( id, name, age ) VALUES ( 1, 'Johnny Joe', 24 );
-		String str = "INSERT INTO " + instance.getClass().getSimpleName().toLowerCase() + " ( ";
+		String str = "INSERT INTO " + instance.getClass().getName() + " ( ";
 		for(int i = 0; i < instance.savableFields.size(); i ++){
 			String field = instance.savableFields.get(i);
 			str = str + field.toLowerCase();
@@ -103,7 +93,7 @@ public class PSqlScript extends Script {
 
 	@Override
 	public String getUpdateInstanceString(DbObject instance) {
-		String sql = "UPDATE " + instance.getClass().getSimpleName().toLowerCase();
+		String sql = "UPDATE " + instance.getClass().getName();
 		for(int i = 0; i < instance.savableFields.size(); i ++){
 			SavableField field = null;
 			try {
@@ -134,12 +124,14 @@ public class PSqlScript extends Script {
 	@Override
 	public <M extends DbObject> String getSelectString(Class<M> type, HashMap<String, Object> conditions) {
 		//SELECT * FROM person WHERE name='Johnny Joe' AND age=24;
-		String str = "SELECT * FROM " + type.getSimpleName().toLowerCase();
+		String str = "SELECT * FROM " + type.getName();
 		if(conditions.size() > 0){
 			str = str + " WHERE ";
 		}
 		int i = 0;
 		for(String fieldName : conditions.keySet()){
+			System.out.println(fieldName);
+			System.out.println(conditions.get(fieldName));
 			str = str + fieldName.split("::")[0] + fieldName.split("::")[1];
 			if (conditions.get(fieldName).getClass().equals(String.class)) {
 				str = str + "'";
@@ -158,9 +150,38 @@ public class PSqlScript extends Script {
 	}
 
 	@Override
-	public <M extends DbObject> String getCountString(Class<M> type) {
-		String sql = "SELECT count(*) FROM " + type.getSimpleName().toLowerCase() + ";";
+	public <T extends DbObject> String getCountString(Class<T> type, HashMap<String, Object> kwargs) {
+		String sql = "SELECT count(*) FROM " + type.getName();
+		if (kwargs.size() > 0) {
+			sql = sql + " WHERE ";
+			int i = 0;
+			for(String key : kwargs.keySet()){
+				sql = sql + key + "=" + kwargs.get(key);
+				i ++;
+				if(i < kwargs.size()){
+					sql = sql + " AND ";
+				}
+			}
+		}
+		sql = sql + ";";
 		return sql;
+	}
+	
+	public static String getIntType(Integer maxVal) {
+		if(maxVal != null){
+			if(maxVal <= 32767){
+				return "smallint";
+			}
+			else if(maxVal <= 2147483647){
+				return "integer";
+			}
+			else {
+				return "bigint";
+			}
+		}
+		else {
+			return "integer";
+		}
 	}
 
 }

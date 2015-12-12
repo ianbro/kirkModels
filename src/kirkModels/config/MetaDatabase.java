@@ -59,10 +59,11 @@ public class MetaDatabase {
 	}
 	
 	public String getConnectionURL(){
-		return this.urlHeader + "://" + this.host + ":" + this.port + "/" + this.schema;
+		String connectionURL = this.urlHeader + "://" + this.host + ":" + this.port + "/" + this.schema;
+		return connectionURL;
 	}
 	
 	public void connect() throws SQLException{
-		this.dbConnection = DriverManager.getConnection(this.getConnectionURL());
+		this.dbConnection = DriverManager.getConnection(this.getConnectionURL(), this.username, this.password);
 	}
 }

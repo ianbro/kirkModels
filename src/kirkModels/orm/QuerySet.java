@@ -8,27 +8,59 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
+import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 
-public class QuerySet{
+public class QuerySet<T extends DbObject> implements Savable{
 	
 	public ResultSet results;
+	public Class<T> tableName;
+	public HashMap<String, Object> kwargs;
 	
-	public QuerySet(ResultSet results){
+	public QuerySet(ResultSet results, HashMap<String, Object> kwargs){
 		this.results = results;
+		this.kwargs = kwargs;
+		this.setTableName();
 	}
 	
-	public DbObject get(int i) throws SQLException{
-		if(this.toRow(i)){
-			int id = this.results.getInt("id");
-			return DbObject.objects.get(new HashMap<String, Object>(){{put("id", id);}});
+	public QuerySet(Class<T> tableName){
+		this.tableName = tableName;
+		this.results = Settings.database.dbHandler.selectFrom(tableName, new HashMap<String, Object>()).results;
+		this.kwargs = new HashMap<String, Object>();
+	}
+	
+	public QuerySet(HashMap<String, Object> kwargs){
+		QuerySet results = Settings.database.dbHandler.selectFrom(tableName, kwargs);
+		this.results = results.results;
+		this.setTableName();
+		this.kwargs = kwargs;
+	}
+	
+	public void setTableName(){
+		try {
+			String tableName = this.results.getMetaData().getTableName(1).replace('_', '.');
+			try {
+				this.tableName = (Class<T>) Class.forName(tableName);
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		this.toRow(1);
-		return null;
+	}
+	
+	public HashMap<String, Object> combineKwargs(HashMap<String, Object> newKwargs){
+		for(String key : this.kwargs.keySet()){
+			newKwargs.put(key, this.kwargs.get(key));
+		}
+		return newKwargs;
 	}
 	
 	public <T extends DbObject> T getById(Class<T> type, int id) throws SQLException{
+		this.cursorToRow(1);
 		while(this.results.next()){
 			if(this.results.getInt("id") == id){
 				T newInstance = null;
@@ -66,7 +98,19 @@ public class QuerySet{
 		return null;
 	}
 	
-	public boolean toRow(int i) throws SQLException{
+	public DbObject getRow(int i){
+		DbObject instance = null;
+		try {
+			this.cursorToRow(i);
+			instance = this.getById(tableName, this.results.getInt("id"));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return instance;
+	}
+	
+	public boolean cursorToRow(int i) throws SQLException{
 		boolean found = false;
 		int count = 0;
 		while(!found){
@@ -83,37 +127,95 @@ public class QuerySet{
 		while(this.results.previous()){}
 		return found;
 	}
+	
+	
+	
+	
+	
+	
+	
 
-	public int size(){
+	@Override
+	public int count(){
 		int count = 0;
 		try {
+			this.cursorToRow(1);
 			while(this.results.next()){
 				count ++;
 			}
-			this.toRow(1);
+			this.cursorToRow(1);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return count;
 	}
+	
+	@Override
+	public void create(HashMap<String, Object> kwargs) {
+		kwargs = this.combineKwargs(kwargs);
+		Settings.database.dbHandler.insertInto(kwargs);
+	}
+
+	@Override
+	public DbObject get(HashMap<String, Object> kwargs) throws SQLException {
+		kwargs = this.combineKwargs(kwargs);
+		QuerySet results = Settings.database.dbHandler.selectFrom(tableName, kwargs);
+		return this.getById(tableName, results.results.getInt("id"));
+	}
+
+	@Override
+	public QuerySet getOrCreate(HashMap<String, Object> kwargs) throws SQLException {
+		kwargs = this.combineKwargs(kwargs);
+		QuerySet results = Settings.database.dbHandler.selectFrom(tableName, kwargs);
+		if (results.count() == 0) {
+			this.create(kwargs);
+			return null;
+		}
+		else{
+			return this.filter(kwargs);
+		}
+	}
+
+	@Override
+	public QuerySet filter(HashMap<String, Object> kwargs) {
+		kwargs = this.combineKwargs(kwargs);
+		QuerySet results = Settings.database.dbHandler.selectFrom(tableName, kwargs);
+		return results;
+	}
+
+	@Override
+	public QuerySet all() {
+		QuerySet results = Settings.database.dbHandler.selectFrom(tableName, this.kwargs);
+		return null;
+	}
+
+	@Override
+	public void delete(HashMap<String, Object> kwargs) {
+		kwargs = this.combineKwargs(kwargs);
+		QuerySet results = this.filter(kwargs);
+		try {
+			while(results.results.next()){
+				Integer id = results.results.getInt("id");
+				Settings.database.dbHandler.deleteFrom(this.get(new HashMap<String, Object>(){{put("id", id);}}));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	public String toString(){
 		String str = "<";
 		
-		for(int i = 0; i < this.size(); i ++){
+		for(int i = 0; i < this.count(); i ++){
 			if(i > 0){
 				str = str + ", ";
 			}
 			
 			@SuppressWarnings("unchecked")
 			DbObject reference = null;
-			try {
-				reference = this.get(i);
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			reference = this.getRow(i);
 			
 			str = str + reference.toString();
 		}

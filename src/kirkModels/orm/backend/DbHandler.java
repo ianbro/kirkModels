@@ -15,18 +15,17 @@ import kirkModels.utils.Utilities;
 
 public class DbHandler {
 
-	Script script;
-	String dbName;
+	public Script script;
+	public String dbName;
 	Connection dbConnection;
 	
 	public DbHandler(Connection _dbConnection, String _dbName, String language){
 		this.dbConnection = _dbConnection;
 		this.dbName = _dbName;
-		switch(language){
-		case "postreSQL":
+		if(language.equals("postgreSQL")){
 			this.script = new PSqlScript(this.dbName);
-			break;
-		default:
+		} else {
+			System.out.println("no");
 			this.script = null;
 		}
 	}
@@ -36,13 +35,13 @@ public class DbHandler {
 		statement.execute(sql);
 	}
 	
-	public QuerySet executeQuery(String sql) throws SQLException{
+	public ResultSet executeQuery(String sql) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
-		return new QuerySet(statement.executeQuery(sql));
+		return statement.executeQuery(sql);
 	}
 	
 	public boolean checkExists(DbObject instance){
-		QuerySet results = null;
+		ResultSet results = null;
 		try{
 			String sql = this.script.getCheckExistsString(instance);
 			results = this.executeQuery(sql);
@@ -52,7 +51,7 @@ public class DbHandler {
 		}
 		Boolean exists = false;
 		try {
-			exists = results.results.getBoolean("exists");
+			exists = results.getBoolean("exists");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -95,15 +94,29 @@ public class DbHandler {
 		}
 	}
 	
-	public QuerySet selectFrom(HashMap<String, Object> kwargs){
-		String sql = this.script.getSelectString((Class)kwargs.get("table_label"), kwargs);
+	public <T extends DbObject> QuerySet selectFrom(Class<T> table, HashMap<String, Object> kwargs){
+		String sql = this.script.getSelectString(table, kwargs);
 		QuerySet results = null;
 		try {
-			results = this.executeQuery(sql);
+			results = new QuerySet(this.executeQuery(sql), kwargs);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return results;
+	}
+	
+	public <T extends DbObject> Integer selectCount(Class<T> table, HashMap<String, Object> kwargs){
+		String sql = this.script.getCountString(table, kwargs);
+		QuerySet results = null;
+		try {
+			results = new QuerySet<>(this.executeQuery(sql), kwargs);
+			results.results.next();
+			return results.results.getInt("count(*)");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

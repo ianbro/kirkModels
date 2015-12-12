@@ -32,7 +32,7 @@ public class DbSync {
 		String tableString = this.psqlScript.getTableString(testInstance);
 		Statement statement = null;
 		statement = this.dbConnection.createStatement();
-		
-		statement.execute(tableString);
+		System.out.println(tableString);
+//		statement.execute(tableString);
 	}
 }

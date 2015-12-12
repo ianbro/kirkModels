@@ -42,8 +42,6 @@ public abstract class Script {
 	
 	public abstract String getFieldStrings(DbObject instance);
 	
-	public abstract String getPrimaryKeyConstraintStrings(DbObject instance);
-	
 	/**
 	 * <p>
 	 * returns the sql {@link String} used to save a new <b>instance</b> to the database
@@ -108,5 +106,5 @@ public abstract class Script {
 	 * @param type - The class used to find the table to count the rows of
 	 * @return - {@link String} - the sql used to find the count of <b>M</b>
 	 */
-	public abstract <M extends DbObject> String getCountString(Class<M> type);
+	public abstract <T extends DbObject> String getCountString(Class<T> type, HashMap<String, Object> kwargs);
 }

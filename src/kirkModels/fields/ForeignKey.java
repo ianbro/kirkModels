@@ -1,5 +1,6 @@
 package kirkModels.fields;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
@@ -25,9 +26,14 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	public void set(Object value){
 		super.set(value);
 		int val = this.value;
-		this.referencedInstant = (T) DbObject.objects.get(new HashMap<String, Object>(){{
-			put("id", val);
-		}});
+		try {
+			this.referencedInstant = (T) DbObject.objects.get(new HashMap<String, Object>(){{
+				put("id", val);
+			}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void setObject(T value){

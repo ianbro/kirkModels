@@ -1,8 +1,11 @@
 package kirkModels.fields;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
+import kirkModels.config.Settings;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.Savable;
 
@@ -15,12 +18,47 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	public String refModel;
 	
 	public Integer hostId;
+	public String tableLabel;
 	
-	public ManyToManyField(Class<T> hostModel, Class<R> refModel){
-		this.reference1 = new ForeignKey<T>(hostModel.getSimpleName().toLowerCase() + "_id", hostModel, false, null, false, "NO ACTION");
-		this.reference2 = new ForeignKey<R>(refModel.getSimpleName().toLowerCase() + "_id", refModel, false, null, false, "NO ACTION");
-		this.hostModel = hostModel.getName();
+	public QuerySet<R> objects;
+	
+	public ManyToManyField(DbObject host, Class<R> refModel){
+		this.hostModel = host.getClass().getName();
 		this.refModel = refModel.getName();
+		this.reference1 = new ForeignKey<T>(host.getClass().getSimpleName().toLowerCase() + "_id", (Class<T>) host.getClass(), false, null, false, "NO ACTION");
+		this.reference2 = new ForeignKey<R>(refModel.getSimpleName().toLowerCase() + "_id", refModel, false, null, false, "NO ACTION");
+		this.hostId = host.id.val();
+	}
+	
+	public ArrayList<Integer> getObjects() {
+		ArrayList<R> values = new ArrayList<R>();
+		
+		QuerySet<ManyToManyField<T, R>> tempQ = Settings.database.dbHandler.selectFrom(this.getClass(), new HashMap<String, Object>(){{
+			put(reference1.label + "::=", hostId);
+		}});
+		HashMap<String, Object> args = new HashMap<String, Object>();
+		try {
+			args.put("table_label", Class.forName(refModel).getSimpleName().toLowerCase());
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			while(tempQ.results.next()){
+				args.put("id", tempQ.results.getInt("id"));
+				QuerySet<R> ref = Settings.database.dbHandler.selectFrom((Class<R>) Class.forName(this.refModel), args);
+//				Class.forName(refModel).
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.objects = objects;
+		return null;
 	}
 
 	@Override
@@ -39,9 +77,9 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 
 	@Override
-	public void create(HashMap<String, Object> kwargs, Class<T> type) {
+	public void create(HashMap<String, Object> kwargs) {
 		// TODO Auto-generated method stub
-		this.objects.create(kwargs, null);
+		this.objects.create(kwargs);
 	}
 
 	@Override
@@ -53,7 +91,13 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return this.objects.get(kwargs);
+		try {
+			return this.objects.get(kwargs);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
@@ -65,7 +109,13 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return this.objects.getOrCreate(kwargs);
+		try {
+			return this.objects.getOrCreate(kwargs);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
@@ -98,4 +148,10 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 
 	@Override
 	public void initializeManyToManyFields() {}
+
+	@Override
+	public int count() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }
