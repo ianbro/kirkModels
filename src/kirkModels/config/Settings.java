@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
+import iansLibrary.data.databases.MetaDatabase;
 import kirkModels.utils.Utilities;
 
 public abstract class Settings {

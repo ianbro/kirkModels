@@ -1,4 +1,4 @@
-package kirkModels.config;
+package iansLibrary.data.databases;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -65,5 +65,9 @@ public class MetaDatabase {
 	
 	public void connect() throws SQLException{
 		this.dbConnection = DriverManager.getConnection(this.getConnectionURL(), this.username, this.password);
+	}
+	
+	public String toString(){
+		return this.language + " database at: " + this.getConnectionURL();
 	}
 }

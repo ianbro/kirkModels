@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.sun.javafx.collections.ImmutableObservableList;
+
 import kirkModels.DbObject;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
@@ -14,9 +16,10 @@ import kirkModels.fields.SavableField;
 
 public class QuerySet<T extends DbObject> implements Savable{
 	
-	public ResultSet results;
-	public Class<T> tableName;
-	public HashMap<String, Object> kwargs;
+	private ArrayList<DbObject> storage;
+	private ResultSet results;
+	private Class<T> tableName;
+	private HashMap<String, Object> kwargs;
 	
 	public QuerySet(ResultSet results, HashMap<String, Object> kwargs){
 		this.results = results;
@@ -35,6 +38,44 @@ public class QuerySet<T extends DbObject> implements Savable{
 		this.results = results.results;
 		this.setTableName();
 		this.kwargs = kwargs;
+	}
+	
+	public T getObjectFromResults(int index){
+		T object = null;
+		try {
+			if (this.cursorToRow(index)) {
+				object = tableName.newInstance();
+				for (int i = 0; i < object.savableFields.size(); i++) {
+					String fieldName = object.savableFields.get(i);
+					Class[] cArg = new Class[1];
+					cArg[0] = Object.class;
+					object.getClass().getField(fieldName).getType().getMethod("set", cArg).invoke(object, this.results.getObject(fieldName));
+				}
+			}
+			else {
+				// throw an error because the results don't have a value at this index.
+				throw new Error("There is no object at the index: " + index);
+			}
+		} catch (SQLException | InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return object;
 	}
 	
 	public void setTableName(){
