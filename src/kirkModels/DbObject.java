@@ -53,6 +53,17 @@ public abstract class DbObject {
 		return Settings.database.dbHandler.checkExists(this);
 	}
 	
+	public SavableField getField(String name){
+		SavableField field = null;
+		try {
+			field = (SavableField) this.getClass().getField(name).get(this);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return field;
+	}
+	
 	/**
 	 * for each ManyToManyField in this class, call:
 	 * <br>

@@ -47,6 +47,8 @@ public class MetaDatabase {
 		}
 		JSONObject databaseMap = ((JSONObject)Utilities.json(configReader.next()).get("databases"));
 		
+		configReader.close();
+		
 		JSONObject trueDbMap = ((JSONObject)databaseMap.get(this.name));
 		
 		this.urlHeader = (String) trueDbMap.get("urlHeader");

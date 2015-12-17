@@ -25,7 +25,6 @@ public class DbHandler {
 		if(language.equals("postgreSQL")){
 			this.script = new PSqlScript(this.dbName);
 		} else {
-			System.out.println("no");
 			this.script = null;
 		}
 	}
@@ -94,11 +93,11 @@ public class DbHandler {
 		}
 	}
 	
-	public <T extends DbObject> QuerySet selectFrom(Class<T> table, HashMap<String, Object> kwargs){
+	public <T extends DbObject> ResultSet selectFrom(Class<T> table, HashMap<String, Object> kwargs){
 		String sql = this.script.getSelectString(table, kwargs);
-		QuerySet results = null;
+		ResultSet results = null;
 		try {
-			results = new QuerySet(this.executeQuery(sql), kwargs);
+			results = this.executeQuery(sql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -108,11 +107,11 @@ public class DbHandler {
 	
 	public <T extends DbObject> Integer selectCount(Class<T> table, HashMap<String, Object> kwargs){
 		String sql = this.script.getCountString(table, kwargs);
-		QuerySet results = null;
+		ResultSet results = null;
 		try {
-			results = new QuerySet<>(this.executeQuery(sql), kwargs);
-			results.results.next();
-			return results.results.getInt("count(*)");
+			results = this.executeQuery(sql);
+			results.next();
+			return results.getInt("count(*)");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

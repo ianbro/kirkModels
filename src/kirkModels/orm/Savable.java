@@ -5,19 +5,19 @@ import java.util.HashMap;
 
 import kirkModels.DbObject;
 
-public interface Savable {
+public interface Savable <T extends DbObject> {
 	
-	public QuerySet all();
+	public QuerySet<T> all();
 	
-	public void create(HashMap<String, Object> kwargs);
+	public T create(HashMap<String, Object> kwargs);
 	
-	public DbObject get(HashMap<String, Object> kwargs) throws SQLException;
+	public T get(HashMap<String, Object> kwargs) throws SQLException;
 	
-	public QuerySet getOrCreate(HashMap<String, Object> kwargs) throws SQLException;
+	public QuerySet<T> getOrCreate(HashMap<String, Object> kwargs) throws SQLException;
 	
-	public QuerySet filter(HashMap<String, Object> kwargs) throws SQLException;
+	public QuerySet<T> filter(HashMap<String, Object> kwargs) throws SQLException;
 	
-	public void delete(HashMap<String, Object> kwargs) throws SQLException;
+	public void delete(HashMap<String, Object> kwargs) throws Exception;
 	
 	public int count();
 }

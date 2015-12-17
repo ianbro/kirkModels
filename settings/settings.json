@@ -14,12 +14,12 @@
 			"urlHeader": "jdbc:mysql",
 			"host": "localhost",
 			"port": "3306",
-			"schema": "test",
+			"schema": "kirkmodels",
 			"username": "root",
 			"password": "saline54",
 			"language": "MySQL"
 		}
 	},
 	
-	"defaultDb": "vagrant"
+	"defaultDb": "mysql"
 }
