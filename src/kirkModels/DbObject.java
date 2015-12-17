@@ -33,6 +33,7 @@ public abstract class DbObject {
 				this.savableFields.add(field.getName());
 			}
 		}
+		this.initializeManyToManyFields();
 	}
 	
 	public void delete() {

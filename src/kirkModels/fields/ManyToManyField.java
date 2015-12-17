@@ -20,14 +20,44 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	public Integer hostId;
 	public String tableLabel;
 	
-	public QuerySet<R> objects;
-	
+	/**
+	 * This is the constructor for the table and class definition. This does not cantain any actual relationships. to instantiate a relationship, use the constructor with a parent many2many field and and instance passed to it.
+	 * @param host
+	 * @param refModel
+	 */
 	public ManyToManyField(DbObject host, Class<R> refModel){
 		this.hostModel = host.getClass().getName();
 		this.refModel = refModel.getName();
 		this.reference1 = new ForeignKey<T>(host.getClass().getSimpleName().toLowerCase() + "_id", (Class<T>) host.getClass(), false, null, false, "NO ACTION");
 		this.reference2 = new ForeignKey<R>(refModel.getSimpleName().toLowerCase() + "_id", refModel, false, null, false, "NO ACTION");
-		this.hostId = host.id.val();
+	}
+	
+	/**
+	 * This is an instance for an actual relationship. to asave it, call this.saveRelationship. don't use the following methods:
+	 * <br>
+	 * <br>
+	 * * all
+	 * <br>
+	 * * filter
+	 * <br>
+	 * * create
+	 * <br>
+	 * * get
+	 * <br>
+	 * * getOrCreate
+	 * <br>
+	 * <br>
+	 * These methods should not be used because it is a specific relationship... not a single one.
+	 * <br>
+	 * <br>
+	 * <br>
+	 * <br>
+	 * @param parent
+	 * @param instance
+	 */
+	public ManyToManyField(){
+		this.reference1 = new ForeignKey<T>();
+		this.reference2 = new ForeignKey<R>();
 	}
 	
 	public void getObjects() {
@@ -60,6 +90,31 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		values = new QuerySet<R>(args);
 		
 		this.objects = values;
+	}
+	
+	protected ManyToManyField<T, R> saveRelationship(R instance){
+		ManyToManyField<T, R> newRelationship = new ManyToManyField<>();
+		newRelationship.reference1.set(this.hostId);
+		newRelationship.reference2.set(instance.id.val());
+		Settings.database.dbHandler.insertInto(newRelationship);
+		return newRelationship;
+	}
+	
+	protected ManyToManyField<T, R> getRelationship(R instance){
+		ManyToManyField<T, R> rel = null;
+		
+		try {
+			rel = (ManyToManyField<T, R>) this.objects.get(new HashMap<String, Object>(){{}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return rel;
+	}
+	
+	protected void deleteReleationship(R instance){
+		ManyToManyField<T, R> relToDelete = this.get(new HashMap<String, Object>(){{}});
 	}
 
 	@Override
@@ -94,6 +149,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 	
 	public void setHostId(int id){
+		this.reference1.set(id);
 		this.hostId = id;
 	}
 

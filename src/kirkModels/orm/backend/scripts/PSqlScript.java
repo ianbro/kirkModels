@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import kirkModels.DbObject;
 import kirkModels.fields.ForeignKey;
+import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 
 public class PSqlScript extends Script {
@@ -71,12 +72,19 @@ public class PSqlScript extends Script {
 		for(int i = 0; i < instance.savableFields.size(); i ++){
 			String fieldVal = null;
 			try {
-				SavableField instanceField = ((SavableField) (instance.getClass().getField(instance.savableFields.get(i)).get(instance)));
-				fieldVal = instanceField.val().toString();
-				if (instanceField.JAVA_TYPE.equals(String.class)) {
-					str = str + "'";
-					fieldVal = fieldVal + "'";
+				Object field = (instance.getClass().getField(instance.savableFields.get(i)).get(instance));
+				if (field.getClass().isAssignableFrom(SavableField.class)) {
+					SavableField instanceField = ((SavableField) field);
+					fieldVal = instanceField.val().toString();
+					if (instanceField.JAVA_TYPE.equals(String.class)) {
+						str = str + "'";
+						fieldVal = fieldVal + "'";
+					}
 				}
+				else {
+//					ManyToManyField<?, ?> instanceField = ((ManyToManyField<?, ?>) field);
+				}
+				
 			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

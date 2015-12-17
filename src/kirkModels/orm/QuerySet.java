@@ -75,9 +75,17 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 				object = tableName.newInstance();
 				for (int i = 0; i < object.savableFields.size(); i++) {
 					String fieldName = object.savableFields.get(i);
-					Class[] cArg = new Class[1];
-					cArg[0] = Object.class;
-					object.getClass().getField(fieldName).getType().getMethod("set", cArg).invoke(object, this.results.getObject(fieldName));
+					Class<?> fieldType = object.getClass().getField(fieldName).getType();
+					if (fieldType.isAssignableFrom(ManyToManyField.class)) {
+						Class<?>[] cArg = new Class[1];
+						cArg[0] = Object.class;
+						fieldType.getMethod("getObjects", cArg).invoke(object, new Object[0]);
+					}
+					else{
+						Class<?>[] cArg = new Class[1];
+						cArg[0] = Object.class;
+						fieldType.getMethod("set", cArg).invoke(object, this.results.getObject(fieldName));
+					}
 				}
 			}
 			else {

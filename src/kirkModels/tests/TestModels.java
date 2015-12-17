@@ -30,7 +30,6 @@ public abstract class TestModels {
 		System.out.println(Settings.database);
 
 		Person p = new Person();
-		p.initializeManyToManyFields();
 		p.age.set(19);
 		p.name.set("Ian Kirkpatrick");
 		
