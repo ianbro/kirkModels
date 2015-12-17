@@ -33,14 +33,14 @@ public abstract class TestModels {
 //		p.initializeManyToManyFields();
 //		p.age.set(19);
 //		p.name.set("Ian Kirkpatrick");
-//		
-//		DbSync syncer = new DbSync(Settings.database.dbConnection, Settings.database.schema);
-//		try {
-//			syncer.migrateModel(Person.class);
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		
+		DbSync syncer = new DbSync(Settings.database.dbConnection, Settings.database.schema);
+		try {
+			syncer.migrateModel(Person.class);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

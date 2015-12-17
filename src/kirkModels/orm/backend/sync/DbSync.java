@@ -33,6 +33,6 @@ public class DbSync {
 		Statement statement = null;
 		statement = this.dbConnection.createStatement();
 		System.out.println(tableString);
-//		statement.execute(tableString);
+		statement.execute(tableString);
 	}
 }

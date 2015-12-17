@@ -9,7 +9,7 @@ import kirkModels.config.Settings;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.Savable;
 
-public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbObject implements Savable {
+public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbObject implements Savable<R> {
 
 	public ForeignKey<T> reference1;
 	public String hostModel;
@@ -30,13 +30,16 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		this.hostId = host.id.val();
 	}
 	
-	public ArrayList<Integer> getObjects() {
-		ArrayList<R> values = new ArrayList<R>();
+	public QuerySet<R> getObjects() {
+		QuerySet<R> values = null;
+		ArrayList<Integer> ids = new ArrayList<>();
 		
-		QuerySet<ManyToManyField<T, R>> tempQ = Settings.database.dbHandler.selectFrom(this.getClass(), new HashMap<String, Object>(){{
+		QuerySet<ManyToManyField<T, R>> tempQ = new QuerySet<ManyToManyField<T, R>>(new HashMap<String, Object>(){{
 			put(reference1.label + "::=", hostId);
 		}});
+		
 		HashMap<String, Object> args = new HashMap<String, Object>();
+		
 		try {
 			args.put("table_label", Class.forName(refModel).getSimpleName().toLowerCase());
 		} catch (ClassNotFoundException e) {
@@ -46,99 +49,48 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		
 		try {
 			while(tempQ.results.next()){
-				args.put("id", tempQ.results.getInt("id"));
-				QuerySet<R> ref = Settings.database.dbHandler.selectFrom((Class<R>) Class.forName(this.refModel), args);
-//				Class.forName(refModel).
+				ids.add(tempQ.results.getInt("id"));
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		this.objects = objects;
-		return null;
+		args.put("id::in", ids);
+		
+		values = new QuerySet<R>(args);
+		
+		this.objects = values;
+		return objects;
 	}
 
 	@Override
 	public QuerySet all() {
-		String hostModel = this.hostModel;
-		Integer id = this.hostId;
-		try {
-			QuerySet refs = this.objects.filter(new HashMap<String, Object>(){{
-				put(Class.forName(hostModel).getSimpleName().toLowerCase() + "_id", id);
-			}});
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		return this.objects.all();
 	}
 
 	@Override
-	public void create(HashMap<String, Object> kwargs) {
+	public R create(HashMap<String, Object> kwargs) {
 		// TODO Auto-generated method stub
-		this.objects.create(kwargs);
+		return this.objects.create(kwargs);
 	}
 
 	@Override
-	public DbObject get(HashMap<String, Object> kwargs) {
-		Integer id = this.hostId;
-		try {
-			kwargs.put(Class.forName(this.hostModel).getSimpleName().toLowerCase() + "_id", id);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			return this.objects.get(kwargs);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+	public R get(HashMap<String, Object> kwargs) throws SQLException {
+		return this.objects.get(kwargs);
 	}
 
 	@Override
-	public QuerySet getOrCreate(HashMap<String, Object> kwargs) {
-		Integer id = this.hostId;
-		try {
-			kwargs.put(Class.forName(this.hostModel).getSimpleName().toLowerCase() + "_id", id);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			return this.objects.getOrCreate(kwargs);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+	public QuerySet<R> getOrCreate(HashMap<String, Object> kwargs) throws SQLException {
+		return this.objects.getOrCreate(kwargs);
 	}
 
 	@Override
-	public QuerySet filter(HashMap<String, Object> kwargs) {
-		Integer id = this.hostId;
-		try {
-			kwargs.put(Class.forName(this.hostModel).getSimpleName().toLowerCase() + "_id", id);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public QuerySet<R> filter(HashMap<String, Object> kwargs) {
 		return this.objects.filter(kwargs);
 	}
 
 	@Override
-	public void delete(HashMap<String, Object> kwargs) {
-		Integer id = this.hostId;
-		try {
-			kwargs.put(Class.forName(this.hostModel).getSimpleName().toLowerCase() + "_id", id);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public void delete(HashMap<String, Object> kwargs) throws Exception {
 		this.objects.delete(kwargs);
 	}
 	

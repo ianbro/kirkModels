@@ -107,4 +107,6 @@ public abstract class Script {
 	 * @return - {@link String} - the sql used to find the count of <b>M</b>
 	 */
 	public abstract <T extends DbObject> String getCountString(Class<T> type, HashMap<String, Object> kwargs);
+	
+//	public abstract String getSelectInListString(Class<M> type, HashMap<String, Object> conditions)
 }

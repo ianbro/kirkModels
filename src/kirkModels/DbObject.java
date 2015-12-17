@@ -64,6 +64,10 @@ public abstract class DbObject {
 		return field;
 	}
 	
+	public QuerySet getM2MSet(String fieldName){
+		return null;
+	}
+	
 	/**
 	 * for each ManyToManyField in this class, call:
 	 * <br>

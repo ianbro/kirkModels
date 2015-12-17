@@ -1,6 +1,7 @@
 package kirkModels.orm.backend.scripts;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
@@ -130,16 +131,7 @@ public class PSqlScript extends Script {
 		}
 		int i = 0;
 		for(String fieldName : conditions.keySet()){
-			System.out.println(fieldName);
-			System.out.println(conditions.get(fieldName));
-			str = str + fieldName.split("::")[0] + fieldName.split("::")[1];
-			if (conditions.get(fieldName).getClass().equals(String.class)) {
-				str = str + "'";
-			}
-			str = str + conditions.get(fieldName);
-			if (conditions.get(fieldName).getClass().equals(String.class)) {
-				str = str + "'";
-			}
+			str = str + this.getConditionString(fieldName.split("::")[0], fieldName.split("::")[1], conditions.get(fieldName));
 			i ++;
 			if(i < conditions.size()){
 				str = str + " AND ";
@@ -147,6 +139,52 @@ public class PSqlScript extends Script {
 		}
 		str = str + ";";
 		return str;
+	}
+	
+	private String getConditionString(String field, String condition, Object value){
+		String sql = field;
+		switch (condition) {
+			
+		case "in":
+			sql = sql + " in ( ";
+			
+			Object[] list = ((ArrayList<Object>) value).toArray();
+			
+			for (int i = 0; i < list.length; i++) {
+				if (i > 0) {
+					sql = sql + ", ";
+				}
+				sql = sql + list[i];
+			}
+			sql = sql + " )";
+			break;
+			
+		case "not in":
+			sql = sql + " not in ( ";
+			
+			Object[] list2 = ((ArrayList<Object>) value).toArray();
+			
+			for (int i = 0; i < list2.length; i++) {
+				if (i > 0) {
+					sql = sql + ", ";
+				}
+				sql = sql + list2[i];
+			}
+			sql = sql + " )";
+			break;
+
+		default:
+			sql = sql + condition;
+			if (value.getClass().equals(String.class)) {
+				sql = sql + "'";
+			}
+			sql = sql + value;
+			if (value.getClass().equals(String.class)) {
+				sql = sql + "'";
+			}
+			break;
+		}
+		return sql;
 	}
 
 	@Override

@@ -49,13 +49,13 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	@Override
 	public String MySqlString() {
 		String sql = super.MySqlString();
-		sql = sql + " REFERENCES " + this.referenceClass.getSimpleName().toLowerCase() + "(id)\n\t\tON UPDATE CASCADE ON DELETE " + this.onDelete;
+		sql = sql + " REFERENCES " + this.referenceClass.getName().replace(".", "_") + "(id)\n\t\tON UPDATE CASCADE ON DELETE " + this.onDelete;
 		return sql;
 	}
 	
 	public String PSqlString(){
 		String sql = super.PSqlString();
-		sql = sql + " REFERENCES " + this.referenceClass.getSimpleName().toLowerCase() + "(id)\n\t\tON UPDATE CASCADE ON DELETE " + this.onDelete;
+		sql = sql + " REFERENCES " + this.referenceClass.getName().replace(".", "_") + "(id)\n\t\tON UPDATE CASCADE ON DELETE " + this.onDelete;
 		return sql;
 	}
 	

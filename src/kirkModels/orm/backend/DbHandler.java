@@ -7,8 +7,6 @@ import java.sql.Statement;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
-import kirkModels.fields.SavableField;
-import kirkModels.orm.QuerySet;
 import kirkModels.orm.backend.scripts.PSqlScript;
 import kirkModels.orm.backend.scripts.Script;
 import kirkModels.utils.Utilities;
