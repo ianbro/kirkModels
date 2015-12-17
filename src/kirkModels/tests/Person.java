@@ -15,10 +15,4 @@ public class Person extends DbObject{
 	public ManyToManyField<Person, Person> friends = new ManyToManyField<Person, Person>(this, Person.class);
 	public ManyToManyField<Person, Person> enemies = new ManyToManyField<Person, Person>(this, Person.class);
 	public int fjslkfsjflasfjslfs;
-	
-	@Override
-	public void initializeManyToManyFields() {
-		friends.setHostId(this.id.val());
-		enemies.setHostId(this.id.val());
-	}
 }

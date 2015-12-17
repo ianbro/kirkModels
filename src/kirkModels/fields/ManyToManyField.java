@@ -30,7 +30,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		this.hostId = host.id.val();
 	}
 	
-	public QuerySet<R> getObjects() {
+	public void getObjects() {
 		QuerySet<R> values = null;
 		ArrayList<Integer> ids = new ArrayList<>();
 		
@@ -60,7 +60,6 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		values = new QuerySet<R>(args);
 		
 		this.objects = values;
-		return objects;
 	}
 
 	@Override

@@ -6,13 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import kirkModels.DbObject;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 
-public class QuerySet<T extends DbObject> implements Savable<T>{
+public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	
 	private ArrayList<T> storage;
 	public ResultSet results;
@@ -145,6 +146,39 @@ public class QuerySet<T extends DbObject> implements Savable<T>{
 		return found;
 	}
 
+	public String toString(){
+		String str = "<";
+		
+		for(int i = 0; i < this.count(); i ++){
+			if(i > 0){
+				str = str + ", ";
+			}
+			
+			@SuppressWarnings("unchecked")
+			T reference = null;
+			reference = this.getRow(i);
+			
+			str = str + reference.toString();
+		}
+		
+		str = str + ">";
+		return str;
+	}
+
+	@Override
+	public Iterator<T> iterator() {
+		// TODO Auto-generated method stub
+		return this.storage.iterator();
+	}
+	
+	public int indexOf(T other){
+		return this.storage.indexOf(other);
+	}
+	
+	
+	
+	
+
 	
 	
 	public T getById(int id){
@@ -185,23 +219,23 @@ public class QuerySet<T extends DbObject> implements Savable<T>{
 	@Override
 	public T create(HashMap<String, Object> kwargs) {
 		kwargs = this.combineKwargs(kwargs);
-		Settings.database.dbHandler.insertInto(kwargs);
-		QuerySet<T> newObjects = null;
+		
 		T newInstance = null;
-		
 		try {
-			newObjects = (QuerySet<T>) (this.tableName.getClass().getField("objects").get(null));
-		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		try {
-			newInstance = newObjects.get(kwargs);
-		} catch (SQLException e) {
+			newInstance = this.tableName.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		newInstance.initializeManyToManyFields();
+		
+		for (String fieldName : kwargs.keySet()) {
+			Object value = kwargs.get(fieldName);
+			newInstance.getField(fieldName).set(value);
+		}
+		
+		newInstance.save();
 		
 		this.storage.add(newInstance);
 		
@@ -262,29 +296,11 @@ public class QuerySet<T extends DbObject> implements Savable<T>{
 			throw new Exception(this.tableName + " object with kwargs: " + kwargs + " does not exist.");
 		}
 		else {
-			T instance = this.get(kwargs);
-			int index = this.storage.indexOf(instance);
-			instance.delete();
-			this.storage.remove(index);
-		}
-	}
-
-	public String toString(){
-		String str = "<";
-		
-		for(int i = 0; i < this.count(); i ++){
-			if(i > 0){
-				str = str + ", ";
+			for (T instance : results) {
+				int index = this.indexOf(instance);
+				instance.delete();
+				this.storage.remove(index);
 			}
-			
-			@SuppressWarnings("unchecked")
-			T reference = null;
-			reference = this.getRow(i);
-			
-			str = str + reference.toString();
 		}
-		
-		str = str + ">";
-		return str;
 	}
 }

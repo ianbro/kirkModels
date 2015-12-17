@@ -65,7 +65,23 @@ public abstract class DbObject {
 	}
 	
 	public QuerySet getM2MSet(String fieldName){
-		return null;
+		ManyToManyField field = null;
+		try {
+			field = (ManyToManyField) (this.getClass().getField(fieldName).get(this));
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return field.all();
 	}
 	
 	/**
@@ -103,5 +119,30 @@ public abstract class DbObject {
 	 * <br>
 	 * <br>
 	 */
-	public abstract void initializeManyToManyFields();
+	public void initializeManyToManyFields(){
+		for (String fieldName : this.savableFields) {
+			Object field = null;
+			try {
+				field = this.getClass().getField(fieldName).get(this);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchFieldException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			if (field.getClass().isAssignableFrom(ManyToManyField.class)) {
+				ManyToManyField temp_field = (ManyToManyField) field;
+				temp_field.setHostId(this.id.val());
+				temp_field.getObjects();
+			}
+		}
+	}
 }
