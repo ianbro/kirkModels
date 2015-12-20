@@ -1,5 +1,6 @@
 package kirkModels.fields;
 
+import kirkModels.orm.backend.scripts.MySqlScript;
 import kirkModels.orm.backend.scripts.PSqlScript;
 
 public class IntegerField extends SavableField<Integer> {
@@ -22,8 +23,12 @@ public class IntegerField extends SavableField<Integer> {
 		this.maxVal = maxValue;
 		this.JAVA_TYPE = Integer.class;
 		
-//		this.MYSQL_TYPE = MySqlScript.getIntType(maxValue);
+		this.MYSQL_TYPE = MySqlScript.getIntType(maxValue);
 		this.PSQL_TYPE = PSqlScript.getIntType(maxValue);
+	}
+	
+	public IntegerField() {
+		super("", true, false);
 	}
 
 	@Override

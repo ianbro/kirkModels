@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
+import kirkModels.orm.backend.scripts.MySqlScript;
 import kirkModels.orm.backend.scripts.PSqlScript;
 import kirkModels.orm.backend.scripts.Script;
 import kirkModels.utils.Utilities;
@@ -23,12 +24,13 @@ public class DbHandler {
 		if(language.equals("postgreSQL")){
 			this.script = new PSqlScript(this.dbName);
 		} else {
-			this.script = null;
+			this.script = new MySqlScript(this.dbName);
 		}
 	}
 	
 	public void run(String sql) throws SQLException{
 		Statement statement = this.dbConnection.createStatement();
+		System.out.println(sql);
 		statement.execute(sql);
 	}
 	
@@ -47,12 +49,15 @@ public class DbHandler {
 			e.printStackTrace();
 		}
 		Boolean exists = false;
+		
 		try {
-			exists = results.getBoolean("exists");
+			results.next();
+			exists = this.script.exists(results);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		return exists;
 	}
 	

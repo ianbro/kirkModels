@@ -1,5 +1,6 @@
 package kirkModels.fields;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +20,8 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	
 	public Integer hostId;
 	public String tableLabel;
+	
+	public QuerySet<R> objectSet;
 	
 	/**
 	 * This is the constructor for the table and class definition. This does not cantain any actual relationships. to instantiate a relationship, use the constructor with a parent many2many field and and instance passed to it.
@@ -89,7 +92,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		
 		values = new QuerySet<R>(args);
 		
-		this.objects = values;
+		this.objectSet = values;
 	}
 	
 	protected ManyToManyField<T, R> saveRelationship(R instance){
@@ -114,38 +117,49 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 	
 	protected void deleteReleationship(R instance){
-		ManyToManyField<T, R> relToDelete = this.get(new HashMap<String, Object>(){{}});
+		ManyToManyField<T, R> relToDelete = this.getRelationship(instance);
+		Settings.database.dbHandler.deleteFrom(instance);
+	}
+	
+	protected QuerySet<ManyToManyField<T, R>> getAllRelationships(){
+		int id = this.reference1.val();
+		
+		//get all relationships from this table including other host relationships
+		QuerySet<ManyToManyField<T, R>> allRelationships = new QuerySet<ManyToManyField<T, R>>((Class<ManyToManyField<T, R>>) this.getClass());
+		//filter down to just the ones related to this reference1
+		allRelationships = allRelationships.filter(new HashMap<String, Object>(){{ put("reference1::=", id); }});
+		
+		return allRelationships;
 	}
 
 	@Override
-	public QuerySet all() {
-		return this.objects.all();
+	public QuerySet<R> all() {
+		return this.objectSet.all();
 	}
 
 	@Override
 	public R create(HashMap<String, Object> kwargs) {
-		// TODO Auto-generated method stub
-		return this.objects.create(kwargs);
+		return this.objectSet.create(kwargs);
 	}
 
 	@Override
 	public R get(HashMap<String, Object> kwargs) throws SQLException {
-		return this.objects.get(kwargs);
+		return this.objectSet.get(kwargs);
 	}
 
 	@Override
 	public QuerySet<R> getOrCreate(HashMap<String, Object> kwargs) throws SQLException {
-		return this.objects.getOrCreate(kwargs);
+		return this.objectSet.getOrCreate(kwargs);
 	}
 
 	@Override
 	public QuerySet<R> filter(HashMap<String, Object> kwargs) {
-		return this.objects.filter(kwargs);
+		return this.objectSet.filter(kwargs);
 	}
 
 	@Override
 	public void delete(HashMap<String, Object> kwargs) throws Exception {
-		this.objects.delete(kwargs);
+		this.objectSet.delete(kwargs);
 	}
 	
 	public void setHostId(int id){

@@ -2,6 +2,7 @@ package kirkModels.orm;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -43,10 +44,18 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	
 	private void updateStorage(){
 		this.storage = new ArrayList<T>();
-		
+		this.results = Settings.database.dbHandler.selectFrom(this.tableName, this.kwargs);
+//		try {
+//			this.results.last();
+//		} catch (SQLException e1) {
+//			// TODO Auto-generated catch block
+//			System.out.println("error");
+//			e1.printStackTrace();
+//		}
 		try {
 			
 			while (this.results.next()) {
+				
 				int index = 0;
 				
 				try {
@@ -57,7 +66,9 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 				}
 				
 				if (index > 0) {
+//					System.out.println(this.results.getRow());
 					T newInstance = this.getObjectFromResults(index);
+//					System.out.println(this.results.getRow());
 					this.storage.add(newInstance);
 				}
 			}
@@ -84,7 +95,15 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 					else{
 						Class<?>[] cArg = new Class[1];
 						cArg[0] = Object.class;
-						fieldType.getMethod("set", cArg).invoke(object, this.results.getObject(fieldName));
+						
+						SavableField field = (SavableField) object.getClass().getField(fieldName).get(object);
+						
+						Method getMethod = fieldType.getMethod("set", cArg);
+						Object fieldVal = this.results.getObject(fieldName);
+						
+						if(fieldVal != null){
+							getMethod.invoke(field, fieldVal);
+						}
 					}
 				}
 			}
@@ -137,6 +156,8 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	}
 	
 	public boolean cursorToRow(int i) throws SQLException{
+		this.results.first();
+		this.results.previous();
 		boolean found = false;
 		int count = 0;
 		while(!found){
@@ -150,7 +171,10 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 				found = true;
 			}
 		}
-		while(this.results.previous()){}
+		if(count == i){
+			found = true;
+		}
+//		while(this.results.previous()){}
 		return found;
 	}
 

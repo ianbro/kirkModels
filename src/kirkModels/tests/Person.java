@@ -8,11 +8,15 @@ import kirkModels.fields.ManyToManyField;
 
 public class Person extends DbObject{
 
-	public CharField name = new CharField("name", false, null, false, 10);
+	public CharField name = new CharField("name", false, null, false, 45);
 	public IntegerField age = new IntegerField("age", false, null, false, 150);
-	public ForeignKey<Person> mother = new ForeignKey<>("mother", Person.class, true, null, false, "NO ACTION");
-	public ForeignKey<Person> father = new ForeignKey<>("father", Person.class, true, null, false, "NO ACTION");
+	public ForeignKey<Person> mother = new ForeignKey<Person>("mother", Person.class, true, null, false, "NO ACTION");
+	public ForeignKey<Person> father = new ForeignKey<Person>("father", Person.class, true, null, false, "NO ACTION");
 	public ManyToManyField<Person, Person> friends = new ManyToManyField<Person, Person>(this, Person.class);
 	public ManyToManyField<Person, Person> enemies = new ManyToManyField<Person, Person>(this, Person.class);
 	public int fjslkfsjflasfjslfs;
+	
+	public String toString(){
+		return "Person '" + this.name + "': " + this.age + " years old.";
+	}
 }

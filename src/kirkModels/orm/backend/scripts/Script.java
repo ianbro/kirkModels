@@ -1,6 +1,7 @@
 package kirkModels.orm.backend.scripts;
 
 import java.io.ObjectInputStream.GetField;
+import java.sql.ResultSet;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
@@ -39,6 +40,8 @@ public abstract class Script {
 	 * @return {@link String} - The sql used to check if the <b>instance</b> exists
 	 */
 	public abstract String getCheckExistsString(DbObject instance);
+	
+	public abstract Boolean exists(ResultSet results);
 	
 	public abstract String getFieldStrings(DbObject instance);
 	

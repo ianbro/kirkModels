@@ -15,7 +15,7 @@ public abstract class DbObject {
 
 	public static QuerySet objects;
 	
-	public IntegerField id = new IntegerField("id", false, 1, true, null);
+	public IntegerField id = new IntegerField("id", false, 0, true, null);
 	public ArrayList<String> savableFields = new ArrayList<String>();
 	
 	/**
@@ -33,7 +33,6 @@ public abstract class DbObject {
 				this.savableFields.add(field.getName());
 			}
 		}
-		this.initializeManyToManyFields();
 	}
 	
 	public void delete() {
@@ -43,8 +42,16 @@ public abstract class DbObject {
 	}
 	
 	public void save() {
-		if(!this.exists()){
+		this.initializeManyToManyFields();
+//		System.out.println(this.getField("name"));
+//		System.out.println(this.getField("age"));
+//		System.out.println(this.id.val());
+//		System.out.println(this.exists());
+		if(this.id.val() == 0 || !this.exists()){
+			int newId = DbObject.getObjectsForGenericType(this.getClass()).count() + 1;
+			this.id.set(newId);
 			Settings.database.dbHandler.insertInto(this);
+			Settings.setObjectsForModels();
 		} else {
 			Settings.database.dbHandler.update(this);
 		}
@@ -144,6 +151,31 @@ public abstract class DbObject {
 				temp_field.setHostId(this.id.val());
 				temp_field.getObjects();
 			}
+		}
+	}
+	
+	public static <T extends DbObject> QuerySet<T> getObjectsForGenericType(Class<T> type){
+		Field objectsTemp = null;
+		try {
+			objectsTemp = type.getField("objects");
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			return (QuerySet<T>) objectsTemp.get(null);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
 		}
 	}
 }

@@ -23,17 +23,41 @@ public abstract class TestModels {
 		try {
 			Settings.syncSettings(new File("settings/settings.json"));
 			Settings.database.connect();
+			Settings.setObjectsForModels();
 		} catch (FileNotFoundException | ParseException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println(Settings.database);
 
-		Person p = new Person();
-		p.age.set(19);
-		p.name.set("Ian Kirkpatrick");
+//		Person ian = new Person();
+//		ian.age.set(19);
+//		ian.name.set("Ian Kirkpatrick");
+//		
+//		ian.save();
 		
-//		DbSync syncer = new DbSync(Settings.database.dbConnection, Settings.database.schema);
+//		Person mom = new Person();
+//		mom.age.set(49);
+//		mom.name.set("Lori Kirkpatrick");
+//		
+//		Person dad = new Person();
+//		dad.age.set(51);
+//		dad.name.set("Daniel Kirkpatrick");
+//		
+//		mom.save();
+//		dad.save();
+//		
+		
+		Person mom = (Person) Person.objects.getById(2);
+		Person dad = (Person) Person.objects.getById(3);
+		
+		Person ian = (Person) Person.objects.getById(1);
+		System.out.println(ian);
+//		ian.age.set(20);
+		ian.mother.setObject(mom);
+		ian.father.setObject(dad);
+		ian.save();
+		
+//		DbSync syncer = new DbSync(Settings.database);
 //		try {
 //			syncer.migrateModel(Person.class);
 //		} catch (SQLException e) {

@@ -1,26 +1,23 @@
 package kirkModels.orm.backend.scripts;
 
-import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
-import kirkModels.fields.ForeignKey;
-import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 
-public class PSqlScript extends Script {
+public class MySqlScript extends Script {
 
-	public PSqlScript(String _dbName) {
+	public MySqlScript(String _dbName) {
 		super(_dbName);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public String getTableString(DbObject testInstance) {
-		String sql = "CREATE TABLE " + testInstance.getClass().getName().replace('.', '_') + " (";
+		String sql = "CREATE TABLE " + this.dbName + "." + testInstance.getClass().getName().replace('.', '_') + " (";
 		sql = sql + this.getFieldStrings(testInstance);
 		sql = sql + "\n);";
 		return sql;
@@ -28,13 +25,13 @@ public class PSqlScript extends Script {
 
 	@Override
 	public String getDeleteString(DbObject instance) {
-		String sql = "DELETE FROM " + instance.getClass().getName() + " WHERE id=" + instance.id.val() + ";";
+		String sql = "DELETE FROM " + this.dbName + "." + instance.getClass().getName().replace('.', '_') + " WHERE id=" + instance.id.val() + ";";
 		return sql;
 	}
 
 	@Override
 	public String getCheckExistsString(DbObject instance) {
-		String sql = "SELECT exists(SELECT id FROM " + instance.getClass().getName() + " WHERE id=" + instance.id.val() + ");";
+		String sql = "SELECT COUNT(id) from " + this.dbName + "." + instance.getClass().getName().replace('.', '_') + " WHERE id=" + instance.id.val() + ";";
 		return sql;
 	}
 	
@@ -69,7 +66,7 @@ public class PSqlScript extends Script {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			sql = sql + "\n\t" + field.PSqlString();
+			sql = sql + "\n\t" + field.MySqlString();
 			if(i != instance.savableFields.size() - 1){
 				sql = sql + ",";
 			}
@@ -81,7 +78,7 @@ public class PSqlScript extends Script {
 	@Override
 	public String getSaveNewInstanceString(DbObject instance) {
 		//INSERT INTO person ( id, name, age ) VALUES ( 1, 'Johnny Joe', 24 );
-		String str = "INSERT INTO " + instance.getClass().getName() + " ( ";
+		String str = "INSERT INTO " + this.dbName + "." + instance.getClass().getName().replace('.', '_') + " ( ";
 		for(int i = 0; i < instance.savableFields.size(); i ++){
 			String field = instance.savableFields.get(i);
 			str = str + field.toLowerCase();
@@ -91,10 +88,10 @@ public class PSqlScript extends Script {
 		}
 		str = str + " ) VALUES ( ";
 		for(int i = 0; i < instance.savableFields.size(); i ++){
-			String fieldVal = null;
+			String fieldVal = instance.savableFields.get(i);
 			try {
 				Object field = (instance.getClass().getField(instance.savableFields.get(i)).get(instance));
-				if (field.getClass().isAssignableFrom(SavableField.class)) {
+				if (SavableField.class.isAssignableFrom(field.getClass())) {
 					SavableField instanceField = ((SavableField) field);
 					fieldVal = instanceField.val().toString();
 					if (instanceField.JAVA_TYPE.equals(String.class)) {
@@ -123,7 +120,8 @@ public class PSqlScript extends Script {
 
 	@Override
 	public String getUpdateInstanceString(DbObject instance) {
-		String sql = "UPDATE " + instance.getClass().getName();
+		String sql = "UPDATE " + this.dbName + "." + instance.getClass().getName().replace('.', '_');
+		
 		for(int i = 0; i < instance.savableFields.size(); i ++){
 			SavableField field = null;
 			try {
@@ -132,7 +130,11 @@ public class PSqlScript extends Script {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			sql = sql + "\n\tSET " + field.label;
+			sql = sql + "\n\t";
+			if (i == 0) {
+				sql = sql + "SET ";
+			}
+			sql = sql + field.label;
 			try{
 				if (field.val().getClass().equals(String.class)) {
 					sql = sql + "='" + field.val() + "'";
@@ -157,7 +159,7 @@ public class PSqlScript extends Script {
 	@Override
 	public <M extends DbObject> String getSelectString(Class<M> type, HashMap<String, Object> conditions) {
 		//SELECT * FROM person WHERE name='Johnny Joe' AND age=24;
-		String str = "SELECT * FROM " + type.getName();
+		String str = "SELECT * FROM " + this.dbName + "." + type.getName().replace('.', '_');
 		if(conditions.size() > 0){
 			str = str + " WHERE ";
 		}
@@ -221,7 +223,7 @@ public class PSqlScript extends Script {
 
 	@Override
 	public <T extends DbObject> String getCountString(Class<T> type, HashMap<String, Object> kwargs) {
-		String sql = "SELECT count(*) FROM " + type.getName();
+		String sql = "SELECT count(*) FROM " + this.dbName + "." + type.getName().replace('.', '_');
 		if (kwargs.size() > 0) {
 			sql = sql + " WHERE ";
 			int i = 0;
@@ -239,18 +241,21 @@ public class PSqlScript extends Script {
 	
 	public static String getIntType(Integer maxVal) {
 		if(maxVal != null){
-			if(maxVal <= 32767){
-				return "smallint";
+			if(maxVal <= 127){
+				return "TINYINT";
 			}
-			else if(maxVal <= 2147483647){
-				return "integer";
+			else if(maxVal <= 32767){
+				return "SMALLINT";
 			}
-			else {
-				return "bigint";
+			else if (maxVal <= 8388607) {
+				return "MEDIUMINT";
+			}
+			else{  // if (maxVal <= 2147483647)
+				return "INT";
 			}
 		}
 		else {
-			return "integer";
+			return "INT";
 		}
 	}
 
