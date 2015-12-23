@@ -12,6 +12,7 @@ import org.json.simple.parser.ParseException;
 import iansLibrary.data.databases.MetaDatabase;
 import kirkModels.DbObject;
 import kirkModels.orm.QuerySet;
+import kirkModels.tests.Person;
 import kirkModels.utils.Utilities;
 
 public abstract class Settings {
@@ -35,7 +36,7 @@ public abstract class Settings {
 		for (int i = 0; i < tempSyncedModels.size(); i++) {
 			String model = (String) tempSyncedModels.get(i);
 			try {
-				syncedModels.put(model.replace(".", "_"), (Class<? extends DbObject>) Class.forName(model));
+				syncedModels.put(model.replace(".", "_").toLowerCase(), (Class<? extends DbObject>) Class.forName(model));
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

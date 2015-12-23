@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
+import kirkModels.orm.QuerySet;
 
 public class ForeignKey<T extends DbObject> extends IntegerField {
 	
@@ -24,23 +25,6 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	
 	public ForeignKey() {
 		super("", true, null, false, null);
-	}
-	
-	@Override
-	/**
-	 * set the id value for this. this should not be an actual DbObject, but the id of an existing one.
-	 */
-	public void set(Object value){
-		super.set(value);
-		int val = this.value;
-		try {
-			this.referencedInstant = (T) DbObject.objects.get(new HashMap<String, Object>(){{
-				put("id", val);
-			}});
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	/**

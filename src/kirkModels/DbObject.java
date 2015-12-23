@@ -2,6 +2,7 @@ package kirkModels;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import kirkModels.config.Settings;
@@ -10,6 +11,7 @@ import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.QuerySet;
+import kirkModels.tests.Person;
 
 public abstract class DbObject {
 
@@ -174,6 +176,9 @@ public abstract class DbObject {
 			return null;
 		} catch (IllegalAccessException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}

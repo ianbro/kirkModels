@@ -17,6 +17,6 @@ public class Person extends DbObject{
 	public int fjslkfsjflasfjslfs;
 	
 	public String toString(){
-		return "Person '" + this.name + "': " + this.age + " years old.";
+		return "Person '" + this.name + "': " + this.age + " years old";
 	}
 }

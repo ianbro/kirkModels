@@ -66,8 +66,16 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	public void getObjects() {
 		QuerySet<R> values = null;
 		ArrayList<Integer> ids = new ArrayList<>();
+		Class<R> refClass = null;
+		try {
+			refClass = (Class<R>) Class.forName(this.refModel);
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		Class m2mClass = this.getClass();
 		
-		QuerySet<ManyToManyField<T, R>> tempQ = new QuerySet<ManyToManyField<T, R>>(new HashMap<String, Object>(){{
+		QuerySet<ManyToManyField<T, R>> tempQ = new QuerySet<ManyToManyField<T, R>>(m2mClass, new HashMap<String, Object>(){{
 			put(reference1.label + "::=", hostId);
 		}});
 		
@@ -90,7 +98,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		}
 		args.put("id::in", ids);
 		
-		values = new QuerySet<R>(args);
+		values = new QuerySet<R>(refClass, args);
 		
 		this.objectSet = values;
 	}

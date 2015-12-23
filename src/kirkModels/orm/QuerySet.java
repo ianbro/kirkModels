@@ -35,9 +35,9 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		this.updateStorage();
 	}
 	
-	public QuerySet(HashMap<String, Object> kwargs){
-		this.results = Settings.database.dbHandler.selectFrom(tableName, kwargs);
-		this.setTableName();
+	public QuerySet(Class<T> tableName, HashMap<String, Object> kwargs){
+		this.tableName = tableName;
+		this.results = Settings.database.dbHandler.selectFrom(this.tableName, kwargs);
 		this.kwargs = kwargs;
 		this.updateStorage();
 	}
@@ -136,12 +136,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	public void setTableName(){
 		try {
 			String tableName = this.results.getMetaData().getTableName(1).replace('_', '.');
-			try {
-				this.tableName = (Class<T>) Class.forName(tableName);
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			this.tableName = (Class<T>) Settings.syncedModels.get(tableName);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -204,7 +199,17 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	}
 	
 	public int indexOf(T other){
-		return this.storage.indexOf(other);
+		for(int i = 0; i < this.storage.size(); i ++){
+			T object = this.storage.get(i);
+			if(object.id.val() == other.id.val()){
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	public Class<T> getTableName(){
+		return this.tableName;
 	}
 	
 	
@@ -297,21 +302,35 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	@Override
 	public QuerySet<T> getOrCreate(HashMap<String, Object> kwargs) throws SQLException {
 		kwargs = this.combineKwargs(kwargs);
-		QuerySet<T> results = this.filter(kwargs);
+		
+		HashMap<String, Object> tempKwargs = this.addOperators(kwargs, "=");
+		
+		QuerySet<T> results = this.filter(tempKwargs);
+		
 		if (results.count() > 0) {
 			return results;
 		}
 		else {
 			T newInstance = this.create(kwargs);
-			QuerySet<T> querySet = new QuerySet<T>(kwargs).filter(kwargs);
+			QuerySet<T> querySet = this.filter(tempKwargs);
 			return querySet;
 		}
+	}
+	
+	public HashMap<String, Object> addOperators(HashMap<String, Object> kwargs, String operator){
+		HashMap<String, Object> tempKwargs = new HashMap<String, Object>();
+		
+		for (String key : kwargs.keySet()) {
+			tempKwargs.put(key + "::" + operator, kwargs.get(key));
+		}
+		
+		return tempKwargs;
 	}
 
 	@Override
 	public QuerySet<T> filter(HashMap<String, Object> kwargs) {
 		kwargs = this.combineKwargs(kwargs);
-		QuerySet<T> newQuerySet = new QuerySet<>(kwargs);
+		QuerySet<T> newQuerySet = new QuerySet<T>(this.tableName, kwargs);
 		return newQuerySet;
 	}
 
@@ -330,6 +349,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		else {
 			for (T instance : results) {
 				int index = this.indexOf(instance);
+				System.out.println(index);
 				instance.delete();
 				this.storage.remove(index);
 			}
