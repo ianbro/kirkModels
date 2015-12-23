@@ -19,6 +19,7 @@ public abstract class DbObject {
 	
 	public IntegerField id = new IntegerField("id", false, 0, true, null);
 	public ArrayList<String> savableFields = new ArrayList<String>();
+	public ArrayList<String> manyToManyFields = new ArrayList<String>();
 	
 	/**
 	 * When instantiating a DbObject, if it contains a many to many field, you must call manyToManyfield.setHostId(id).
@@ -28,7 +29,7 @@ public abstract class DbObject {
 		int id = 1;
 		//get id to set this to
 		for(Field field : this.getClass().getFields()){
-			if(!field.getType().isInstance(ManyToManyField.class) && !SavableField.class.isAssignableFrom(field.getType())){
+			if(!ManyToManyField.class.isAssignableFrom(field.getType()) && !SavableField.class.isAssignableFrom(field.getType())){
 				continue;
 			}
 			else{

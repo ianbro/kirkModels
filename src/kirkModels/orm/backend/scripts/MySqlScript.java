@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import kirkModels.DbObject;
+import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 
 public class MySqlScript extends Script {
@@ -17,7 +18,14 @@ public class MySqlScript extends Script {
 
 	@Override
 	public String getTableString(DbObject testInstance) {
-		String sql = "CREATE TABLE " + this.dbName + "." + testInstance.getClass().getName().replace('.', '_') + " (";
+		String tableName;
+		if (ManyToManyField.class.isAssignableFrom(testInstance.getClass())) {
+			tableName = ((ManyToManyField) testInstance).tableLabel;
+		}
+		else {
+			tableName = testInstance.getClass().getName().replace('.', '_');
+		}
+		String sql = "CREATE TABLE " + this.dbName + "." + tableName + " (";
 		sql = sql + this.getFieldStrings(testInstance);
 		sql = sql + "\n);";
 		return sql;
@@ -65,6 +73,9 @@ public class MySqlScript extends Script {
 			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (ClassCastException e) {
+				// field is a ManyToManyField so We sync this another way. not included in the table string.
+				continue;
 			}
 			sql = sql + "\n\t" + field.MySqlString();
 			if(i != instance.savableFields.size() - 1){

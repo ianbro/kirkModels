@@ -12,10 +12,10 @@ import kirkModels.orm.Savable;
 
 public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbObject implements Savable<R> {
 
-	public ForeignKey<T> reference1;
+	public ForeignKey<T> reference1; // label: "host_<T>_id"
 	public String hostModel;
 	
-	public ForeignKey<R> reference2;
+	public ForeignKey<R> reference2; // label: "reference_<R>_id"
 	public String refModel;
 	
 	public Integer hostId;
@@ -28,11 +28,16 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	 * @param host
 	 * @param refModel
 	 */
-	public ManyToManyField(DbObject host, Class<R> refModel){
+	public ManyToManyField(String label, DbObject host, Class<R> refModel){
 		this.hostModel = host.getClass().getName();
 		this.refModel = refModel.getName();
-		this.reference1 = new ForeignKey<T>(host.getClass().getSimpleName().toLowerCase() + "_id", (Class<T>) host.getClass(), false, null, false, "NO ACTION");
-		this.reference2 = new ForeignKey<R>(refModel.getSimpleName().toLowerCase() + "_id", refModel, false, null, false, "NO ACTION");
+		
+		String firstTable = host.getClass().getSimpleName().toLowerCase();
+		String refTable = refModel.getSimpleName().toLowerCase();
+		this.tableLabel = label + "__" + firstTable + "___" + refTable;
+		
+		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", (Class<T>) host.getClass(), false, null, false, "NO ACTION");
+		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", refModel, false, null, false, "NO ACTION");
 	}
 	
 	/**
