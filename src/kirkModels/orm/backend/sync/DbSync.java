@@ -46,7 +46,7 @@ public class DbSync {
 		
 		this.migrateFromInstance(testInstance);
 		
-		for (String fieldName : testInstance.savableFields) {
+		for (String fieldName : testInstance.manyToManyFields) {
 			Field field = null;
 			
 			try {
@@ -55,23 +55,20 @@ public class DbSync {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			if(ManyToManyField.class.isAssignableFrom(field.getType())){
 
-				DbObject manyToManyField = null;
-				
-				try {
-					manyToManyField = (DbObject) field.get(testInstance);
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				this.migrateFromInstance(manyToManyField);
+			DbObject manyToManyField = null;
+			
+			try {
+				manyToManyField = (DbObject) field.get(testInstance);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			
+			this.migrateFromInstance(manyToManyField);
 		}
 	}
 	

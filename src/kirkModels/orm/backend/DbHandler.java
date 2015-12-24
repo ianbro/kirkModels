@@ -96,8 +96,8 @@ public class DbHandler {
 		}
 	}
 	
-	public <T extends DbObject> ResultSet selectFrom(Class<T> table, HashMap<String, Object> kwargs){
-		String sql = this.script.getSelectString(table, kwargs);
+	public <T extends DbObject> ResultSet selectFrom(String tableName, HashMap<String, Object> kwargs){
+		String sql = this.script.getSelectString(tableName, kwargs);
 		ResultSet results = null;
 		try {
 			results = this.executeQuery(sql);
@@ -108,8 +108,8 @@ public class DbHandler {
 		return results;
 	}
 	
-	public <T extends DbObject> Integer selectCount(Class<T> table, HashMap<String, Object> kwargs){
-		String sql = this.script.getCountString(table, kwargs);
+	public <T extends DbObject> Integer selectCount(String tableName, HashMap<String, Object> kwargs){
+		String sql = this.script.getCountString(tableName, kwargs);
 		ResultSet results = null;
 		try {
 			results = this.executeQuery(sql);

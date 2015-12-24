@@ -33,13 +33,27 @@ public class MySqlScript extends Script {
 
 	@Override
 	public String getDeleteString(DbObject instance) {
-		String sql = "DELETE FROM " + this.dbName + "." + instance.getClass().getName().replace('.', '_') + " WHERE id=" + instance.id.val() + ";";
+		String tableName;
+		if (ManyToManyField.class.isAssignableFrom(instance.getClass())) {
+			tableName = ((ManyToManyField) instance).tableLabel;
+		}
+		else {
+			tableName = instance.getClass().getName().replace('.', '_');
+		}
+		String sql = "DELETE FROM " + this.dbName + "." + tableName + " WHERE id=" + instance.id.val() + ";";
 		return sql;
 	}
 
 	@Override
 	public String getCheckExistsString(DbObject instance) {
-		String sql = "SELECT COUNT(id) from " + this.dbName + "." + instance.getClass().getName().replace('.', '_') + " WHERE id=" + instance.id.val() + ";";
+		String tableName;
+		if (ManyToManyField.class.isAssignableFrom(instance.getClass())) {
+			tableName = ((ManyToManyField) instance).tableLabel;
+		}
+		else {
+			tableName = instance.getClass().getName().replace('.', '_');
+		}
+		String sql = "SELECT COUNT(id) from " + this.dbName + "." + tableName + " WHERE id=" + instance.id.val() + ";";
 		return sql;
 	}
 	
@@ -88,11 +102,19 @@ public class MySqlScript extends Script {
 
 	@Override
 	public String getSaveNewInstanceString(DbObject instance) {
+		String tableName;
+		if (ManyToManyField.class.isAssignableFrom(instance.getClass())) {
+			tableName = ((ManyToManyField) instance).tableLabel;
+		}
+		else {
+			tableName = instance.getClass().getName().replace('.', '_');
+		}
 		//INSERT INTO person ( id, name, age ) VALUES ( 1, 'Johnny Joe', 24 );
-		String str = "INSERT INTO " + this.dbName + "." + instance.getClass().getName().replace('.', '_') + " ( ";
+		String str = "INSERT INTO " + this.dbName + "." + tableName + " ( ";
 		for(int i = 0; i < instance.savableFields.size(); i ++){
-			String field = instance.savableFields.get(i);
-			str = str + field.toLowerCase();
+			String fieldName = instance.savableFields.get(i);
+			SavableField field = instance.getField(fieldName);
+			str = str + field.label.toLowerCase();
 			if(i < instance.savableFields.size() - 1){
 				str = str + ", ";
 			}
@@ -131,7 +153,14 @@ public class MySqlScript extends Script {
 
 	@Override
 	public String getUpdateInstanceString(DbObject instance) {
-		String sql = "UPDATE " + this.dbName + "." + instance.getClass().getName().replace('.', '_');
+		String tableName;
+		if (ManyToManyField.class.isAssignableFrom(instance.getClass())) {
+			tableName = ((ManyToManyField) instance).tableLabel;
+		}
+		else {
+			tableName = instance.getClass().getName().replace('.', '_');
+		}
+		String sql = "UPDATE " + this.dbName + "." + tableName;
 		
 		for(int i = 0; i < instance.savableFields.size(); i ++){
 			SavableField field = null;
@@ -168,9 +197,10 @@ public class MySqlScript extends Script {
 	}
 
 	@Override
-	public <M extends DbObject> String getSelectString(Class<M> type, HashMap<String, Object> conditions) {
+	public <M extends DbObject> String getSelectString(String tableName, HashMap<String, Object> conditions) {
+
 		//SELECT * FROM person WHERE name='Johnny Joe' AND age=24;
-		String str = "SELECT * FROM " + this.dbName + "." + type.getName().replace('.', '_');
+		String str = "SELECT * FROM " + this.dbName + "." + tableName;
 		if(conditions.size() > 0){
 			str = str + " WHERE ";
 		}
@@ -233,8 +263,8 @@ public class MySqlScript extends Script {
 	}
 
 	@Override
-	public <T extends DbObject> String getCountString(Class<T> type, HashMap<String, Object> kwargs) {
-		String sql = "SELECT count(*) FROM " + this.dbName + "." + type.getName().replace('.', '_');
+	public <T extends DbObject> String getCountString(String tableName, HashMap<String, Object> kwargs) {
+		String sql = "SELECT count(*) FROM " + this.dbName + "." + tableName;
 		if (kwargs.size() > 0) {
 			sql = sql + " WHERE ";
 			int i = 0;

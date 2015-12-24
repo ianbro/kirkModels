@@ -31,6 +31,8 @@ public abstract class DbObject {
 		for(Field field : this.getClass().getFields()){
 			if(!ManyToManyField.class.isAssignableFrom(field.getType()) && !SavableField.class.isAssignableFrom(field.getType())){
 				continue;
+			} if (ManyToManyField.class.isAssignableFrom(field.getType())) {
+				this.manyToManyFields.add(field.getName());
 			}
 			else{
 				this.savableFields.add(field.getName());
@@ -45,11 +47,7 @@ public abstract class DbObject {
 	}
 	
 	public void save() {
-		this.initializeManyToManyFields();
-//		System.out.println(this.getField("name"));
-//		System.out.println(this.getField("age"));
-//		System.out.println(this.id.val());
-//		System.out.println(this.exists());
+
 		if(this.id.val() == 0 || !this.exists()){
 			int newId = DbObject.getObjectsForGenericType(this.getClass()).count() + 1;
 			this.id.set(newId);
@@ -58,10 +56,50 @@ public abstract class DbObject {
 		} else {
 			Settings.database.dbHandler.update(this);
 		}
+		
+		this.initializeManyToManyFields();
 	}
 	
 	public boolean exists(){
 		return Settings.database.dbHandler.checkExists(this);
+	}
+	
+	public boolean meetsKwargs(HashMap<String, Object> kwargs){
+		for (String key : kwargs.keySet()) {
+			if(!this.meetsSpecificKwarg(key.split("::")[0], kwargs.get(key))){
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean meetsSpecificKwarg(String field, Object val){
+		switch (field.split("::")[1]) {
+		case "=":
+			if(!this.getField(field.split("::")[0]).val().equals(val)){
+				return false;
+			}
+			break;
+			
+		case "in":
+			boolean contained = false;
+			ArrayList<Object> values = (ArrayList<Object>) val;
+			for (Object value : values) {
+				if(this.getField(field.split("::")[0]).val().equals(value)){
+					contained = true;
+				}
+			}
+			
+			if (!contained) {
+				return false;
+			}
+			break;
+
+		default:
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public SavableField getField(String name){
@@ -131,7 +169,7 @@ public abstract class DbObject {
 	 * <br>
 	 */
 	public void initializeManyToManyFields(){
-		for (String fieldName : this.savableFields) {
+		for (String fieldName : this.manyToManyFields) {
 			Object field = null;
 			try {
 				field = this.getClass().getField(fieldName).get(this);
@@ -149,11 +187,9 @@ public abstract class DbObject {
 				e.printStackTrace();
 			}
 			
-			if (field.getClass().isAssignableFrom(ManyToManyField.class)) {
-				ManyToManyField temp_field = (ManyToManyField) field;
-				temp_field.setHostId(this.id.val());
-				temp_field.getObjects();
-			}
+			ManyToManyField temp_field = (ManyToManyField) field;
+			temp_field.setHostId(this.id.val());
+			temp_field.getObjects();
 		}
 	}
 	

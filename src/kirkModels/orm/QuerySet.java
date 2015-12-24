@@ -18,8 +18,9 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	
 	private ArrayList<T> storage;
 	public ResultSet results;
-	private Class<T> tableName;
+	private Class<T> type;
 	private HashMap<String, Object> kwargs;
+	String tableName;
 	
 	public QuerySet(ResultSet results, HashMap<String, Object> kwargs){
 		this.results = results;
@@ -28,14 +29,24 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		this.updateStorage();
 	}
 	
-	public QuerySet(Class<T> tableName){
-		this.tableName = tableName;
-		this.results = Settings.database.dbHandler.selectFrom(tableName, new HashMap<String, Object>());
+	public QuerySet(Class<T> type){
+		this.type = type;
+		this.tableName = this.type.getName().replace(".", "_");
+		this.results = Settings.database.dbHandler.selectFrom(this.tableName, new HashMap<String, Object>());
 		this.kwargs = new HashMap<String, Object>();
 		this.updateStorage();
 	}
 	
-	public QuerySet(Class<T> tableName, HashMap<String, Object> kwargs){
+	public QuerySet(Class<T> type, HashMap<String, Object> kwargs){
+		this.type = type;
+		this.tableName = this.type.getName().replace(".", "_");
+		this.results = Settings.database.dbHandler.selectFrom(this.tableName, kwargs);
+		this.kwargs = kwargs;
+		this.updateStorage();
+	}
+	
+	public QuerySet(Class<T> type, String tableName, HashMap<String, Object> kwargs){
+		this.type = type;
 		this.tableName = tableName;
 		this.results = Settings.database.dbHandler.selectFrom(this.tableName, kwargs);
 		this.kwargs = kwargs;
@@ -45,13 +56,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	private void updateStorage(){
 		this.storage = new ArrayList<T>();
 		this.results = Settings.database.dbHandler.selectFrom(this.tableName, this.kwargs);
-//		try {
-//			this.results.last();
-//		} catch (SQLException e1) {
-//			// TODO Auto-generated catch block
-//			System.out.println("error");
-//			e1.printStackTrace();
-//		}
+
 		try {
 			
 			while (this.results.next()) {
@@ -66,9 +71,10 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 				}
 				
 				if (index > 0) {
-//					System.out.println(this.results.getRow());
 					T newInstance = this.getObjectFromResults(index);
-//					System.out.println(this.results.getRow());
+					
+					newInstance.initializeManyToManyFields();
+					
 					this.storage.add(newInstance);
 				}
 			}
@@ -83,10 +89,11 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		T object = null;
 		try {
 			if (this.cursorToRow(index)) {
-				object = tableName.newInstance();
+				object = type.newInstance();
 				for (int i = 0; i < object.savableFields.size(); i++) {
-					String fieldName = object.savableFields.get(i);
-					Class<?> fieldType = object.getClass().getField(fieldName).getType();
+					String fieldNameTemp = object.savableFields.get(i);
+					String fieldName = object.getField(fieldNameTemp).label;
+					Class<?> fieldType = object.getClass().getField(fieldNameTemp).getType();
 					if (fieldType.isAssignableFrom(ManyToManyField.class)) {
 						Class<?>[] cArg = new Class[1];
 						cArg[0] = Object.class;
@@ -96,7 +103,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 						Class<?>[] cArg = new Class[1];
 						cArg[0] = Object.class;
 						
-						SavableField field = (SavableField) object.getClass().getField(fieldName).get(object);
+						SavableField field = (SavableField) object.getClass().getField(fieldNameTemp).get(object);
 						
 						Method getMethod = fieldType.getMethod("set", cArg);
 						Object fieldVal = this.results.getObject(fieldName);
@@ -135,8 +142,8 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	
 	public void setTableName(){
 		try {
-			String tableName = this.results.getMetaData().getTableName(1).replace('_', '.');
-			this.tableName = (Class<T>) Settings.syncedModels.get(tableName);
+			this.tableName = this.results.getMetaData().getTableName(1);
+			this.type = (Class<T>) Settings.syncedModels.get(this.tableName.replace('_', '.'));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -208,7 +215,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		return -1;
 	}
 	
-	public Class<T> getTableName(){
+	public String getTableName(){
 		return this.tableName;
 	}
 	
@@ -229,7 +236,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		
 		// if loop finishes and no instance is returned, throw an error cause no instance has this id.
 		try {
-			throw new Exception(this.tableName.getSimpleName() + " with id of " + id + " does not exist.");
+			throw new Exception(this.type.getSimpleName() + " with id of " + id + " does not exist.");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -259,13 +266,11 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		
 		T newInstance = null;
 		try {
-			newInstance = this.tableName.newInstance();
+			newInstance = this.type.newInstance();
 		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		newInstance.initializeManyToManyFields();
 		
 		for (String fieldName : kwargs.keySet()) {
 			Object value = kwargs.get(fieldName);
@@ -289,7 +294,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		else {
 			
 			try {
-				throw new Exception("Found several results of " + this.tableName + " instance for kwargs: " + kwargs);
+				throw new Exception("Found several results of " + this.type + " instance for kwargs: " + kwargs);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -330,7 +335,16 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	@Override
 	public QuerySet<T> filter(HashMap<String, Object> kwargs) {
 		kwargs = this.combineKwargs(kwargs);
-		QuerySet<T> newQuerySet = new QuerySet<T>(this.tableName, kwargs);
+		kwargs.put("id::=", 0);
+		
+		QuerySet<T> newQuerySet = new QuerySet<T>(this.type, kwargs);
+		
+		for (T instance : newQuerySet.storage) {
+			if(instance.meetsKwargs(kwargs)){
+				newQuerySet.storage.add(instance);
+			}
+		}
+		
 		return newQuerySet;
 	}
 
@@ -344,7 +358,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		kwargs = this.combineKwargs(kwargs);
 		QuerySet<T> results = this.filter(kwargs);
 		if (results.count() < 1) {
-			throw new Exception(this.tableName + " object with kwargs: " + kwargs + " does not exist.");
+			throw new Exception(this.type + " object with kwargs: " + kwargs + " does not exist.");
 		}
 		else {
 			for (T instance : results) {

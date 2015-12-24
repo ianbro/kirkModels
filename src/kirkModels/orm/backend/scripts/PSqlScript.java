@@ -155,9 +155,9 @@ public class PSqlScript extends Script {
 	}
 
 	@Override
-	public <M extends DbObject> String getSelectString(Class<M> type, HashMap<String, Object> conditions) {
+	public <M extends DbObject> String getSelectString(String tableName, HashMap<String, Object> conditions) {
 		//SELECT * FROM person WHERE name='Johnny Joe' AND age=24;
-		String str = "SELECT * FROM " + type.getName();
+		String str = "SELECT * FROM " + tableName;
 		if(conditions.size() > 0){
 			str = str + " WHERE ";
 		}
@@ -220,8 +220,8 @@ public class PSqlScript extends Script {
 	}
 
 	@Override
-	public <T extends DbObject> String getCountString(Class<T> type, HashMap<String, Object> kwargs) {
-		String sql = "SELECT count(*) FROM " + type.getName();
+	public <T extends DbObject> String getCountString(String tableName, HashMap<String, Object> kwargs) {
+		String sql = "SELECT count(*) FROM " + tableName;
 		if (kwargs.size() > 0) {
 			sql = sql + " WHERE ";
 			int i = 0;

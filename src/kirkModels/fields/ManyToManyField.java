@@ -17,8 +17,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	
 	public ForeignKey<R> reference2; // label: "reference_<R>_id"
 	public String refModel;
-	
-	public Integer hostId;
+
 	public String tableLabel;
 	
 	public QuerySet<R> objectSet;
@@ -80,38 +79,43 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		}
 		Class m2mClass = this.getClass();
 		
-		QuerySet<ManyToManyField<T, R>> tempQ = new QuerySet<ManyToManyField<T, R>>(m2mClass, new HashMap<String, Object>(){{
-			put(reference1.label + "::=", hostId);
+		QuerySet<ManyToManyField<T, R>> tempQ = new QuerySet<ManyToManyField<T, R>>(m2mClass, this.tableLabel, new HashMap<String, Object>(){{
+			put(reference1.label + "::=", reference1.val());
 		}});
 		
 		HashMap<String, Object> args = new HashMap<String, Object>();
 		
 		try {
-			args.put("table_label", Class.forName(refModel).getSimpleName().toLowerCase());
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
 			while(tempQ.results.next()){
-				ids.add(tempQ.results.getInt("id"));
+				ids.add(tempQ.results.getInt(this.reference2.label));
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		args.put("id::in", ids);
+		if(ids.size() > 0){
+			args.put("id::in", ids);
+		}
 		
-		values = new QuerySet<R>(refClass, args);
+		values = DbObject.getObjectsForGenericType(refClass).filter(args);
 		
 		this.objectSet = values;
 	}
 	
 	protected ManyToManyField<T, R> saveRelationship(R instance){
 		ManyToManyField<T, R> newRelationship = new ManyToManyField<>();
-		newRelationship.reference1.set(this.hostId);
+		
+		int newId = this.objects.count() + 1;
+		newRelationship.id.set(newId);
+		
+		newRelationship.tableLabel = this.tableLabel;
+		
+		newRelationship.reference1.set(this.reference1.val());
+		newRelationship.reference1.label = this.reference1.label;
+		
 		newRelationship.reference2.set(instance.id.val());
+		newRelationship.reference2.label = this.reference2.label;
+		
 		Settings.database.dbHandler.insertInto(newRelationship);
 		return newRelationship;
 	}
@@ -152,7 +156,35 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 
 	@Override
 	public R create(HashMap<String, Object> kwargs) {
-		return this.objectSet.create(kwargs);
+		R newInstance = this.objectSet.create(kwargs);
+		
+		this.add(newInstance);
+		
+		return newInstance;
+	}
+	
+	public R add(R instance){
+		System.out.println(this.reference1.val());
+		this.saveRelationship(instance);
+		try {
+			this.objectSet = new QuerySet<R>((Class<R>) Class.forName(this.refModel));
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		R addedInstance = null;
+		try {
+			System.out.println(this.objectSet.getTableName());
+			addedInstance = this.objectSet.get(new HashMap<String, Object>(){{
+				put("id", instance.id.val());
+			}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return addedInstance;
 	}
 
 	@Override
@@ -172,12 +204,39 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 
 	@Override
 	public void delete(HashMap<String, Object> kwargs) throws Exception {
-		this.objectSet.delete(kwargs);
+		QuerySet<R> instances = this.filter(kwargs);
+		for(R instance : instances){
+			this.remove(instance);
+			instance.delete();
+		}
+	}
+	
+	public void remove(R instance){
+		R tempInstance = null;
+		try {
+			tempInstance = this.get(new HashMap<String, Object>(){{
+				put("id", instance.id.val());
+			}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if(tempInstance != null){
+			this.deleteReleationship(instance);
+		} else {
+			try {
+				throw new Exception("Sorry, " + instance.getClass().getSimpleName() + " instance with id: " + instance.id.val()
+									+ " already exists.");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void setHostId(int id){
 		this.reference1.set(id);
-		this.hostId = id;
 	}
 
 	@Override

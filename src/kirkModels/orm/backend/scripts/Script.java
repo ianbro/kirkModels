@@ -99,7 +99,7 @@ public abstract class Script {
 	 * @param conditions - The field conditions which must be met in order for a row to be returned
 	 * @return {@link String} - The sql used to select a set of instances from a table.
 	 */
-	public abstract <M extends DbObject> String getSelectString(Class<M> type, HashMap<String, Object> conditions);
+	public abstract <M extends DbObject> String getSelectString(String tableName, HashMap<String, Object> conditions);
 	
 	/**
 	 * <p>
@@ -109,7 +109,7 @@ public abstract class Script {
 	 * @param type - The class used to find the table to count the rows of
 	 * @return - {@link String} - the sql used to find the count of <b>M</b>
 	 */
-	public abstract <T extends DbObject> String getCountString(Class<T> type, HashMap<String, Object> kwargs);
+	public abstract <T extends DbObject> String getCountString(String tableName, HashMap<String, Object> kwargs);
 	
 //	public abstract String getSelectInListString(Class<M> type, HashMap<String, Object> conditions)
 }
