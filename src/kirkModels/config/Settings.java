@@ -11,6 +11,7 @@ import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
 import kirkModels.DbObject;
+import kirkModels.fields.ManyToManyField;
 import kirkModels.orm.QuerySet;
 import kirkModels.tests.Person;
 import kirkModels.utils.Utilities;
@@ -47,8 +48,54 @@ public abstract class Settings {
 	public static void setObjectsForModels(){
 		for (Class<? extends DbObject> type : syncedModels.values()) {
 			QuerySet<? extends DbObject> objects = new QuerySet(type);
+			
 			try {
 				type.getField("objects").set(null, objects);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchFieldException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		updateStoragesForManyToManyFields();
+	}
+	
+	public static void updateStoragesForManyToManyFields(){
+		for (Class<? extends DbObject> type : syncedModels.values()) {
+			try {
+				for(DbObject object : (QuerySet<? extends DbObject>) type.getField("objects").get(null)){
+					
+					for (String fieldName : object.manyToManyFields) {
+						Object field = null;
+						try {
+							field = object.getClass().getField(fieldName).get(object);
+						} catch (IllegalArgumentException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IllegalAccessException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (NoSuchFieldException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (SecurityException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						ManyToManyField temp_field = (ManyToManyField) field;
+						temp_field.getObjects();
+					}
+					
+				}
 			} catch (IllegalArgumentException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

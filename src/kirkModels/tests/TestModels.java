@@ -4,19 +4,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Scanner;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
-import kirkModels.DbObject;
 import kirkModels.config.Settings;
-import kirkModels.orm.QuerySet;
-import kirkModels.orm.backend.scripts.PSqlScript;
-import kirkModels.orm.backend.sync.DbSync;
+import kirkModels.queries.DeleteQuery;
+import kirkModels.queries.InsertQuery;
+import kirkModels.queries.SelectQuery;
+import kirkModels.queries.UpdateQuery;
+import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.queries.scripts.InsertValue;
 
 public abstract class TestModels {
 
@@ -34,65 +32,160 @@ public abstract class TestModels {
 			e.printStackTrace();
 		}
 		
-//		DbSync syncer = new DbSync(Settings.database);
+		Person ian = null;
+		Person jesus = null;
+		Person wynton = null;
+		
+		try {
+			ian = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+				add(new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick"));
+			}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			wynton = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+				add(new WhereCondition("name", WhereCondition.EQUALS, "Wynton Kirkpatrick"));
+			}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			jesus = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+				add(new WhereCondition("name", WhereCondition.EQUALS, "Jesus Christ"));
+			}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+//		System.out.println(ian);
+//		System.out.println(jesus);
+//		System.out.println(wynton);
+
+//		ian.friends.add(jesus);
+//		jesus.friends.add(wynton);
+//		ian.save();
+		
+		System.out.println(ian.friends.all());
+		System.out.println(jesus.friends.all());
+		
+		ian.friends.remove(wynton);
+		
+		System.out.println(ian.friends.all());
+		
+		ian.friends.add(wynton);
+		
+		System.out.println(ian.friends.all());
+		
+		
+//		
 //		try {
-//			syncer.migrateModel(Person.class);
+//			Person jesus = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+//				add(new WhereCondition("name", WhereCondition.EQUALS, "Jesus Christ"));
+//				add(new WhereCondition("age", WhereCondition.EQUALS, 6000));
+//			}});
+//			jesus.delete();
+//			
+//			jesus = (Person) Person.objects.getOrCreate(new ArrayList<WhereCondition>(){{
+//				add(new WhereCondition("name", WhereCondition.EQUALS, "Jesus Christ"));
+//				add(new WhereCondition("age", WhereCondition.EQUALS, 6000));
+//			}}).getRow(0);
+//			
+//			System.out.println(jesus);
 //		} catch (SQLException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
+	}
+	
+	public static void testSelectQuery(){
+		WhereCondition id = new WhereCondition("id", WhereCondition.CONTAINED_IN, new ArrayList<Integer>(){{add(1); add(3);}});
+		WhereCondition name_first = new WhereCondition("name_first", WhereCondition.EQUALS, "Ian");
+		WhereCondition name_last = new WhereCondition("name_last", WhereCondition.NOT_EQUAL_TO, "Johnson");
 		
-		HashMap<String, Object> kwargs = new HashMap<String, Object>(){{
-			put("name", "Ian Kirkpatrick");
-			put("age", 19);
-		}};
+		System.out.println(id.getMySqlString());
+		System.out.println(name_first.getMySqlString());
+		System.out.println(name_last.getMySqlString());
 		
-		Person ian = (Person) Person.objects.create(kwargs);
+		SelectQuery q = new SelectQuery("kirkmodels_test_person",
+			new ArrayList<String>(){{
+				add("id");
+			}},
+			new ArrayList<WhereCondition>(){{
+				add(id);
+				add(name_first);
+				add(name_last);
+			}}
+		);
 		
-		kwargs = new HashMap<String, Object>(){{
-			put("name", "Dan Kirkpatrick");
-			put("age", 51);
-		}};
+		System.out.println(q.getCommand());
+	}
+	
+	public static void testInsertQuery(){
+		InsertValue id = new InsertValue("id", 2);
+		InsertValue name_first = new InsertValue("name_first", "Ian");
+		InsertValue name_last = new InsertValue("name_last", "Kirkpatrick");
 		
-		Person dad = (Person) Person.objects.create(kwargs);
+		System.out.println(id);
+		System.out.println(name_first);
+		System.out.println(name_last);
 		
-		kwargs = new HashMap<String, Object>(){{
-			put("name", "Lori Kirkpatrick");
-			put("age", 47);
-		}};
+		InsertQuery q = new InsertQuery("kirkmodels_test_person",
+			new ArrayList<InsertValue>(){{
+				add(id);
+				add(name_first);
+				add(name_last);
+			}}
+		);
 		
-		Person mom = (Person) Person.objects.create(kwargs);
-		
-		ian.mother.setObject(mom);
-		ian.father.setObject(dad);
-		ian.save();
-		
-		kwargs = new HashMap<String, Object>(){{
-			put("name", "Wynton Kirkpatrick");
-			put("age", 18);
-			put("mother", mom.id.val());
-			put("father", dad.id.val());
-		}};
-		
-		Person wynton = (Person) Person.objects.create(kwargs);
-		
-		kwargs = new HashMap<String, Object>(){{
-			put("name", "Barack Obama");
-			put("age", 55);
-		}};
-		
-		Person barack = (Person) Person.objects.create(kwargs);
-		
-		kwargs = new HashMap<String, Object>(){{
-			put("name", "Jesus Christ");
-			put("age", 6000);
-		}};
-		
-		Person jesus = (Person) Person.objects.create(kwargs);
-		
-		ian.friends.add(jesus);
-		ian.enemies.add(barack);
-		ian.save();
+		System.out.println(q.getCommand());
 	}
 
+	public static void testDeleteQuery(){
+		WhereCondition id = new WhereCondition("id", WhereCondition.CONTAINED_IN, new ArrayList<Integer>(){{add(1); add(3);}});
+		WhereCondition name_first = new WhereCondition("name_first", WhereCondition.EQUALS, "Ian");
+		WhereCondition name_last = new WhereCondition("name_last", WhereCondition.NOT_EQUAL_TO, "Johnson");
+		
+		System.out.println(id.getMySqlString());
+		System.out.println(name_first.getMySqlString());
+		System.out.println(name_last.getMySqlString());
+		
+		DeleteQuery q = new DeleteQuery("kirkmodels_test_person",
+			new ArrayList<WhereCondition>(){{
+				add(id);
+				add(name_first);
+				add(name_last);
+			}}
+		);
+		
+		System.out.println(q.getCommand());
+	}
+
+	public static void testUpdateQuery(){
+		WhereCondition id = new WhereCondition("id", WhereCondition.CONTAINED_IN, new ArrayList<Integer>(){{add(1); add(3);}});
+		
+		WhereCondition name_first = new WhereCondition("name_first", WhereCondition.EQUALS, "Ian");
+		WhereCondition name_last = new WhereCondition("name_last", WhereCondition.NOT_EQUAL_TO, "Johnson");
+		
+		System.out.println(id.getMySqlString());
+		System.out.println(name_first.getMySqlString());
+		System.out.println(name_last.getMySqlString());
+		
+		UpdateQuery q = new UpdateQuery("kirkmodels_test_person",
+			new ArrayList<WhereCondition>(){{
+				add(name_first);
+				add(name_last);
+			}},
+			new ArrayList<WhereCondition>(){{
+				add(id);
+			}}
+		);
+		
+		System.out.println(q.getCommand());
+	}
 }

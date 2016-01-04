@@ -2,6 +2,7 @@ package kirkModels.fields;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
+import java.text.DateFormat.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -9,6 +10,11 @@ import kirkModels.DbObject;
 import kirkModels.config.Settings;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.Savable;
+import kirkModels.queries.DeleteQuery;
+import kirkModels.queries.InsertQuery;
+import kirkModels.queries.SelectQuery;
+import kirkModels.queries.UpdateQuery;
+import kirkModels.queries.scripts.WhereCondition;
 
 public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbObject implements Savable<R> {
 
@@ -17,10 +23,9 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	
 	public ForeignKey<R> reference2; // label: "reference_<R>_id"
 	public String refModel;
-
-	public String tableLabel;
 	
 	public QuerySet<R> objectSet;
+	public QuerySet<ManyToManyField<T, R>> objects;
 	
 	/**
 	 * This is the constructor for the table and class definition. This does not cantain any actual relationships. to instantiate a relationship, use the constructor with a parent many2many field and and instance passed to it.
@@ -33,7 +38,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		
 		String firstTable = host.getClass().getSimpleName().toLowerCase();
 		String refTable = refModel.getSimpleName().toLowerCase();
-		this.tableLabel = label + "__" + firstTable + "___" + refTable;
+		this.tableName = label + "__" + firstTable + "___" + refTable;
 		
 		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", (Class<T>) host.getClass(), false, null, false, "NO ACTION");
 		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", refModel, false, null, false, "NO ACTION");
@@ -69,7 +74,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	
 	public void getObjects() {
 		QuerySet<R> values = null;
-		ArrayList<Integer> ids = new ArrayList<>();
+		ArrayList<Integer> ids = new ArrayList<Integer>();
 		Class<R> refClass = null;
 		try {
 			refClass = (Class<R>) Class.forName(this.refModel);
@@ -79,36 +84,83 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		}
 		Class m2mClass = this.getClass();
 		
-		QuerySet<ManyToManyField<T, R>> tempQ = new QuerySet<ManyToManyField<T, R>>(m2mClass, this.tableLabel, new HashMap<String, Object>(){{
-			put(reference1.label + "::=", reference1.val());
+		QuerySet<ManyToManyField<T, R>> tempQ = new QuerySet<ManyToManyField<T, R>>(m2mClass, this.tableName, new ArrayList<WhereCondition>(){{
+			add(new WhereCondition(reference1.label, WhereCondition.EQUALS, reference1.val()));
 		}});
 		
-		HashMap<String, Object> args = new HashMap<String, Object>();
+		objects = tempQ;
 		
-		try {
-			while(tempQ.results.next()){
-				ids.add(tempQ.results.getInt(this.reference2.label));
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if(ids.size() > 0){
-			args.put("id::in", ids);
+		ArrayList<WhereCondition> conditions = new ArrayList<WhereCondition>();
+		
+		for (ManyToManyField<T, R> relationship : tempQ) {
+			int relId = relationship.reference2.val();
+			ids.add(relId);
 		}
 		
-		values = DbObject.getObjectsForGenericType(refClass).filter(args);
+		if(ids.size() > 1){
+			
+			WhereCondition c = new WhereCondition("id", WhereCondition.CONTAINED_IN, ids);
+			conditions.add(c);
+			
+		} else if (ids.size() == 1) {
+			
+			WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, ids.get(0));
+			conditions.add(c);
+			
+		} else {
+			
+			WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, 0);
+			conditions.add(c);
+			
+		}
+		
+		values = DbObject.getObjectsForGenericType(refClass).filter(conditions);
 		
 		this.objectSet = values;
+	}
+	
+	public SavableField getField(String fieldName){
+		
+		SavableField field = null;
+		
+		if (fieldName.contains("reference_")) {
+			field =  this.reference2;
+		} else if (fieldName.contains("host_")){
+			field =  this.reference1;
+		} else if (fieldName.equals("id")){
+			field =  this.id;
+		} else {
+			field =  super.getField(fieldName);
+		}
+		
+		return field;
 	}
 	
 	protected ManyToManyField<T, R> saveRelationship(R instance){
 		ManyToManyField<T, R> newRelationship = new ManyToManyField<>();
 		
-		int newId = this.objects.count() + 1;
+		// need to find total number of relationships in the m2m table and use that for new id
+		SelectQuery allRelsResults = new SelectQuery(this.tableName, new ArrayList<WhereCondition>(){{}});
+		try {
+			allRelsResults.run();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		int newId = 0;
+		
+		try {
+			allRelsResults.results.last();
+			newId = allRelsResults.results.getRow() + 1;
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		newRelationship.id.set(newId);
 		
-		newRelationship.tableLabel = this.tableLabel;
+		newRelationship.tableName = this.tableName;
 		
 		newRelationship.reference1.set(this.reference1.val());
 		newRelationship.reference1.label = this.reference1.label;
@@ -116,15 +168,24 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		newRelationship.reference2.set(instance.id.val());
 		newRelationship.reference2.label = this.reference2.label;
 		
-		Settings.database.dbHandler.insertInto(newRelationship);
+		InsertQuery query = new InsertQuery(newRelationship);
+		try {
+			query.run();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return newRelationship;
 	}
 	
-	protected ManyToManyField<T, R> getRelationship(R instance){
+	protected ManyToManyField<T, R> getRelationship(ManyToManyField<T, R> parentFieldDef, R instance){
 		ManyToManyField<T, R> rel = null;
 		
 		try {
-			rel = (ManyToManyField<T, R>) this.objects.get(new HashMap<String, Object>(){{}});
+			rel = (ManyToManyField<T, R>) this.objects.get(new ArrayList<WhereCondition>(){{
+				add(new WhereCondition(parentFieldDef.reference2.label, WhereCondition.EQUALS, instance.id.val()));
+			}});
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -133,9 +194,19 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		return rel;
 	}
 	
-	protected void deleteReleationship(R instance){
-		ManyToManyField<T, R> relToDelete = this.getRelationship(instance);
-		Settings.database.dbHandler.deleteFrom(instance);
+	protected void deleteRelationship(R instance){
+		ManyToManyField<T, R> relToDelete = this.getRelationship(this, instance);
+		
+		DeleteQuery query = new DeleteQuery(this.tableName, new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("id", WhereCondition.EQUALS, relToDelete.id.val()));
+		}});
+		
+		try {
+			query.run();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	protected QuerySet<ManyToManyField<T, R>> getAllRelationships(){
@@ -144,7 +215,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		//get all relationships from this table including other host relationships
 		QuerySet<ManyToManyField<T, R>> allRelationships = new QuerySet<ManyToManyField<T, R>>((Class<ManyToManyField<T, R>>) this.getClass());
 		//filter down to just the ones related to this reference1
-		allRelationships = allRelationships.filter(new HashMap<String, Object>(){{ put("reference1::=", id); }});
+		allRelationships = allRelationships.filter(new ArrayList<WhereCondition>(){{ add(new WhereCondition(reference1.label, WhereCondition.EQUALS, id)); }});
 		
 		return allRelationships;
 	}
@@ -155,8 +226,8 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 
 	@Override
-	public R create(HashMap<String, Object> kwargs) {
-		R newInstance = this.objectSet.create(kwargs);
+	public R create(ArrayList<WhereCondition> conditions) {
+		R newInstance = this.objectSet.create(conditions);
 		
 		this.add(newInstance);
 		
@@ -164,7 +235,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 	
 	public R add(R instance){
-		System.out.println(this.reference1.val());
+		
 		this.saveRelationship(instance);
 		try {
 			this.objectSet = new QuerySet<R>((Class<R>) Class.forName(this.refModel));
@@ -175,9 +246,8 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		
 		R addedInstance = null;
 		try {
-			System.out.println(this.objectSet.getTableName());
-			addedInstance = this.objectSet.get(new HashMap<String, Object>(){{
-				put("id", instance.id.val());
+			addedInstance = this.objectSet.get(new ArrayList<WhereCondition>(){{
+				add(new WhereCondition("id", WhereCondition.EQUALS, instance.id.val()));
 			}});
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -188,23 +258,23 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 
 	@Override
-	public R get(HashMap<String, Object> kwargs) throws SQLException {
-		return this.objectSet.get(kwargs);
+	public R get(ArrayList<WhereCondition> conditions) throws SQLException {
+		return this.objectSet.get(conditions);
 	}
 
 	@Override
-	public QuerySet<R> getOrCreate(HashMap<String, Object> kwargs) throws SQLException {
-		return this.objectSet.getOrCreate(kwargs);
+	public QuerySet<R> getOrCreate(ArrayList<WhereCondition> conditions) throws SQLException {
+		return this.objectSet.getOrCreate(conditions);
 	}
 
 	@Override
-	public QuerySet<R> filter(HashMap<String, Object> kwargs) {
-		return this.objectSet.filter(kwargs);
+	public QuerySet<R> filter(ArrayList<WhereCondition> conditions) {
+		return this.objectSet.filter(conditions);
 	}
 
 	@Override
-	public void delete(HashMap<String, Object> kwargs) throws Exception {
-		QuerySet<R> instances = this.filter(kwargs);
+	public void delete(ArrayList<WhereCondition> conditions) throws Exception {
+		QuerySet<R> instances = this.filter(conditions);
 		for(R instance : instances){
 			this.remove(instance);
 			instance.delete();
@@ -214,8 +284,8 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	public void remove(R instance){
 		R tempInstance = null;
 		try {
-			tempInstance = this.get(new HashMap<String, Object>(){{
-				put("id", instance.id.val());
+			tempInstance = this.get(new ArrayList<WhereCondition>(){{
+				add(new WhereCondition("id", WhereCondition.EQUALS, instance.id.val()));
 			}});
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -223,7 +293,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		}
 		
 		if(tempInstance != null){
-			this.deleteReleationship(instance);
+			this.deleteRelationship(instance);
 		} else {
 			try {
 				throw new Exception("Sorry, " + instance.getClass().getSimpleName() + " instance with id: " + instance.id.val()
@@ -245,6 +315,6 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	@Override
 	public int count() {
 		// TODO Auto-generated method stub
-		return 0;
+		return this.objectSet.count();
 	}
 }

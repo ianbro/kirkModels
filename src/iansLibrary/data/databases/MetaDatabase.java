@@ -13,7 +13,7 @@ import org.json.simple.parser.ParseException;
 
 import java.sql.Connection;
 
-import kirkModels.orm.backend.DbHandler;
+import kirkModels.queries.DbHandler;
 import kirkModels.utils.Utilities;
 
 public class MetaDatabase {

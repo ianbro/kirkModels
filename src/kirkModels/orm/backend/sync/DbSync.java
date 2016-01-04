@@ -8,9 +8,9 @@ import java.sql.Statement;
 import iansLibrary.data.databases.MetaDatabase;
 import kirkModels.DbObject;
 import kirkModels.fields.ManyToManyField;
-import kirkModels.orm.backend.scripts.MySqlScript;
-import kirkModels.orm.backend.scripts.PSqlScript;
-import kirkModels.orm.backend.scripts.Script;
+import kirkModels.queries.scripts.MySqlScript;
+import kirkModels.queries.scripts.PsqlScript;
+import kirkModels.queries.scripts.Script;
 
 public class DbSync {
 
@@ -27,7 +27,7 @@ public class DbSync {
 			break;
 			
 		case "postgreSQL":
-			this.script = new PSqlScript(this.dbName);
+			this.script = new PsqlScript(this.dbName);
 			break;
 		default:
 			break;

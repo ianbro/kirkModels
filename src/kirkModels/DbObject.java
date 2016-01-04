@@ -1,6 +1,7 @@
 package kirkModels;
 
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +12,10 @@ import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.QuerySet;
+import kirkModels.queries.DeleteQuery;
+import kirkModels.queries.InsertQuery;
+import kirkModels.queries.UpdateQuery;
+import kirkModels.queries.scripts.WhereCondition;
 import kirkModels.tests.Person;
 
 public abstract class DbObject {
@@ -20,12 +25,14 @@ public abstract class DbObject {
 	public IntegerField id = new IntegerField("id", false, 0, true, null);
 	public ArrayList<String> savableFields = new ArrayList<String>();
 	public ArrayList<String> manyToManyFields = new ArrayList<String>();
+	public String tableName;
 	
 	/**
 	 * When instantiating a DbObject, if it contains a many to many field, you must call manyToManyfield.setHostId(id).
 	 * This tells the field what instance is the host instance.
 	 */
 	public DbObject(){
+		this.tableName = this.getClass().getName().replace(".", "_").toLowerCase();
 		int id = 1;
 		//get id to set this to
 		for(Field field : this.getClass().getFields()){
@@ -42,7 +49,16 @@ public abstract class DbObject {
 	
 	public void delete() {
 		if(this.exists()){
-			Settings.database.dbHandler.deleteFrom(this);
+			DeleteQuery query = new DeleteQuery(this.tableName, new ArrayList<WhereCondition>(){{
+				add(new WhereCondition("id", WhereCondition.EQUALS, id.val()));
+			}});
+			
+			try {
+				query.run();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -51,10 +67,24 @@ public abstract class DbObject {
 		if(this.id.val() == 0 || !this.exists()){
 			int newId = DbObject.getObjectsForGenericType(this.getClass()).count() + 1;
 			this.id.set(newId);
-			Settings.database.dbHandler.insertInto(this);
+			
+			InsertQuery query = new InsertQuery(this);
+			try {
+				query.run();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			Settings.setObjectsForModels();
 		} else {
-			Settings.database.dbHandler.update(this);
+			UpdateQuery query = new UpdateQuery(this);
+			try {
+				query.run();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		this.initializeManyToManyFields();
@@ -64,28 +94,32 @@ public abstract class DbObject {
 		return Settings.database.dbHandler.checkExists(this);
 	}
 	
-	public boolean meetsKwargs(HashMap<String, Object> kwargs){
-		for (String key : kwargs.keySet()) {
-			if(!this.meetsSpecificKwarg(key.split("::")[0], kwargs.get(key))){
+	public boolean meetsConditions(ArrayList<WhereCondition> conditions){
+		for (WhereCondition c : conditions) {
+			if(!this.meetsSpecificCondition(c)){
 				return false;
 			}
 		}
 		return true;
 	}
 	
-	public boolean meetsSpecificKwarg(String field, Object val){
-		switch (field.split("::")[1]) {
-		case "=":
-			if(!this.getField(field.split("::")[0]).val().equals(val)){
+	public boolean meetsSpecificCondition(WhereCondition c){
+		switch (c.type) {
+		case WhereCondition.EQUALS:
+			
+			SavableField field = this.getField(c.fieldName);
+			
+			if(!field.val().equals(c.value)){
 				return false;
 			}
 			break;
 			
-		case "in":
+		case WhereCondition.CONTAINED_IN:
 			boolean contained = false;
-			ArrayList<Object> values = (ArrayList<Object>) val;
+			ArrayList<Object> values = (ArrayList<Object>) c.value;
+			
 			for (Object value : values) {
-				if(this.getField(field.split("::")[0]).val().equals(value)){
+				if(this.getField(c.fieldName).val().equals(value)){
 					contained = true;
 				}
 			}
@@ -189,7 +223,6 @@ public abstract class DbObject {
 			
 			ManyToManyField temp_field = (ManyToManyField) field;
 			temp_field.setHostId(this.id.val());
-			temp_field.getObjects();
 		}
 	}
 	

@@ -5,8 +5,11 @@ import kirkModels.fields.CharField;
 import kirkModels.fields.ForeignKey;
 import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
+import kirkModels.orm.QuerySet;
 
 public class Person extends DbObject{
+	
+	public static QuerySet<Person> objects;
 
 	public CharField name = new CharField("name", false, null, false, 45);
 	public IntegerField age = new IntegerField("age", false, null, false, 150);
