@@ -65,7 +65,7 @@ public abstract class DbObject {
 	public void save() {
 
 		if(this.id.val() == 0 || !this.exists()){
-			int newId = DbObject.getObjectsForGenericType(this.getClass()).count() + 1;
+			int newId = DbObject.getNewId(this);
 			this.id.set(newId);
 			
 			InsertQuery query = new InsertQuery(this);
@@ -88,6 +88,30 @@ public abstract class DbObject {
 		}
 		
 		this.initializeManyToManyFields();
+	}
+	
+	public static int getNewId(DbObject instance){
+		int newId = DbObject.getObjectsForGenericType(instance.getClass()).count() + 1;
+		boolean idWorks = false;
+		
+		while (!idWorks){
+			newId ++;
+			try {
+				WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, newId);
+				
+				DbObject o = DbObject.getObjectsForGenericType(instance.getClass()).get(new ArrayList<WhereCondition>(){{
+					add(c);
+				}});
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (Exception e) {
+				// not found so id is unique
+				idWorks = true;
+			}
+		}
+		
+		return newId;
 	}
 	
 	public boolean exists(){

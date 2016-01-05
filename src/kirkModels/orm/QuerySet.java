@@ -22,7 +22,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	public ArrayList<T> storage;
 	public ResultSet results;
 	private Class<T> type;
-	private ArrayList<WhereCondition> conditions;
+	public ArrayList<WhereCondition> conditions;
 	String tableName;
 	
 	public QuerySet(ResultSet results, ArrayList<WhereCondition> conditions){
@@ -218,12 +218,21 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	}
 
 	public ArrayList<WhereCondition> combineConditions(ArrayList<WhereCondition> newConditions){
+		ArrayList<WhereCondition> tempNewConditions = new ArrayList<WhereCondition>();
+		
 		for(WhereCondition condition : this.conditions){
-			if (!newConditions.contains(condition)) {
-				newConditions.add(condition);
+			if (!tempNewConditions.contains(condition)) {
+				tempNewConditions.add(condition);
 			}
 		}
-		return newConditions;
+		
+		for (WhereCondition condition : newConditions) {
+			if (!tempNewConditions.contains(condition)) {
+				tempNewConditions.add(condition);
+			}
+		}
+		
+		return tempNewConditions;
 	}
 	
 	public boolean cursorToRow(int i) throws SQLException{
@@ -410,22 +419,24 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 
 	@Override
 	public QuerySet<T> filter(ArrayList<WhereCondition> conditions) {
-		ArrayList<WhereCondition> tempConditions = new ArrayList<WhereCondition>();
+		// This makes it so that the queryset will be an empty one which I can then just add stuff to it's storage.
+		// plan on creating a constructor that makes a blank queryset instead.
+		ArrayList<WhereCondition> nonPassableConditions = new ArrayList<WhereCondition>();
 		WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, 0);
 		
-		tempConditions.add(c);
+		nonPassableConditions.add(c);
 		
-		conditions = this.combineConditions(conditions);
+		ArrayList<WhereCondition> tempConditions = this.combineConditions(conditions);
 		
-		QuerySet<T> newQuerySet = new QuerySet<T>(this.type, this.tableName, tempConditions);
+		QuerySet<T> newQuerySet = new QuerySet<T>(this.type, this.tableName, nonPassableConditions);
 		
 		for (T instance : this.storage) {
-			if(instance.meetsConditions(conditions)){
+			if(instance.meetsConditions(tempConditions)){
 				newQuerySet.storage.add(instance);
 			}
 		}
 		
-		newQuerySet.conditions = conditions;
+		newQuerySet.conditions = tempConditions;
 		
 		return newQuerySet;
 	}

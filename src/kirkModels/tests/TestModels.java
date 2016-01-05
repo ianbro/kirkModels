@@ -19,7 +19,7 @@ import kirkModels.queries.scripts.InsertValue;
 public abstract class TestModels {
 
 	@SuppressWarnings("unchecked")
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 
 		MetaDatabase db = null;
@@ -35,6 +35,7 @@ public abstract class TestModels {
 		Person ian = null;
 		Person jesus = null;
 		Person wynton = null;
+		Person mom = null;
 		
 		try {
 			ian = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
@@ -63,6 +64,15 @@ public abstract class TestModels {
 			e.printStackTrace();
 		}
 		
+		try {
+			mom = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+				add(new WhereCondition("name", WhereCondition.EQUALS, "Lori Kirkpatrick"));
+			}});
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 //		System.out.println(ian);
 //		System.out.println(jesus);
 //		System.out.println(wynton);
@@ -82,25 +92,19 @@ public abstract class TestModels {
 		
 		System.out.println(ian.friends.all());
 		
+		System.out.println(ian.friends.getOrAdd(new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("name", WhereCondition.EQUALS, "Lori Kirkpatrick"));
+		}}));
 		
-//		
-//		try {
-//			Person jesus = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-//				add(new WhereCondition("name", WhereCondition.EQUALS, "Jesus Christ"));
-//				add(new WhereCondition("age", WhereCondition.EQUALS, 6000));
-//			}});
-//			jesus.delete();
-//			
-//			jesus = (Person) Person.objects.getOrCreate(new ArrayList<WhereCondition>(){{
-//				add(new WhereCondition("name", WhereCondition.EQUALS, "Jesus Christ"));
-//				add(new WhereCondition("age", WhereCondition.EQUALS, 6000));
-//			}}).getRow(0);
-//			
-//			System.out.println(jesus);
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		System.out.println(ian.friends.getOrAdd(new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("name", WhereCondition.EQUALS, "Wynton Kirkpatrick"));
+		}}));
+		
+		System.out.println(ian.friends.all());
+		
+		ian.enemies.delete(new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("name", WhereCondition.EQUALS, "Johny AppleSeed"));
+		}});
 	}
 	
 	public static void testSelectQuery(){

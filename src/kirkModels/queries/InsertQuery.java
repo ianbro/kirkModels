@@ -90,7 +90,11 @@ public class InsertQuery extends Query {
 			fields = fields + " ";
 			
 			// values
-			values = values + InsertValue.sqlStr(c.value);
+			if(c.value != null) {
+				values = values + InsertValue.sqlStr(c.value);
+			} else {
+				values = values + "NULL";
+			}
 			
 			if (i < this.insertVals.size() - 1) {
 				values = values + ",";
