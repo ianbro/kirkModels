@@ -9,6 +9,7 @@ import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
 import kirkModels.config.Settings;
+import kirkModels.orm.backend.sync.DbSync;
 import kirkModels.queries.DeleteQuery;
 import kirkModels.queries.InsertQuery;
 import kirkModels.queries.SelectQuery;
@@ -31,6 +32,10 @@ public abstract class TestModels {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		DbSync s = new DbSync(Settings.database);
+		
+		s.migrateModel(Person.class);
 		
 		Person ian = null;
 		Person jesus = null;
@@ -73,38 +78,10 @@ public abstract class TestModels {
 			e.printStackTrace();
 		}
 		
-//		System.out.println(ian);
-//		System.out.println(jesus);
-//		System.out.println(wynton);
-
-//		ian.friends.add(jesus);
-//		jesus.friends.add(wynton);
-//		ian.save();
-		
-		System.out.println(ian.friends.all());
-		System.out.println(jesus.friends.all());
-		
-		ian.friends.remove(wynton);
-		
-		System.out.println(ian.friends.all());
-		
-		ian.friends.add(wynton);
-		
-		System.out.println(ian.friends.all());
-		
-		System.out.println(ian.friends.getOrAdd(new ArrayList<WhereCondition>(){{
-			add(new WhereCondition("name", WhereCondition.EQUALS, "Lori Kirkpatrick"));
-		}}));
-		
-		System.out.println(ian.friends.getOrAdd(new ArrayList<WhereCondition>(){{
-			add(new WhereCondition("name", WhereCondition.EQUALS, "Wynton Kirkpatrick"));
-		}}));
-		
-		System.out.println(ian.friends.all());
-		
-		ian.enemies.delete(new ArrayList<WhereCondition>(){{
-			add(new WhereCondition("name", WhereCondition.EQUALS, "Johny AppleSeed"));
-		}});
+		System.out.println(ian);
+		System.out.println(jesus);
+		System.out.println(wynton);
+		System.out.println(mom);
 	}
 	
 	public static void testSelectQuery(){

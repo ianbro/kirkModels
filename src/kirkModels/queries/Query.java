@@ -30,6 +30,31 @@ public abstract class Query {
 	
 	public abstract String getPsqlString();
 	
+	public String toString(){
+		String language = Settings.database.language;
+		
+		String sql = "";
+		
+		switch (language) {
+		case "MySQL":
+			
+			sql = this.getMySqlString();
+			break;
+			
+		case "postgreSQL":
+			
+			sql = this.getPsqlString();
+			break;
+
+		default:
+			
+			sql = "No default language.";
+			break;
+		}
+		
+		return sql;
+	}
+	
 	public String getCommand(){
 		return this.command;
 	}

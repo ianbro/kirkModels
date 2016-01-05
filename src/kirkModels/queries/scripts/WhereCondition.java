@@ -31,13 +31,10 @@ public class WhereCondition {
 	public int type;
 	public Object value;
 	
-	public Script script;
-	
 	public WhereCondition(String _fieldName, int _type, Object _value){
 		this.fieldName = _fieldName;
 		this.type = _type;
 		this.value = _value;
-		this.script = Settings.database.dbHandler.script;
 	}
 	
 	public String getValueString(){

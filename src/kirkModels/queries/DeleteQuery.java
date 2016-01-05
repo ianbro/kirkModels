@@ -23,7 +23,7 @@ public class DeleteQuery extends WhereConditionedQuery {
 	@Override
 	public void run() throws SQLException {
 		// TODO Auto-generated method stub
-		Settings.database.dbHandler.run(this.toString());
+		Settings.database.run(this.toString());
 	}
 	
 	public String getMySqlString(){

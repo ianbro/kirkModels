@@ -55,7 +55,7 @@ public class UpdateQuery extends WhereConditionedQuery {
 	@Override
 	public void run() throws SQLException {
 		// TODO Auto-generated method stub
-		Settings.database.dbHandler.run(this.command);
+		Settings.database.run(this.command);
 	}
 	
 	public String getNewValsString(){

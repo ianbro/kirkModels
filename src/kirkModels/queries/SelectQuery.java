@@ -36,7 +36,7 @@ public class SelectQuery extends WhereConditionedQuery {
 	}
 	
 	public void run() throws SQLException{
-		ResultSet results = Settings.database.dbHandler.executeQuery(this.command);
+		ResultSet results = Settings.database.executeQuery(this.command);
 		
 		this.results = results;
 	}
@@ -82,30 +82,5 @@ public class SelectQuery extends WhereConditionedQuery {
 		str = end(str);
 		
 		return str;
-	}
-	
-	public String toString(){
-		String language = Settings.database.language;
-		
-		String sql = "";
-		
-		switch (language) {
-		case "MySQL":
-			
-			sql = this.getMySqlString();
-			break;
-			
-		case "postgreSQL":
-			
-			sql = this.getPsqlString();
-			break;
-
-		default:
-			
-			sql = "No default language.";
-			break;
-		}
-		
-		return sql;
 	}
 }

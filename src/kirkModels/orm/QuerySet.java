@@ -66,6 +66,16 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		this.updateStorage();
 	}
 	
+	// creates an empty queryset that the user can then go and fill the storage with.
+	public QuerySet(Class<T> type, String tableName) {
+		this.type = type;
+		this.tableName = tableName;
+		
+		this.conditions = new ArrayList<WhereCondition>();
+		
+		this.storage = new ArrayList<T>();
+	}
+	
 	public QuerySet(Class<T> type, String tableName, ArrayList<WhereCondition> conditions){
 		this.type = type;
 		this.tableName = tableName;
@@ -419,16 +429,12 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 
 	@Override
 	public QuerySet<T> filter(ArrayList<WhereCondition> conditions) {
-		// This makes it so that the queryset will be an empty one which I can then just add stuff to it's storage.
-		// plan on creating a constructor that makes a blank queryset instead.
-		ArrayList<WhereCondition> nonPassableConditions = new ArrayList<WhereCondition>();
 		WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, 0);
-		
-		nonPassableConditions.add(c);
 		
 		ArrayList<WhereCondition> tempConditions = this.combineConditions(conditions);
 		
-		QuerySet<T> newQuerySet = new QuerySet<T>(this.type, this.tableName, nonPassableConditions);
+		//empty queryset
+		QuerySet<T> newQuerySet = new QuerySet<T>(this.type, this.tableName);
 		
 		for (T instance : this.storage) {
 			if(instance.meetsConditions(tempConditions)){
@@ -444,6 +450,29 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	@Override
 	public QuerySet<T> all() {
 		return this;
+	}
+	
+	public boolean exists(ArrayList<WhereCondition> conditions){
+		QuerySet<T> instances = this.filter(conditions);
+		
+		if (instances.count() > 0) {
+			return true;
+		} else {
+			return false;
+		}
+		
+	}
+	
+	public boolean exists(T instance) {
+		try {
+			boolean exists = this.exists(new ArrayList<WhereCondition>(){{
+				add(new WhereCondition("id", WhereCondition.EQUALS, instance.id.val()));
+			}});
+			
+			return exists;
+		} catch (NullPointerException e) {
+			return false;
+		}
 	}
 
 	@Override

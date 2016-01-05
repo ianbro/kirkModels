@@ -48,7 +48,7 @@ public abstract class DbObject {
 	}
 	
 	public void delete() {
-		if(this.exists()){
+		if(((QuerySet) DbObject.getObjectsForGenericType(this.getClass())).exists(this)){
 			DeleteQuery query = new DeleteQuery(this.tableName, new ArrayList<WhereCondition>(){{
 				add(new WhereCondition("id", WhereCondition.EQUALS, id.val()));
 			}});
@@ -64,7 +64,7 @@ public abstract class DbObject {
 	
 	public void save() {
 
-		if(this.id.val() == 0 || !this.exists()){
+		if(this.id.val() == 0 || ! ((QuerySet) DbObject.getObjectsForGenericType(this.getClass())).exists(this)){
 			int newId = DbObject.getNewId(this);
 			this.id.set(newId);
 			
@@ -112,10 +112,6 @@ public abstract class DbObject {
 		}
 		
 		return newId;
-	}
-	
-	public boolean exists(){
-		return Settings.database.dbHandler.checkExists(this);
 	}
 	
 	public boolean meetsConditions(ArrayList<WhereCondition> conditions){

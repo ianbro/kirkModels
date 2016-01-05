@@ -1,8 +1,6 @@
 package kirkModels.fields;
 
 import kirkModels.config.Settings;
-import kirkModels.queries.scripts.MySqlScript;
-import kirkModels.queries.scripts.PsqlScript;
 
 public class IntegerField extends SavableField<Integer> {
 
@@ -24,8 +22,8 @@ public class IntegerField extends SavableField<Integer> {
 		this.maxVal = maxValue;
 		this.JAVA_TYPE = Integer.class;
 		
-		this.MYSQL_TYPE = Settings.database.dbHandler.script.getIntType(maxValue);
-		this.PSQL_TYPE = Settings.database.dbHandler.script.getIntType(maxValue);
+		this.MYSQL_TYPE = this.getMySqlIntType(maxValue);
+		this.PSQL_TYPE = this.getPsqlIntType(maxValue);
 	}
 	
 	public IntegerField() {
@@ -54,6 +52,43 @@ public class IntegerField extends SavableField<Integer> {
 			sql = sql + " PRIMARY KEY";
 		}
 		return sql;
+	}
+	
+	public String getMySqlIntType(Integer maxVal) {
+		if(maxVal != null){
+			if(maxVal <= 127){
+				return "TINYINT";
+			}
+			else if(maxVal <= 32767){
+				return "SMALLINT";
+			}
+			else if (maxVal <= 8388607) {
+				return "MEDIUMINT";
+			}
+			else{  // if (maxVal <= 2147483647)
+				return "INT";
+			}
+		}
+		else {
+			return "INT";
+		}
+	}
+	
+	public String getPsqlIntType(Integer maxVal) {
+		if(maxVal != null){
+			if(maxVal <= 32767){
+				return "smallint";
+			}
+			else if(maxVal <= 2147483647){
+				return "integer";
+			}
+			else {
+				return "bigint";
+			}
+		}
+		else {
+			return "integer";
+		}
 	}
 
 }

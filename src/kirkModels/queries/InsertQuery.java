@@ -46,7 +46,7 @@ public class InsertQuery extends Query {
 	@Override
 	public void run() throws SQLException {
 		// TODO Auto-generated method stub
-		Settings.database.dbHandler.run(this.command);
+		Settings.database.run(this.command);
 	}
 
 	@Override
