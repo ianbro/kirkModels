@@ -9,8 +9,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import kirkModels.DbObject;
 import kirkModels.fields.SavableField;
+import kirkModels.orm.DbObject;
 
 public abstract class Utilities {
 

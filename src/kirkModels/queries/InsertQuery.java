@@ -3,10 +3,10 @@ package kirkModels.queries;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import kirkModels.DbObject;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
+import kirkModels.orm.DbObject;
 import kirkModels.queries.scripts.InsertValue;
 
 public class InsertQuery extends Query {

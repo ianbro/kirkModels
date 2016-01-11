@@ -3,8 +3,8 @@ package kirkModels.queries;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import kirkModels.DbObject;
 import kirkModels.config.Settings;
+import kirkModels.orm.DbObject;
 import kirkModels.queries.scripts.WhereCondition;
 
 public class DeleteQuery extends WhereConditionedQuery {

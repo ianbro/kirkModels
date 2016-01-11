@@ -1,4 +1,4 @@
-package kirkModels;
+package kirkModels.orm;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
@@ -11,12 +11,12 @@ import kirkModels.fields.CharField;
 import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
-import kirkModels.orm.QuerySet;
 import kirkModels.queries.DeleteQuery;
 import kirkModels.queries.InsertQuery;
 import kirkModels.queries.UpdateQuery;
 import kirkModels.queries.scripts.WhereCondition;
 import kirkModels.tests.Person;
+import kirkModels.utils.exceptions.ObjectNotFoundException;
 
 public abstract class DbObject {
 
@@ -96,18 +96,16 @@ public abstract class DbObject {
 		
 		while (!idWorks){
 			newId ++;
+			
+			WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, newId);
+			
 			try {
-				WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, newId);
-				
 				DbObject o = DbObject.getObjectsForGenericType(instance.getClass()).get(new ArrayList<WhereCondition>(){{
 					add(c);
 				}});
-			} catch (SQLException e) {
+			} catch (ObjectNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} catch (Exception e) {
-				// not found so id is unique
-				idWorks = true;
 			}
 		}
 		

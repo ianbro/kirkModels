@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
+import iansLibrary.utilities.ModdedDate;
 import kirkModels.config.Settings;
 import kirkModels.orm.backend.sync.DbSync;
 import kirkModels.queries.DeleteQuery;
@@ -15,12 +17,13 @@ import kirkModels.queries.InsertQuery;
 import kirkModels.queries.SelectQuery;
 import kirkModels.queries.UpdateQuery;
 import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.utils.exceptions.ObjectNotFoundException;
 import kirkModels.queries.scripts.InsertValue;
 
 public abstract class TestModels {
 
 	@SuppressWarnings("unchecked")
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 
 		MetaDatabase db = null;
@@ -33,55 +36,36 @@ public abstract class TestModels {
 			e.printStackTrace();
 		}
 		
-		DbSync s = new DbSync(Settings.database);
-		
-		s.migrateModel(Person.class);
-		
 		Person ian = null;
 		Person jesus = null;
 		Person wynton = null;
 		Person mom = null;
 		
-		try {
-			ian = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-				add(new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick"));
-			}});
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ian = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick"));
+		}});
 		
-		try {
-			wynton = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-				add(new WhereCondition("name", WhereCondition.EQUALS, "Wynton Kirkpatrick"));
-			}});
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
-			jesus = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-				add(new WhereCondition("name", WhereCondition.EQUALS, "Jesus Christ"));
-			}});
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
-			mom = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-				add(new WhereCondition("name", WhereCondition.EQUALS, "Lori Kirkpatrick"));
-			}});
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		wynton = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("name", WhereCondition.EQUALS, "Wynton Kirkpatrick"));
+		}});
+	
+		jesus = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("name", WhereCondition.EQUALS, "Jesus Christ"));
+		}});
+	
+		mom = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("name", WhereCondition.EQUALS, "Lori Kirkpatrick"));
+		}});
 		
 		System.out.println(ian);
 		System.out.println(jesus);
 		System.out.println(wynton);
 		System.out.println(mom);
+
+		ModdedDate d = new ModdedDate(ModdedDate.MARCH, 3, (2016 - 1970));
+		System.out.println(d);
+		System.out.println(d.getLong());
+		d.getValsFromLong();
 	}
 	
 	public static void testSelectQuery(){
@@ -103,8 +87,6 @@ public abstract class TestModels {
 				add(name_last);
 			}}
 		);
-		
-		System.out.println(q.getCommand());
 	}
 	
 	public static void testInsertQuery(){

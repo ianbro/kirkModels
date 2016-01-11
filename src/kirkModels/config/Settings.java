@@ -10,8 +10,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
-import kirkModels.DbObject;
 import kirkModels.fields.ManyToManyField;
+import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 import kirkModels.tests.Person;
 import kirkModels.utils.Utilities;

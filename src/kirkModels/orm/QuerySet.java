@@ -10,12 +10,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import kirkModels.DbObject;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
+import kirkModels.queries.InsertQuery;
 import kirkModels.queries.SelectQuery;
 import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
+import kirkModels.utils.exceptions.ObjectNotFoundException;
 
 public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	
@@ -122,11 +124,17 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 				}
 				
 				if (index > 0) {
-					T newInstance = this.getObjectFromResults(index);
-					
-					newInstance.initializeManyToManyFields();
-					
-					this.storage.add(newInstance);
+					T newInstance = null;
+					try {
+						newInstance = this.getObjectFromResults(index);
+						
+						newInstance.initializeManyToManyFields();
+						
+						this.storage.add(newInstance);
+					} catch (IndexOutOfBoundsException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 			
@@ -179,7 +187,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		}
 	}
 	
-	private T getObjectFromResults(int index){
+	private T getObjectFromResults(int index) throws IndexOutOfBoundsException{
 		T object = null;
 		try {
 			if (this.cursorToRow(index)) {
@@ -192,7 +200,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 			}
 			else {
 				// throw an error because the results don't have a value at this index.
-				throw new Error("There is no object at the index: " + index);
+				throw new IndexOutOfBoundsException("There is no object at the index: " + index);
 			}
 		} catch (SQLException | InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
@@ -307,13 +315,22 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		return this.tableName;
 	}
 	
+	public static Object[] conditionsContain(ArrayList<WhereCondition> cs, String variableName){
+		for (WhereCondition c : cs) {
+			if(c.fieldName.equals(variableName)){
+				return new Object[]{true, c};
+			}
+		}
+		return new Object[]{false};
+	}
+	
 	
 	
 	
 
 	
 	
-	public T getById(int id){
+	public T getById(int id) throws ObjectNotFoundException{
 		for (T instance : this.storage) {
 			
 			if (instance.id.val() == id) {
@@ -323,23 +340,14 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		}
 		
 		// if loop finishes and no instance is returned, throw an error cause no instance has this id.
-		try {
-			throw new Exception(this.type.getSimpleName() + " with id of " + id + " does not exist.");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		throw new ObjectNotFoundException(this.type.getSimpleName() + " with id of " + id + " does not exist.");
 	}
 	
 	public T getRow(int i){
 		T instance = null;
-		try {
-			instance = this.storage.get(i);
-		} catch (IndexOutOfBoundsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+		instance = this.storage.get(i);
+		
 		return instance;
 	}
 	
@@ -349,8 +357,22 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	}
 	
 	@Override
-	public T create(ArrayList<WhereCondition> conditions) {
+	public T create(ArrayList<WhereCondition> conditions) throws ObjectAlreadyExistsException {
 		conditions = this.combineConditions(conditions);
+		
+		if (((Boolean) conditionsContain(conditions, "id")[0])) {
+			WhereCondition c = ((WhereCondition) conditionsContain(conditions, "id")[1]);
+			int id = (int) c.value;
+			
+			if(this.filter(new ArrayList<WhereCondition>(){{
+								add(c);
+							}}).count() > 0)
+			{
+				throw new ObjectAlreadyExistsException(this.type.getSimpleName() + " object with id: " + id
+						+ " already exists.");
+			}
+			
+		}
 		
 		T newInstance = null;
 		try {
@@ -365,7 +387,18 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 			newInstance.getField(condition.fieldName).set(value);
 		}
 		
-		newInstance.save();
+		{
+			int newId = DbObject.getNewId(newInstance);
+			newInstance.id.set(newId);
+			
+			InsertQuery query = new InsertQuery(newInstance);
+			try {
+				query.run();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
 		this.storage.add(newInstance);
 		
@@ -373,7 +406,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	}
 
 	@Override
-	public T get(ArrayList<WhereCondition> conditions) throws SQLException {
+	public T get(ArrayList<WhereCondition> conditions) throws ObjectNotFoundException {
 		conditions = this.combineConditions(conditions);
 		
 		QuerySet<T> set = this.filter(conditions);
@@ -381,15 +414,8 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 			return set.getRow(0);
 		} else if (set.count() == 0) {
 			
-			try {
-				throw new Exception("Found no results of " + this.type + " instance for kwargs: "
-									+ conditions);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			return null;
+			throw new ObjectNotFoundException("Found no results of " + this.type + " instance for kwargs: "
+								+ conditions);
 		} else {
 			
 			try {
@@ -405,7 +431,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	}
 
 	@Override
-	public QuerySet<T> getOrCreate(ArrayList<WhereCondition> conditions) throws SQLException {
+	public QuerySet<T> getOrCreate(ArrayList<WhereCondition> conditions){
 		conditions = this.combineConditions(conditions);
 		
 		QuerySet<T> results = this.filter(conditions);
@@ -414,7 +440,13 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 			return results;
 		}
 		else {
-			T newInstance = this.create(conditions);
+			try {
+				T newInstance = this.create(conditions);
+			} catch (ObjectAlreadyExistsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			QuerySet<T> querySet = this.filter(conditions);
 			return querySet;
 		}
@@ -476,11 +508,11 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	}
 
 	@Override
-	public void delete(ArrayList<WhereCondition> conditions) throws Exception {
+	public void delete(ArrayList<WhereCondition> conditions) throws ObjectNotFoundException {
 		conditions = this.combineConditions(conditions);
 		QuerySet<T> results = this.filter(conditions);
 		if (results.count() < 1) {
-			throw new Exception(this.type + " object with kwargs: " + conditions + " does not exist.");
+			throw new ObjectNotFoundException(this.type + " object with kwargs: " + conditions + " does not exist.");
 		}
 		else {
 			for (T instance : results) {

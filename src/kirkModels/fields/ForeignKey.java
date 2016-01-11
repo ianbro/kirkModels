@@ -3,7 +3,7 @@ package kirkModels.fields;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-import kirkModels.DbObject;
+import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 
 public class ForeignKey<T extends DbObject> extends IntegerField {

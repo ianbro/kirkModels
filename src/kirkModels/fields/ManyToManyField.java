@@ -6,8 +6,8 @@ import java.text.DateFormat.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import kirkModels.DbObject;
 import kirkModels.config.Settings;
+import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.Savable;
 import kirkModels.queries.DeleteQuery;
@@ -15,6 +15,8 @@ import kirkModels.queries.InsertQuery;
 import kirkModels.queries.SelectQuery;
 import kirkModels.queries.UpdateQuery;
 import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
+import kirkModels.utils.exceptions.ObjectNotFoundException;
 
 public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbObject implements Savable<R> {
 
@@ -156,14 +158,13 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 			
 			ManyToManyField<T, R> rel = null;
 			
+			WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, newId);
+			
 			try {
-				WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, newId);
-				
 				rel = this.objects.get(new ArrayList<WhereCondition>(){{
 					add(c);
 				}});
-				
-			} catch (SQLException e) {
+			} catch (ObjectNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -220,7 +221,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 			rel = (ManyToManyField<T, R>) this.objects.get(new ArrayList<WhereCondition>(){{
 				add(new WhereCondition(parentFieldDef.reference2.label, WhereCondition.EQUALS, instance.id.val()));
 			}});
-		} catch (SQLException e) {
+		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -260,7 +261,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 
 	@Override
-	public R create(ArrayList<WhereCondition> conditions) {
+	public R create(ArrayList<WhereCondition> conditions) throws ObjectAlreadyExistsException {
 		R newInstance = this.objectSet.create(conditions);
 		
 		this.add(newInstance);
@@ -268,7 +269,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		return newInstance;
 	}
 	
-	public R add(R instance){
+	public R add(R instance) throws ObjectAlreadyExistsException{
 		
 		if(this.objectSet.filter(new ArrayList<WhereCondition>(){{
 			add(new WhereCondition("id", WhereCondition.EQUALS, instance.id.val()));
@@ -287,11 +288,8 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		} else {
 			
 			try {
-				throw new Exception(Class.forName(this.refModel).getSimpleName() + " instance with id " + instance.id.val() + " already is related to this object.");
+				throw new ObjectAlreadyExistsException(Class.forName(this.refModel).getSimpleName() + " instance with id " + instance.id.val() + " already is related to this object.");
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -302,17 +300,23 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 
 	@Override
-	public R get(ArrayList<WhereCondition> conditions) throws SQLException {
+	public R get(ArrayList<WhereCondition> conditions) throws ObjectNotFoundException {
 		return this.objectSet.get(conditions);
 	}
 
 	@Override
-	public QuerySet<R> getOrCreate(ArrayList<WhereCondition> conditions) throws SQLException {
+	public QuerySet<R> getOrCreate(ArrayList<WhereCondition> conditions) {
 		QuerySet<R> set = this.filter(conditions);
 		
 		if (set.count() == 0) {
 			
-			this.create(conditions);
+			try {
+				this.create(conditions);
+			} catch (ObjectAlreadyExistsException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			return this.filter(conditions);
 			
 		} else {
@@ -326,7 +330,12 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		if (set.count() == 0) {
 			
 			for (R instance : this.refClassObjects().filter(conditions)) {
-				this.add(instance);
+				try {
+					this.add(instance);
+				} catch (ObjectAlreadyExistsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 			return this.filter(conditions);
@@ -342,7 +351,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 
 	@Override
-	public void delete(ArrayList<WhereCondition> conditions) throws Exception {
+	public void delete(ArrayList<WhereCondition> conditions) throws ObjectNotFoundException {
 		
 		QuerySet<R> instances = this.filter(conditions);
 		
@@ -352,33 +361,29 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		}
 		
 		if (instances.count() == 0) {
-			throw new Exception("Sorry, " + Class.forName(this.refModel).getSimpleName()
-					+ " intance with conditions: " + conditions + " does not exist in this relationship.");
+			try {
+				throw new ObjectNotFoundException("Sorry, " + Class.forName(this.refModel).getSimpleName()
+						+ " intance with conditions: " + conditions + " does not exist in this relationship.");
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 	}
 	
-	public void remove(R instance){
+	public void remove(R instance) throws ObjectNotFoundException{
 		R tempInstance = null;
-		try {
-			tempInstance = this.get(new ArrayList<WhereCondition>(){{
-				add(new WhereCondition("id", WhereCondition.EQUALS, instance.id.val()));
-			}});
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
+		tempInstance = this.get(new ArrayList<WhereCondition>(){{
+			add(new WhereCondition("id", WhereCondition.EQUALS, instance.id.val()));
+		}});
 		
 		if(tempInstance != null){
 			this.deleteRelationship(instance);
 		} else {
-			try {
-				throw new Exception("Sorry, " + instance.getClass().getSimpleName() + " instance with id: " + instance.id.val()
-									+ " already exists.");
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			throw new ObjectNotFoundException("Sorry, " + instance.getClass().getSimpleName() + " instance with id: " + instance.id.val()
+								+ " does not exists.");
 		}
 		
 		this.objectSet.storage.remove(instance);

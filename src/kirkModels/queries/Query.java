@@ -5,8 +5,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import kirkModels.DbObject;
 import kirkModels.config.Settings;
+import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 import kirkModels.queries.scripts.WhereCondition;
 

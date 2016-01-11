@@ -3,7 +3,7 @@ package kirkModels.queries;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import kirkModels.DbObject;
+import kirkModels.orm.DbObject;
 import kirkModels.queries.scripts.WhereCondition;
 
 public abstract class WhereConditionedQuery extends Query {

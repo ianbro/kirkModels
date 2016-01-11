@@ -6,8 +6,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import iansLibrary.data.databases.MetaDatabase;
-import kirkModels.DbObject;
 import kirkModels.fields.ManyToManyField;
+import kirkModels.orm.DbObject;
 import kirkModels.queries.CreateTableQuery;
 
 public class DbSync {

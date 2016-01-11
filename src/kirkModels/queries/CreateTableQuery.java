@@ -4,9 +4,9 @@ import kirkModels.queries.Query;
 
 import java.sql.SQLException;
 
-import kirkModels.DbObject;
 import kirkModels.config.Settings;
 import kirkModels.fields.SavableField;
+import kirkModels.orm.DbObject;
 
 public class CreateTableQuery extends Query {
 	
