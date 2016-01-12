@@ -6,19 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
-/**
- * days are 0 indexed (first day of the year is 0. feb. 1st denoted by "02/00").
- * first year available is 1970
- * last year available is 9999
- * months are also 0 - indexed
- * 
- * @author Ian
- *
- */
 public class ModdedDate {
-	
-	public static final int BEGIN_YEAR = 1970;
-	public static final int FIRST_LEAP_YEAR = 1972;
 	
 	/*
 	 * got these conversions off of google... hope they're accurate.
@@ -75,206 +63,127 @@ public class ModdedDate {
 	public static final int NOVEMBER = 10;
 	public static final int DECEMBER = 11;
 	
-	private Date dateObject;
-	private Calendar calender;
+	private Calendar calendar;
 	
 	private long longVal;
 
 	private int month;
 	private int date;
 	private int year;
-	private int dayFromJan1; // for example: february 3rd would be day 34 (DAYS_IN_JAN + 3) - 1 (0 - indexed)
 	private int hour;
 	private int minute;
 	private int second;
 	private int millisecond;
 	
 	public ModdedDate(int month, int date, int year){
-		this.month = month;
-		this.date = date;
-		this.year = year;
 		
-		// every unit under a day is now set to 00
-		this.hour = 0;
-		this.minute = 0;
-		this.second = 0;
-		this.millisecond = 0;
-		
-		this.setDateFromBeginningOfYear();
-		this.longVal = this.getLong();
-		
-		
-		this.dateObject = new Date(this.longVal);
-		this.calender = Calendar.getInstance();
-		this.calender.setTime(this.dateObject);
+		this.calendar = Calendar.getInstance();
+		this.setDate(year, month, date, 0, 0, 0, 0);
+		this.getValsFromCalendar();
 	}
 	
 	public ModdedDate() {
 		
+		Date now = new Date();
+		this.calendar = Calendar.getInstance();
+		this.calendar.setTime(now);
+		this.getValsFromCalendar();
 	}
 	
-	public boolean isLeapYear() {
+	public ModdedDate(int month, int date, int year, int hour, int minute, int seconds, int millis) {
 		
-		/*
-		 * to do this method, subtract the year by 2 to get the number of years after 1972 that this year is.
-		 * 		I only subtract by 2 because year will already be the number of years after 1970 that it is
-		 * 		so I just subtract 2 to get the difference from 1972.
-		 * 
-		 * I then divide the result by 4 (years between leap years). if the result of that is 0,
-		 * 		then the current year is a leap year.
-		 */
-		int diff = FIRST_LEAP_YEAR - BEGIN_YEAR; // this evaluates to 2 if BEGIN_YEAR is 1970 and FIRST_LEAP_YEAR is 1972
-		
-		if ( ((this.year - diff) % 4) == 0 ) {
-			return true;
-		} else {
-			return false;
-		}
+		this.calendar = Calendar.getInstance();
+		this.setDate(year, month, date, hour, minute, seconds, millis);
+		this.getValsFromCalendar();
 	}
 	
-	public long adjustLongForLeapYears(long val) {
-		long numLeapYearsPassed = this.year - (FIRST_LEAP_YEAR - BEGIN_YEAR) - 1;
+	public void setDate(int year, int month, int date, int hour, int minute, int seconds, int millis) {
+		this.calendar.set(Calendar.YEAR, year);
 		
-		System.out.println("years since 1972: " + numLeapYearsPassed);
+		this.calendar.set(Calendar.MONTH, month);
 		
-		numLeapYearsPassed = (long) (numLeapYearsPassed / 4);
+		this.calendar.set(Calendar.DATE, date);
 		
-		System.out.println("leap years since 1972: " + numLeapYearsPassed);
+		this.calendar.set(Calendar.HOUR, hour);
 		
-		long millisToAdd = numLeapYearsPassed * MILLIS_IN_DAY;
+		this.calendar.set(Calendar.MINUTE, minute);
 		
-		System.out.println("long to add: " + millisToAdd);
+		this.calendar.set(Calendar.SECOND, seconds);
 		
-		val += millisToAdd;
+		this.calendar.set(Calendar.MILLISECOND, millis);
 		
-		return val;
+		this.longVal = this.calendar.getTimeInMillis();
 	}
 	
-	public void setDateFromBeginningOfYear() {
-		if (this.isLeapYear()) {
-			int count = this.month() - 1; // start counting from previous month
-			int day = this.date();
-			
-			while (count >= 0) {
-				day += DAYS_IN_EACH_MONTH.get(count);
-				
-				count --;
-			}
-			
-			/*
-			 *  this is a leap year which adds a day to the year but
-			 *  	only if day is greater than feb 29 (day 60)
-			 */
-			if(day > 60) {
-				day ++;
-			}
-			
-			this.dayFromJan1 = day;
-			
-		} else {
-			int count = this.month() - 1; // start counting from previous month
-			int day = this.date();
-			
-			while (count >= 0) {
-				day += DAYS_IN_EACH_MONTH.get(count);
-				
-				count --;
-			}
-			
-			this.dayFromJan1 = day;
-			
-		}
-	}
-	
-	public long getLong() {
-		long value = 0;
+	public void getValsFromCalendar() {
 		
-		long years = this.year * MILLIS_IN_YEAR;
-		long days = (this.dayFromJan1 + 1) * MILLIS_IN_DAY; // added one because I want the real value... not the 0 - indexed value.
-		long hours = this.hour * MILLIS_IN_HOUR;
-		long minutes = this.minute * MILLIS_IN_MINUTE;
-		long seconds = this.second * MILLIS_IN_SECOND;
+		int y = this.calendar.get(Calendar.YEAR);
 		
-		value = years + days + hours + minutes + seconds;
+		int d = this.calendar.get(Calendar.DATE);
 		
-		value = this.adjustLongForLeapYears(value);
+		int mon = this.calendar.get(Calendar.MONTH);
 		
-		return value;
-	}
-	
-	public void getValsFromLong() {
+		int h = this.calendar.get(Calendar.HOUR);
 		
-		long seconds = (long) (this.longVal / MILLIS_IN_SECOND);
-		long millis = this.longVal % MILLIS_IN_SECOND;
+		int min = this.calendar.get(Calendar.MINUTE);
 		
-		long minutes = (long) (seconds / SECONDS_IN_MINUTE);
-		seconds = seconds % SECONDS_IN_MINUTE;
+		int s = this.calendar.get(Calendar.SECOND);
 		
-		long hours = (long) (minutes / MINUTES_IN_HOUR);
-		minutes = minutes % MINUTES_IN_HOUR;
+		int mil = this.calendar.get(Calendar.MILLISECOND);
 		
-		long days = (long) (hours / HOURS_IN_DAY);
-		hours = hours % HOURS_IN_DAY;
-		
-		long years = (long) (days / DAYS_IN_YEAR);
-		days = days % DAYS_IN_YEAR;
-		
-		System.out.println(years + 1970 + " " + days + " " + hours + " " + minutes + " " + seconds + " " + millis);
+		this.year = y;
+		this.date = d;
+		this.month = mon;
+		this.hour = h;
+		this.minute = min;
+		this.second = s;
+		this.millisecond = mil;
 	}
 	
 	public int compareTo(ModdedDate other){
-		if(other.year() == this.year()){
-			if(other.month() == this.month()){
-				if(other.date() == this.date()){
-					return 0;
-				}
-				else if(other.date() < this.date()){
-					return 1;
-				}
-				else{
-					return -1;
-				}
-			}
-			else if(other.month() < this.month()){
-				return 1;
-			}
-			else{
-				return -1;
-			}
-		}
-		else if(other.year() < this.year()){
-			return 1;
-		}
-		else{
-			return -1;
-		}
+
+		return this.calendar.compareTo(other.calendar);
+	}
+	
+	public boolean before(ModdedDate when){
+		
+		return this.calendar.before(when.calendar);
+	}
+	
+	public boolean after(ModdedDate when){
+		
+		return this.calendar.before(when.calendar);
 	}
 	
 	public int month(){
 		return this.month;
 	}
 	
-	public int nonIndexedMonth() {
-		return this.month + 1;
-	}
-	
 	public int date(){
 		return this.date;
-	}
-	
-	public int nonIndexedDate(){
-		return this.date + 1;
 	}
 	
 	public int year(){
 		return this.year;
 	}
 	
-	public int yearAs0000() {
-		return this.year + 1970;
+	public int hour(){
+		return this.hour;
+	}
+	
+	public int minute(){
+		return this.minute;
+	}
+	
+	public int seconds(){
+		return this.second;
+	}
+	
+	public int millis(){
+		return this.millisecond;
 	}
 	
 	public String toString(){
-		return (this.nonIndexedMonth() + "/" + this.nonIndexedDate() + "/" + this.yearAs0000());
+		return ( (this.month() + 1) + "/" + this.date() + "/" + this.year());
 	}
 }

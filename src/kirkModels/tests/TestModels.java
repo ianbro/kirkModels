@@ -62,10 +62,9 @@ public abstract class TestModels {
 		System.out.println(wynton);
 		System.out.println(mom);
 
-		ModdedDate d = new ModdedDate(ModdedDate.MARCH, 3, (2016 - 1970));
+//		ModdedDate d = new ModdedDate(ModdedDate.MARCH, 3, 2016);
+		ModdedDate d = new ModdedDate();
 		System.out.println(d);
-		System.out.println(d.getLong());
-		d.getValsFromLong();
 	}
 	
 	public static void testSelectQuery(){
