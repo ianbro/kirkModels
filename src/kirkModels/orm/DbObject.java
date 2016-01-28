@@ -105,7 +105,7 @@ public abstract class DbObject {
 				}});
 			} catch (ObjectNotFoundException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				idWorks = true;
 			}
 		}
 		

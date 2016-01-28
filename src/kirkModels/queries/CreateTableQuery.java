@@ -116,7 +116,7 @@ public class CreateTableQuery extends Query {
 	@Override
 	public String getPsqlString() {
 		// TODO Auto-generated method stub
-		String sql = "CREATE TABLE " + this.tempObject.getClass().getName().replace('.', '_') + " (";
+		String sql = "CREATE TABLE " + this.tempObject.tableName + " (";
 		sql = sql + this.getFieldStrings(this.tempObject);
 		sql = sql + "\n);";
 		return sql;

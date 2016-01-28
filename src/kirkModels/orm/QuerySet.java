@@ -128,9 +128,9 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 					try {
 						newInstance = this.getObjectFromResults(index);
 						
-						newInstance.initializeManyToManyFields();
-						
 						this.storage.add(newInstance);
+						
+						newInstance.initializeManyToManyFields();
 					} catch (IndexOutOfBoundsException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -410,6 +410,9 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		conditions = this.combineConditions(conditions);
 		
 		QuerySet<T> set = this.filter(conditions);
+		System.out.println(conditions);
+		System.out.println(set);
+		
 		if(set.count() == 1){
 			return set.getRow(0);
 		} else if (set.count() == 0) {
@@ -464,12 +467,13 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, 0);
 		
 		ArrayList<WhereCondition> tempConditions = this.combineConditions(conditions);
+		tempConditions.add(c);
 		
 		//empty queryset
 		QuerySet<T> newQuerySet = new QuerySet<T>(this.type, this.tableName);
 		
 		for (T instance : this.storage) {
-			if(instance.meetsConditions(tempConditions)){
+			if(instance.meetsConditions(conditions)){
 				newQuerySet.storage.add(instance);
 			}
 		}

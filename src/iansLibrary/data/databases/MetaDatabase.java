@@ -73,7 +73,7 @@ public class MetaDatabase {
 	}
 	
 	public ResultSet executeQuery(String sql) throws SQLException{
-		Statement statement = this.dbConnection.createStatement();
+		Statement statement = this.dbConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		return statement.executeQuery(sql);
 	}
 	

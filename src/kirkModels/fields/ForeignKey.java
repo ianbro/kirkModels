@@ -1,10 +1,13 @@
 package kirkModels.fields;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
+import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.utils.exceptions.ObjectNotFoundException;
 
 public class ForeignKey<T extends DbObject> extends IntegerField {
 	
@@ -47,8 +50,21 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 		}
 	}
 	
-	public T getRef(){
-		return this.referencedInstant;
+	public T getRef() throws ObjectNotFoundException{
+		
+		if (this.value != null && this.referencedInstant != null) {
+			return this.referencedInstant;
+		} else if (this.value != null && this.referencedInstant == null) {
+			ArrayList<WhereCondition> conditions = new ArrayList<WhereCondition>();
+			WhereCondition id = new WhereCondition("id", WhereCondition.EQUALS, value);
+			conditions.add(id);
+			
+			return DbObject.getObjectsForGenericType(this.referenceClass).get(conditions);
+		} else if (this.value == null) {
+			return null;
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -67,7 +83,14 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	@Override
 	public String toString(){
 		T ref_value = null;
-		ref_value = this.getRef();
+		
+		try {
+			ref_value = this.getRef();
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		if(ref_value != null){
 			return ref_value.toString();
 		} else {

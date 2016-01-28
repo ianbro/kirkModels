@@ -17,6 +17,7 @@ import kirkModels.queries.InsertQuery;
 import kirkModels.queries.SelectQuery;
 import kirkModels.queries.UpdateQuery;
 import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 import kirkModels.queries.scripts.InsertValue;
 
@@ -36,35 +37,7 @@ public abstract class TestModels {
 			e.printStackTrace();
 		}
 		
-		Person ian = null;
-		Person jesus = null;
-		Person wynton = null;
-		Person mom = null;
-		
-		ian = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-			add(new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick"));
-		}});
-		
-		wynton = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-			add(new WhereCondition("name", WhereCondition.EQUALS, "Wynton Kirkpatrick"));
-		}});
-	
-		jesus = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-			add(new WhereCondition("name", WhereCondition.EQUALS, "Jesus Christ"));
-		}});
-	
-		mom = (Person) Person.objects.get(new ArrayList<WhereCondition>(){{
-			add(new WhereCondition("name", WhereCondition.EQUALS, "Lori Kirkpatrick"));
-		}});
-		
-		System.out.println(ian);
-		System.out.println(jesus);
-		System.out.println(wynton);
-		System.out.println(mom);
-
-//		ModdedDate d = new ModdedDate(ModdedDate.MARCH, 3, 2016);
-		ModdedDate d = new ModdedDate();
-		System.out.println(d);
+		TestQuerySets.run();
 	}
 	
 	public static void testSelectQuery(){
