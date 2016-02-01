@@ -42,8 +42,8 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		String refTable = refModel.getSimpleName().toLowerCase();
 		this.tableName = label + "__" + firstTable + "___" + refTable;
 		
-		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", (Class<T>) host.getClass(), false, null, false, "NO ACTION");
-		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", refModel, false, null, false, "NO ACTION");
+		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", (Class<T>) host.getClass(), false, null, false, "CASCADE");
+		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", refModel, false, null, false, "CASCADE");
 	}
 	
 	/**
@@ -165,8 +165,9 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 					add(c);
 				}});
 			} catch (ObjectNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// ID is not taken so use it.
+				idWorks = true;
+				break;
 			}
 			
 			if (rel == null) {

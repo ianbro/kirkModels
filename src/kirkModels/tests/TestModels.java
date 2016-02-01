@@ -30,14 +30,17 @@ public abstract class TestModels {
 		MetaDatabase db = null;
 		try {
 			Settings.syncSettings(new File("settings/settings.json"));
-			Settings.database.connect();
-			Settings.setObjectsForModels();
+			
+			new DbSync(Settings.database).migrateModel(Person.class);
+			
+//			Settings.database.connect();
+//			Settings.setObjectsForModels();
 		} catch (FileNotFoundException | ParseException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		TestQuerySets.run();
+//		TestQuerySets.run();
 	}
 	
 	public static void testSelectQuery(){

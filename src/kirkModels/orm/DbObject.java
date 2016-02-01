@@ -85,6 +85,7 @@ public abstract class DbObject {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			Settings.setObjectsForModel(this.getClass());
 		}
 		
 		this.initializeManyToManyFields();

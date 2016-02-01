@@ -289,8 +289,6 @@ public abstract class TestQuerySets {
 			fails.add("TestQuerySets.testCreateForeignKeyObject");
 		}
 		
-		System.out.println(ian.father.val());
-		
 		Person fRef = null;
 		try {
 			fRef = ian.father.getRef();
@@ -310,9 +308,79 @@ public abstract class TestQuerySets {
 	
 	public static void testAddManyToManyObject() {
 		
+		System.out.println("Test add ManyToManyField...");
+		
+		Person ian = null;
+		
+		ArrayList<WhereCondition> conditions = new ArrayList<WhereCondition>();
+		WhereCondition name = new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick");
+		conditions.add(name);
+		
+		try {
+			ian = Person.objects.get(conditions);
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Person dan = null;
+		
+		ArrayList<WhereCondition> conditions1 = new ArrayList<WhereCondition>();
+		WhereCondition name1 = new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick");
+		conditions1.add(name1);
+		
+		try {
+			dan = Person.objects.get(conditions1);
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			ian.friends.add(dan);
+		} catch (ObjectAlreadyExistsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			ian = Person.objects.get(conditions);
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (ian.friends.count() != 1) {
+			System.out.println("\tSorry, Ian Kirkpatrick's friends did not save correctly: " + ian.friends.all());
+			fails.add("TestQuerySets.testAddManyToManyObject");
+		} else {
+			System.out.println("\tAdded Daniel Kirkpatrick to Ian Kirkpatrick's friends: " + ian.friends.all());
+		}
+		
 	}
 	
 	public static void testGetManyToManyRelationship() {
+		
+		System.out.println("Test Getting Many To Many Relationship...");
+		
+		Person ian = null;
+		
+		ArrayList<WhereCondition> conditions = new ArrayList<WhereCondition>();
+		WhereCondition name = new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick");
+		conditions.add(name);
+		
+		try {
+			ian = Person.objects.get(conditions);
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Person dan = null;
+		
+		dan = ian.friends.all().getRow(0);
+		
+		System.out.println("\tGot Ian Kirkpatrick's friends: " + ian.friends.all());
 		
 	}
 }

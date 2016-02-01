@@ -410,8 +410,6 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		conditions = this.combineConditions(conditions);
 		
 		QuerySet<T> set = this.filter(conditions);
-		System.out.println(conditions);
-		System.out.println(set);
 		
 		if(set.count() == 1){
 			return set.getRow(0);

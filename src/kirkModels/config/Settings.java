@@ -111,4 +111,67 @@ public abstract class Settings {
 			}
 		}
 	}
+	
+	public static void setObjectsForModel(Class<?> type){
+		QuerySet<? extends DbObject> objects = new QuerySet(type);
+		
+		try {
+			type.getField("objects").set(null, objects);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		updateStorageForManyToManyFields(type);
+	}
+	
+	public static void updateStorageForManyToManyFields(Class<?> type){
+		try {
+			for(DbObject object : (QuerySet<? extends DbObject>) type.getField("objects").get(null)){
+				
+				for (String fieldName : object.manyToManyFields) {
+					Object field = null;
+					try {
+						field = object.getClass().getField(fieldName).get(object);
+					} catch (IllegalArgumentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (NoSuchFieldException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (SecurityException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					ManyToManyField temp_field = (ManyToManyField) field;
+					temp_field.getObjects();
+				}
+				
+			}
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
