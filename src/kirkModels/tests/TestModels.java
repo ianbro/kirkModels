@@ -31,16 +31,16 @@ public abstract class TestModels {
 		try {
 			Settings.syncSettings(new File("settings/settings.json"));
 			
-			new DbSync(Settings.database).migrateModel(Person.class);
+//			new DbSync(Settings.database).migrateModel(Person.class);
 			
-//			Settings.database.connect();
-//			Settings.setObjectsForModels();
+			Settings.database.connect();
+			Settings.setObjectsForModels();
 		} catch (FileNotFoundException | ParseException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-//		TestQuerySets.run();
+		TestQuerySets.run();
 	}
 	
 	public static void testSelectQuery(){

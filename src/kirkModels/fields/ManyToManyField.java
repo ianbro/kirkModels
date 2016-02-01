@@ -207,6 +207,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		InsertQuery query = new InsertQuery(newRelationship);
 		try {
 			query.run();
+			this.objects.storage.add(newRelationship);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

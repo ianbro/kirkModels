@@ -24,6 +24,7 @@ public abstract class TestQuerySets {
 		testGetForeignKeyObject();
 		testAddManyToManyObject();
 		testGetManyToManyRelationship();
+		testRemoveManyToManyRel();
 		testDelete();
 		
 	}
@@ -242,6 +243,7 @@ public abstract class TestQuerySets {
 		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fails.add("TestQuerySets.testGetForeignKeyObject");
 		}
 		
 		if (father.name.val().equals("Daniel Kirkpatrick")) {
@@ -295,6 +297,7 @@ public abstract class TestQuerySets {
 		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fails.add("TestQuerySets.testCreateForeignKeyObject");
 		}
 		
 		if (fRef.name.val().equals("Daniel Kirkpatrick")) {
@@ -321,12 +324,13 @@ public abstract class TestQuerySets {
 		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fails.add("TestQuerySets.testAddManyToManyObject");
 		}
 		
 		Person dan = null;
 		
 		ArrayList<WhereCondition> conditions1 = new ArrayList<WhereCondition>();
-		WhereCondition name1 = new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick");
+		WhereCondition name1 = new WhereCondition("name", WhereCondition.EQUALS, "Daniel Kirkpatrick");
 		conditions1.add(name1);
 		
 		try {
@@ -334,6 +338,7 @@ public abstract class TestQuerySets {
 		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fails.add("TestQuerySets.testAddManyToManyObject");
 		}
 		
 		try {
@@ -341,6 +346,7 @@ public abstract class TestQuerySets {
 		} catch (ObjectAlreadyExistsException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fails.add("TestQuerySets.testAddManyToManyObject");
 		}
 		
 		try {
@@ -348,6 +354,7 @@ public abstract class TestQuerySets {
 		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fails.add("TestQuerySets.testAddManyToManyObject");
 		}
 		
 		if (ian.friends.count() != 1) {
@@ -374,13 +381,71 @@ public abstract class TestQuerySets {
 		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fails.add("TestQuerySets.testGetManyToManyRelationship");
 		}
 		
 		Person dan = null;
 		
 		dan = ian.friends.all().getRow(0);
 		
-		System.out.println("\tGot Ian Kirkpatrick's friends: " + ian.friends.all());
+		if (dan == null) {
+			System.out.println("\tSorry, dan was not saved correctly as Ian's friend: " + ian.friends.all());
+			fails.add("TestQuerySets.testGetManyToManyRelationship");
+		} else {
+			System.out.println("\tGot Ian Kirkpatrick's friends: " + ian.friends.all());
+		}
+		
+	}
+	
+	public static void testRemoveManyToManyRel() {
+		
+		System.out.println("Test Removing Many To Many Relationship...");
+		
+		Person ian = null;
+		
+		ArrayList<WhereCondition> conditions = new ArrayList<WhereCondition>();
+		WhereCondition name = new WhereCondition("name", WhereCondition.EQUALS, "Ian Kirkpatrick");
+		conditions.add(name);
+		
+		try {
+			ian = Person.objects.get(conditions);
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fails.add("TestQuerySets.testRemoveManyToManyRel");
+		}
+		
+		Person dan = null;
+		
+		dan = ian.friends.all().getRow(0);
+		
+		try {
+			ian.friends.remove(dan);
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			System.out.println("\tSorry, dan was not found in Ian's friend: " + ian.friends.all());
+			fails.add("TestQuerySets.testRemoveManyToManyRel");
+		}
+		
+		ArrayList<WhereCondition> conditions1 = new ArrayList<WhereCondition>();
+		WhereCondition name1 = new WhereCondition("name", WhereCondition.EQUALS, "Daniel Kirkpatrick");
+		conditions1.add(name1);
+		
+		try {
+			dan = Person.objects.get(conditions1);
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("/tSorry dan was deleted from the database.");
+			fails.add("TestQuerySets.testRemoveManyToManyRel");
+		}
+		
+		if (ian.friends.count() == 1) {
+			System.out.println("\tSorry, dan was not removed correctly as Ian's friend: " + ian.friends.all());
+			fails.add("TestQuerySets.testRemoveManyToManyRel");
+		} else {
+			System.out.println("\tRemoved dan from Ian Kirkpatrick's friends: " + ian.friends.all());
+		}
 		
 	}
 }
