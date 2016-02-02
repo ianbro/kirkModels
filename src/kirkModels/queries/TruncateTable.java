@@ -36,7 +36,7 @@ public class TruncateTable extends Query {
 	@Override
 	public String getMySqlString() {
 		// TODO Auto-generated method stub
-		String str = "TRUNCATE TABLE " + this.tableName + this.cascade + ";";
+		String str = "TRUNCATE TABLE " + this.tableName + ";";
 		return str;
 	}
 

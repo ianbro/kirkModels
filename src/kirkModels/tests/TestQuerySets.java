@@ -19,6 +19,7 @@ public abstract class TestQuerySets {
 
 	public static void run() {
 		
+		tearDown();
 		testCreateSingle();
 		testGet();
 		createExtraPeople();
