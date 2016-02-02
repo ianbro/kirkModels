@@ -1,10 +1,14 @@
 package kirkModels.tests;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import kirkModels.config.Settings;
 import kirkModels.orm.QuerySet;
+import kirkModels.queries.Query;
+import kirkModels.queries.TruncateTable;
 import kirkModels.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
@@ -26,7 +30,24 @@ public abstract class TestQuerySets {
 		testGetManyToManyRelationship();
 		testRemoveManyToManyRel();
 		testDelete();
+		tearDown();
 		
+	}
+	
+	public static void tearDown() {
+		
+		System.out.println("Tearing Down...");
+		
+		TruncateTable truncatePerson = new TruncateTable(Settings.database.schema, new Person().tableName, true);
+		TruncateTable truncateFriends = new TruncateTable(Settings.database.schema, new Person().friends.tableName, true);
+
+		try {
+			truncateFriends.run();
+			truncatePerson.run();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static void testCreateSingle() {
