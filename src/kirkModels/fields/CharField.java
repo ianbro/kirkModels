@@ -24,16 +24,26 @@ public class CharField extends SavableField<String> {
 
 	@Override
 	public String MySqlString() {
-		String sql = this.label + " " + this.MYSQL_TYPE;
-		if(!this.isNull){
-			sql = sql + " NOT NULL";
-		}
+		String sql = this.label + " " + this.getMySqlDefinition();
 		return sql;
 	}
 
 	@Override
 	public String PSqlString() {
-		String sql = this.label + " " + this.PSQL_TYPE;
+		String sql = this.label + " " + this.getPsqlDefinition();
+		return sql;
+	}
+	
+	public String getMySqlDefinition() {
+		String sql = this.MYSQL_TYPE;
+		if(!this.isNull){
+			sql = sql + " NOT NULL";
+		}
+		return sql;
+	}
+	
+	public String getPsqlDefinition() {
+		String sql = this.PSQL_TYPE;
 		if(!this.isNull){
 			sql = sql + " NOT NULL";
 		}

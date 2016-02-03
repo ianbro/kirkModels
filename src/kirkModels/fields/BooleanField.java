@@ -26,20 +26,31 @@ public class BooleanField extends SavableField<Boolean> {
 	@Override
 	public String MySqlString() {
 		// TODO Auto-generated method stub
-		String sql = "'" + this.label + "' " + this.MYSQL_TYPE;
+		String sql = "'" + this.label + "' " + this.getMySqlDefinition();
+		return sql;
+	}
+
+	@Override
+	public String PSqlString() {
+		// TODO Auto-generated method stub
+		String sql = "'" + this.label + "' " + this.getPsqlDefinition();
+		return sql;
+	}
+	
+	public String getMySqlDefinition() {
+		String sql = this.MYSQL_TYPE;
 		if(this.defaultValue == false){
 			sql = sql + " DEFAULT " + 0;
 		}
 		else{
 			sql = sql + " DEFAULT " + 1;
 		}
-		return sql + ";";
-	}
-
-	@Override
-	public String PSqlString() {
-		// TODO Auto-generated method stub
-		String sql = "'" + this.label + "' " + this.PSQL_TYPE;
-		sql = sql + " DEFAULT " + this.defaultValue.toString().toUpperCase() + ";";
 		return sql;
-	}}
+	}
+	
+	public String getPsqlDefinition() {
+		String sql = this.PSQL_TYPE;
+		sql = sql + " DEFAULT " + this.defaultValue.toString().toUpperCase();
+		return sql;
+	}
+}

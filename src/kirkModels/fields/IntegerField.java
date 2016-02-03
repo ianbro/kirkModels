@@ -32,25 +32,13 @@ public class IntegerField extends SavableField<Integer> {
 
 	@Override
 	public String MySqlString() {
-		String sql = this.label + " " + this.MYSQL_TYPE;
-		if(!this.isNull){
-			sql = sql + " NOT NULL";
-		}
-		if(this.label.equals("id")){
-			sql = sql + " PRIMARY KEY";
-		}
+		String sql = this.label + " " + this.getMySqlDefinition();
 		return sql;
 	}
 	
 	@Override
 	public String PSqlString() {
-		String sql = this.label + " " + this.PSQL_TYPE;
-		if(!this.isNull){
-			sql = sql + " NOT NULL";
-		}
-		if(this.label.equals("id")){
-			sql = sql + " PRIMARY KEY";
-		}
+		String sql = this.label + " " + this.getPsqlDefinition();
 		return sql;
 	}
 	
@@ -72,6 +60,30 @@ public class IntegerField extends SavableField<Integer> {
 		else {
 			return "INT";
 		}
+	}
+	
+	public String getMySqlDefinition() {
+		String def = this.MYSQL_TYPE;
+		if(!this.isNull){
+			def = def + " NOT NULL";
+		}
+		if(this.label.equals("id")){
+			def = def + " PRIMARY KEY";
+		}
+		
+		return def;
+	}
+	
+	public String getPsqlDefinition() {
+		String def = this.PSQL_TYPE;
+		if(!this.isNull){
+			def = def + " NOT NULL";
+		}
+		if(this.label.equals("id")){
+			def = def + " PRIMARY KEY";
+		}
+		
+		return def;
 	}
 	
 	public String getPsqlIntType(Integer maxVal) {
