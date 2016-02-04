@@ -60,5 +60,9 @@ public abstract class SavableField <T> {
 	 * @return String - the PostgreSQL equivalent of this field.
 	 */
 	public abstract String PSqlString();
+	
+	public abstract String getMySqlDefinition();
+	
+	public abstract String getPsqlDefinition();
 
 }

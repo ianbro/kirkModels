@@ -1,4 +1,4 @@
-package kirkModels.queries;
+package kirkModels.orm.backend.sync.queries;
 
 import kirkModels.queries.Query;
 
@@ -8,14 +8,14 @@ import kirkModels.config.Settings;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.DbObject;
 
-public class CreateTableQuery extends Query {
+public class CreateTable extends Query {
 	
 	// This will be an instance of the class we want to migrate.
 	// Information in classes can only be obtained through instantiated classes so
 	// this is that instantiated object. it is not an actual saved object.
 	public DbObject tempObject;
 
-	public CreateTableQuery(String _dbName, DbObject _tempObject) {
+	public CreateTable(String _dbName, DbObject _tempObject) {
 		super(_dbName, _tempObject.tableName);
 		// TODO Auto-generated constructor stub
 		

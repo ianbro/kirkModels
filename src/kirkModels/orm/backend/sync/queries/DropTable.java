@@ -1,23 +1,15 @@
-package kirkModels.queries;
+package kirkModels.orm.backend.sync.queries;
 
 import java.sql.SQLException;
 
 import kirkModels.config.Settings;
+import kirkModels.queries.Query;
 
-public class TruncateTable extends Query {
-	
-	public String cascade;
+public class DropTable extends Query {
 
-	public TruncateTable(String _dbName, String _tabelName, boolean _cascade) {
+	public DropTable(String _dbName, String _tabelName) {
 		super(_dbName, _tabelName);
 		// TODO Auto-generated constructor stub
-		
-		if (_cascade) {
-			this.cascade = " CASCADE";
-		} else {
-			this.cascade = "";
-		}
-		
 		this.setSql();
 	}
 
@@ -36,15 +28,13 @@ public class TruncateTable extends Query {
 	@Override
 	public String getMySqlString() {
 		// TODO Auto-generated method stub
-		String str = "TRUNCATE TABLE " + this.dbName + "." + this.tableName + ";";
-		return str;
+		return "DROP TABLE " + this.dbName + "." + this.tableName + ";";
 	}
 
 	@Override
 	public String getPsqlString() {
 		// TODO Auto-generated method stub
-		String str = "TRUNCATE TABLE " + this.tableName + this.cascade + ";";
-		return str;
+		return "DROP TABLE " + this.tableName + ";";
 	}
 
 }

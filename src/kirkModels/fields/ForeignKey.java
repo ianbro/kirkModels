@@ -13,6 +13,7 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	
 	public T referencedInstant;
 	public Class<T> referenceClass;
+	public String symbol;
 	
 	public String onDelete;
 
@@ -24,6 +25,7 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 			this.set(defaultValue);
 		}
 		this.onDelete = onDelete;
+		this.symbol = ("fk_" + reference.getSimpleName() + "_id").toLowerCase();
 	}
 	
 	public ForeignKey() {

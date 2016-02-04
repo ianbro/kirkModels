@@ -11,7 +11,15 @@ import org.json.simple.parser.ParseException;
 import iansLibrary.data.databases.MetaDatabase;
 import iansLibrary.utilities.ModdedDate;
 import kirkModels.config.Settings;
+import kirkModels.fields.CharField;
+import kirkModels.fields.IntegerField;
 import kirkModels.orm.backend.sync.DbSync;
+import kirkModels.orm.backend.sync.queries.AddField;
+import kirkModels.orm.backend.sync.queries.AddForeignKey;
+import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
+import kirkModels.orm.backend.sync.queries.DropField;
+import kirkModels.orm.backend.sync.queries.RenameField;
+import kirkModels.orm.backend.sync.queries.RenameTable;
 import kirkModels.queries.DeleteQuery;
 import kirkModels.queries.InsertQuery;
 import kirkModels.queries.SelectQuery;
@@ -34,13 +42,37 @@ public abstract class TestModels {
 //			new DbSync(Settings.database).migrateModel(Person.class);
 			
 			Settings.database.connect();
-			Settings.setObjectsForModels();
+//			Settings.setObjectsForModels();
 		} catch (FileNotFoundException | ParseException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		TestQuerySets.run();
+//		TestQuerySets.run();
+		
+		AddField af = new AddField(new IntegerField("age", true, 3, false, 10));
+		
+		System.out.println(af);
+		
+		ColumnDefinitionChange cdc = new ColumnDefinitionChange("age", new CharField("age", true, null, false, 15));
+		
+		System.out.println(cdc);
+		
+		DropField df = new DropField(new IntegerField("age", true, 3, false, 10), DropField.CASCADE);
+		
+		System.out.println(df);
+		
+		RenameField rf = new RenameField(new IntegerField("age", true, 3, false, 10), "num_people");
+		
+		System.out.println(rf);
+		
+		RenameTable rt = new RenameTable("Person");
+		
+		System.out.println(rt);
+		
+		AddForeignKey afk = new AddForeignKey(new IntegerField("age", true, 3, false, 10), new Person(), false, 1, false, "CASCADE");
+		
+		System.out.println(afk);
 	}
 	
 	public static void testSelectQuery(){

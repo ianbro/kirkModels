@@ -8,7 +8,7 @@ import java.sql.Statement;
 import iansLibrary.data.databases.MetaDatabase;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.orm.DbObject;
-import kirkModels.queries.CreateTableQuery;
+import kirkModels.orm.backend.sync.queries.CreateTable;
 
 public class DbSync {
 
@@ -58,7 +58,7 @@ public class DbSync {
 	}
 	
 	public void migrateFromInstance(DbObject testInstance) throws SQLException{
-		CreateTableQuery query = new CreateTableQuery(this.dbName, testInstance);
+		CreateTable query = new CreateTable(this.dbName, testInstance);
 		query.run();
 	}
 }
