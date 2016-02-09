@@ -12,11 +12,13 @@ import iansLibrary.data.databases.MetaDatabase;
 import iansLibrary.utilities.ModdedDate;
 import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
+import kirkModels.fields.ForeignKey;
 import kirkModels.fields.IntegerField;
 import kirkModels.orm.backend.sync.DbSync;
 import kirkModels.orm.backend.sync.queries.AddField;
 import kirkModels.orm.backend.sync.queries.AddForeignKey;
 import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
+import kirkModels.orm.backend.sync.queries.CreateTable;
 import kirkModels.orm.backend.sync.queries.DropField;
 import kirkModels.orm.backend.sync.queries.RenameField;
 import kirkModels.orm.backend.sync.queries.RenameTable;
@@ -41,7 +43,7 @@ public abstract class TestModels {
 			
 //			new DbSync(Settings.database).migrateModel(Person.class);
 			
-			Settings.database.connect();
+//			Settings.database.connect();
 //			Settings.setObjectsForModels();
 		} catch (FileNotFoundException | ParseException | SQLException e) {
 			// TODO Auto-generated catch block
@@ -53,6 +55,10 @@ public abstract class TestModels {
 		AddField af = new AddField(new IntegerField("age", true, 3, false, 10));
 		
 		System.out.println(af);
+		
+		AddField af2 = new AddField(new ForeignKey<>("person_id", Person.class, true, null, false, "CASCADE"));
+		
+		System.out.println(af2);
 		
 		ColumnDefinitionChange cdc = new ColumnDefinitionChange("age", new CharField("age", true, null, false, 15));
 		
@@ -70,9 +76,13 @@ public abstract class TestModels {
 		
 		System.out.println(rt);
 		
-		AddForeignKey afk = new AddForeignKey(new IntegerField("age", true, 3, false, 10), new Person(), false, 1, false, "CASCADE");
+		AddForeignKey afk = new AddForeignKey(new IntegerField("age", true, 3, false, 10), new Person(), null, "CASCADE");
 		
 		System.out.println(afk);
+		
+		CreateTable ct = new CreateTable(Settings.database.schema, new Person());
+		
+		System.out.println(ct.getCommand());
 	}
 	
 	public static void testSelectQuery(){

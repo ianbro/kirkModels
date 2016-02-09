@@ -25,7 +25,18 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 			this.set(defaultValue);
 		}
 		this.onDelete = onDelete;
-		this.symbol = ("fk_" + reference.getSimpleName() + "_id").toLowerCase();
+		this.symbol = ("fk_" + label + "_" + reference.getSimpleName() + "_id").toLowerCase();
+	}
+	
+	public ForeignKey(String label, String _symbol, Class<T> reference, boolean isNull, Integer defaultValue, boolean unique, String onDelete) {
+		super(label, isNull, defaultValue, unique, null);
+		// TODO Auto-generated constructor stub
+		this.referenceClass = reference;
+		if(defaultValue != null){
+			this.set(defaultValue);
+		}
+		this.onDelete = onDelete;
+		this.symbol = _symbol;
 	}
 	
 	public ForeignKey() {
@@ -72,13 +83,13 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	@Override
 	public String MySqlString() {
 		String sql = super.MySqlString();
-		sql = sql + " REFERENCES " + this.referenceClass.getName().replace(".", "_") + "(id)\n\t\tON UPDATE CASCADE ON DELETE " + this.onDelete;
+		sql = sql + "::REFERENCES " + this.referenceClass.getName().replace(".", "_") + "(id)\n\t\tON UPDATE CASCADE ON DELETE " + this.onDelete;
 		return sql;
 	}
 	
 	public String PSqlString(){
 		String sql = super.PSqlString();
-		sql = sql + " REFERENCES " + this.referenceClass.getName().replace(".", "_") + "(id)\n\t\tON UPDATE CASCADE ON DELETE " + this.onDelete;
+		sql = sql + "::REFERENCES " + this.referenceClass.getName().replace(".", "_") + "(id)\n\t\tON UPDATE CASCADE ON DELETE " + this.onDelete;
 		return sql;
 	}
 	

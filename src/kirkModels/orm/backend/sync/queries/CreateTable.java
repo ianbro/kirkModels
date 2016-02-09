@@ -3,8 +3,10 @@ package kirkModels.orm.backend.sync.queries;
 import kirkModels.queries.Query;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import kirkModels.config.Settings;
+import kirkModels.fields.ForeignKey;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.DbObject;
 
@@ -14,6 +16,7 @@ public class CreateTable extends Query {
 	// Information in classes can only be obtained through instantiated classes so
 	// this is that instantiated object. it is not an actual saved object.
 	public DbObject tempObject;
+	public ArrayList<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
 
 	public CreateTable(String _dbName, DbObject _tempObject) {
 		super(_dbName, _tempObject.tableName);
@@ -38,7 +41,12 @@ public class CreateTable extends Query {
 				// field is a ManyToManyField so We sync this another way. not included in the table string.
 				continue;
 			}
-			sql = sql + "\n\t" + field.MySqlString();
+			sql = sql + "\n\t" + field.MySqlString().split("::")[0];
+
+			if (field instanceof ForeignKey) {
+				this.foreignKeys.add((ForeignKey) field);
+			}
+			
 			if(i != instance.savableFields.size() - 1){
 				sql = sql + ",";
 			}
@@ -58,7 +66,12 @@ public class CreateTable extends Query {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			sql = sql + "\n\t" + field.PSqlString();
+			sql = sql + "\n\t" + field.PSqlString().split("::")[0];
+			
+			if (field instanceof ForeignKey) {
+				this.foreignKeys.add((ForeignKey) field);
+			}
+			
 			if(i != instance.savableFields.size() - 1){
 				sql = sql + ",";
 			}
@@ -81,6 +94,57 @@ public class CreateTable extends Query {
 		case "postgreSQL":
 			
 			sql = this.getPsqlFieldStrings(instance);
+			break;
+
+		default:
+			
+			sql = "No default language.";
+			break;
+		}
+		
+		return sql;
+	}
+	
+	public String getMySqlForeignKeyStrings(DbObject instance) {
+		String sql = "";
+		
+		for (int i = 0; i < foreignKeys.size() - 1; i++) {
+			ForeignKey fk = foreignKeys.get(i);
+			sql = sql + "\n\tCONSRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1] + ",";
+		}
+		ForeignKey fk = foreignKeys.get(foreignKeys.size() - 1);
+		sql = sql + "\n\tCONSRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1];
+		
+		return sql;
+	}
+	
+	public String getPsqlForeignKeyStrings(DbObject instance) {
+		String sql = "";
+		
+		for (int i = 0; i < foreignKeys.size() - 1; i++) {
+			ForeignKey fk = foreignKeys.get(i);
+			sql = sql + "\n\tCONSRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1] + ",";
+		}
+		ForeignKey fk = foreignKeys.get(foreignKeys.size() - 1);
+		sql = sql + "\n\tCONSRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1];
+		
+		return sql;
+	}
+	
+	public String getForeignKeyStrings(DbObject instance) {
+		String language = Settings.database.language;
+		
+		String sql = "";
+		
+		switch (language) {
+		case "MySQL":
+			
+			sql = this.getMySqlForeignKeyStrings(instance);
+			break;
+			
+		case "postgreSQL":
+			
+			sql = this.getPsqlForeignKeyStrings(instance);
 			break;
 
 		default:
@@ -118,6 +182,9 @@ public class CreateTable extends Query {
 		// TODO Auto-generated method stub
 		String sql = "CREATE TABLE " + this.tempObject.tableName + " (";
 		sql = sql + this.getFieldStrings(this.tempObject);
+		if (foreignKeys.size() > 0) {
+			sql = sql + "," + this.getForeignKeyStrings(this.tempObject);
+		}
 		sql = sql + "\n);";
 		return sql;
 	}
