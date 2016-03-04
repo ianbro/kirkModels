@@ -2,10 +2,13 @@ package kirkModels.tests;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
@@ -14,12 +17,16 @@ import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
 import kirkModels.fields.ForeignKey;
 import kirkModels.fields.IntegerField;
+import kirkModels.fields.SavableField;
 import kirkModels.orm.backend.sync.DbSync;
-import kirkModels.orm.backend.sync.queries.AddField;
+import kirkModels.orm.backend.sync.GenerateSqlSheets;
+import kirkModels.orm.backend.sync.queries.AddColumn;
 import kirkModels.orm.backend.sync.queries.AddForeignKey;
+import kirkModels.orm.backend.sync.queries.AlterTable;
 import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
 import kirkModels.orm.backend.sync.queries.CreateTable;
 import kirkModels.orm.backend.sync.queries.DropField;
+import kirkModels.orm.backend.sync.queries.Operation;
 import kirkModels.orm.backend.sync.queries.RenameField;
 import kirkModels.orm.backend.sync.queries.RenameTable;
 import kirkModels.queries.DeleteQuery;
@@ -50,39 +57,38 @@ public abstract class TestModels {
 			e.printStackTrace();
 		}
 		
+		DbSync s = new DbSync(Settings.database, new ArrayList<String>(){{
+			add("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
+		}});
+//		try {
+//			s.readMigrations();
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (ParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+		String className = SavableField[].class.getName();
+		System.out.println(className);
+		try {
+			System.out.println(Array.newInstance(Class.forName(className), 5));
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+//		try {
+//			s.instantiateField((JSONArray) new JSONParser().parse("[\"kirkModels.fields.CharField\", \"name\", false, null, false, 45]"));
+//		} catch (ClassNotFoundException | NoSuchMethodException | ParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
 //		TestQuerySets.run();
 		
-		AddField af = new AddField(new IntegerField("age", true, 3, false, 10));
-		
-		System.out.println(af);
-		
-		AddField af2 = new AddField(new ForeignKey<>("person_id", Person.class, true, null, false, "CASCADE"));
-		
-		System.out.println(af2);
-		
-		ColumnDefinitionChange cdc = new ColumnDefinitionChange("age", new CharField("age", true, null, false, 15));
-		
-		System.out.println(cdc);
-		
-		DropField df = new DropField(new IntegerField("age", true, 3, false, 10), DropField.CASCADE);
-		
-		System.out.println(df);
-		
-		RenameField rf = new RenameField(new IntegerField("age", true, 3, false, 10), "num_people");
-		
-		System.out.println(rf);
-		
-		RenameTable rt = new RenameTable("Person");
-		
-		System.out.println(rt);
-		
-		AddForeignKey afk = new AddForeignKey(new IntegerField("age", true, 3, false, 10), new Person(), null, "CASCADE");
-		
-		System.out.println(afk);
-		
-		CreateTable ct = new CreateTable(Settings.database.schema, new Person());
-		
-		System.out.println(ct.getCommand());
+//		GenerateSqlSheets.makeInitialSql(Person.class);
 	}
 	
 	public static void testSelectQuery(){

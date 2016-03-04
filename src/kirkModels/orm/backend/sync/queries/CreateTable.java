@@ -15,39 +15,42 @@ public class CreateTable extends Query {
 	// This will be an instance of the class we want to migrate.
 	// Information in classes can only be obtained through instantiated classes so
 	// this is that instantiated object. it is not an actual saved object.
-	public DbObject tempObject;
 	public ArrayList<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
+	public ArrayList<SavableField> fields = new ArrayList<SavableField>();
 
 	public CreateTable(String _dbName, DbObject _tempObject) {
 		super(_dbName, _tempObject.tableName);
 		// TODO Auto-generated constructor stub
 		
-		this.tempObject = _tempObject;
+		for (String fieldName : _tempObject.savableFields) {
+			this.fields.add(_tempObject.getField(fieldName));
+		}
 		
 		this.setSql();
 	}
 	
-	public String getMySqlFieldStrings(DbObject instance) {
+	public CreateTable(String _dbName, String _tableName, SavableField[] _fields){
+		super(_dbName, _tableName);
+		
+		for (SavableField field : _fields) {
+			this.fields.add(field);
+		}
+		
+		this.setSql();
+	}
+	
+	public String getMySqlFieldStrings() {
 		String sql = "";
 		
-		for (int i = 0; i < instance.savableFields.size(); i++) {
-			SavableField field = null;
-			try {
-				field = ((SavableField) (instance.getClass().getField(instance.savableFields.get(i)).get(instance)));
-			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ClassCastException e) {
-				// field is a ManyToManyField so We sync this another way. not included in the table string.
-				continue;
-			}
+		for (int i = 0; i < this.fields.size(); i++) {
+			SavableField field = fields.get(i);
 			sql = sql + "\n\t" + field.MySqlString().split("::")[0];
 
 			if (field instanceof ForeignKey) {
 				this.foreignKeys.add((ForeignKey) field);
 			}
 			
-			if(i != instance.savableFields.size() - 1){
+			if(i != this.fields.size() - 1){
 				sql = sql + ",";
 			}
 		}
@@ -55,24 +58,18 @@ public class CreateTable extends Query {
 		return sql;
 	}
 	
-	public String getPsqlFieldStrings(DbObject instance) {
+	public String getPsqlFieldStrings() {
 		String sql = "";
 		
-		for (int i = 0; i < instance.savableFields.size(); i++) {
-			SavableField field = null;
-			try {
-				field = ((SavableField) (instance.getClass().getField(instance.savableFields.get(i)).get(instance)));
-			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		for (int i = 0; i < this.fields.size(); i++) {
+			SavableField field = this.fields.get(i);
 			sql = sql + "\n\t" + field.PSqlString().split("::")[0];
 			
 			if (field instanceof ForeignKey) {
 				this.foreignKeys.add((ForeignKey) field);
 			}
 			
-			if(i != instance.savableFields.size() - 1){
+			if(i != this.fields.size() - 1){
 				sql = sql + ",";
 			}
 		}
@@ -80,7 +77,7 @@ public class CreateTable extends Query {
 		return sql;
 	}
 	
-	public String getFieldStrings(DbObject instance) {
+	public String getFieldStrings() {
 		String language = Settings.database.language;
 		
 		String sql = "";
@@ -88,12 +85,12 @@ public class CreateTable extends Query {
 		switch (language) {
 		case "MySQL":
 			
-			sql = this.getMySqlFieldStrings(instance);
+			sql = this.getMySqlFieldStrings();
 			break;
 			
 		case "postgreSQL":
 			
-			sql = this.getPsqlFieldStrings(instance);
+			sql = this.getPsqlFieldStrings();
 			break;
 
 		default:
@@ -105,7 +102,7 @@ public class CreateTable extends Query {
 		return sql;
 	}
 	
-	public String getMySqlForeignKeyStrings(DbObject instance) {
+	public String getMySqlForeignKeyStrings() {
 		String sql = "";
 		
 		for (int i = 0; i < foreignKeys.size() - 1; i++) {
@@ -118,7 +115,7 @@ public class CreateTable extends Query {
 		return sql;
 	}
 	
-	public String getPsqlForeignKeyStrings(DbObject instance) {
+	public String getPsqlForeignKeyStrings() {
 		String sql = "";
 		
 		for (int i = 0; i < foreignKeys.size() - 1; i++) {
@@ -131,7 +128,7 @@ public class CreateTable extends Query {
 		return sql;
 	}
 	
-	public String getForeignKeyStrings(DbObject instance) {
+	public String getForeignKeyStrings() {
 		String language = Settings.database.language;
 		
 		String sql = "";
@@ -139,12 +136,12 @@ public class CreateTable extends Query {
 		switch (language) {
 		case "MySQL":
 			
-			sql = this.getMySqlForeignKeyStrings(instance);
+			sql = this.getMySqlForeignKeyStrings();
 			break;
 			
 		case "postgreSQL":
 			
-			sql = this.getPsqlForeignKeyStrings(instance);
+			sql = this.getPsqlForeignKeyStrings();
 			break;
 
 		default:
@@ -171,8 +168,11 @@ public class CreateTable extends Query {
 	@Override
 	public String getMySqlString() {
 		// TODO Auto-generated method stub
-		String sql = "CREATE TABLE " + this.dbName + "." + this.tempObject.tableName + " (";
-		sql = sql + this.getFieldStrings(this.tempObject);
+		String sql = "CREATE TABLE " + this.dbName + "." + this.tableName + " (";
+		sql = sql + this.getFieldStrings();
+		if (foreignKeys.size() > 0) {
+			sql = sql + "," + this.getForeignKeyStrings();
+		}
 		sql = sql + "\n);";
 		return sql;
 	}
@@ -180,10 +180,10 @@ public class CreateTable extends Query {
 	@Override
 	public String getPsqlString() {
 		// TODO Auto-generated method stub
-		String sql = "CREATE TABLE " + this.tempObject.tableName + " (";
-		sql = sql + this.getFieldStrings(this.tempObject);
+		String sql = "CREATE TABLE " + this.tableName + " (";
+		sql = sql + this.getFieldStrings();
 		if (foreignKeys.size() > 0) {
-			sql = sql + "," + this.getForeignKeyStrings(this.tempObject);
+			sql = sql + "," + this.getForeignKeyStrings();
 		}
 		sql = sql + "\n);";
 		return sql;
