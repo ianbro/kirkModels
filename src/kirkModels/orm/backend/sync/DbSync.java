@@ -3,6 +3,7 @@ package kirkModels.orm.backend.sync;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -15,9 +16,11 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
+import iansLibrary.utilities.JSONClassMapping;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.backend.sync.queries.CreateTable;
+import kirkModels.queries.Query;
 
 public class DbSync {
 
@@ -29,6 +32,7 @@ public class DbSync {
 	 */
 	public ArrayList<String> migrationFolder;
 	public ArrayList<JSONObject> migrations = new ArrayList<JSONObject>();
+	public ArrayList<Query> operations = new ArrayList<Query>();
 	
 	public DbSync(MetaDatabase _database){
 		this.dbConnection = _database.dbConnection;
@@ -83,7 +87,7 @@ public class DbSync {
 		query.run();
 	}
 	
-	public void readMigrations() throws FileNotFoundException, ParseException {
+	public void readMigrations() throws FileNotFoundException, ParseException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		for (String path : this.migrationFolder) {
 			File f = new File(path);
 			Scanner scnr = new Scanner(f);
@@ -94,16 +98,17 @@ public class DbSync {
 			scnr.close();
 		}
 		System.out.println(this.migrations.get(0));
+		for (int i = 0; i < this.migrations.size(); i++) {
+			this.addNextMigration(i);
+		}
+		System.out.println(this.operations.get(0));
 	}
 	
-	public Object instantiateField(JSONArray json) throws ClassNotFoundException, NoSuchMethodException {
-		Object field = null;
-		ArrayList<Class<?>> argTypes = new ArrayList<Class<?>>();
-		for (int i = 1; i < json.size(); i++) {
-			Object arg = json.get(i);
-			argTypes.add(arg.getClass());
+	private void addNextMigration(int index) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+		JSONObject migration = this.migrations.get(index);
+		for (Object jsonQuery : (JSONArray) migration.get("operations")) {
+			System.out.println("json: " + jsonQuery);
+			this.operations.add((Query) JSONClassMapping.jsonObjectToObject((JSONObject) jsonQuery));
 		}
-		field = Class.forName((String) json.get(0)).getConstructor((Class<?>[]) argTypes.toArray());
-		return field;
 	}
 }

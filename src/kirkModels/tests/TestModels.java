@@ -3,6 +3,7 @@ package kirkModels.tests;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,6 +13,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
+import iansLibrary.utilities.JSONClassMapping;
 import iansLibrary.utilities.ModdedDate;
 import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
@@ -60,21 +62,31 @@ public abstract class TestModels {
 		DbSync s = new DbSync(Settings.database, new ArrayList<String>(){{
 			add("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
 		}});
-//		try {
-//			s.readMigrations();
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (ParseException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 		
-		String className = SavableField[].class.getName();
-		System.out.println(className);
 		try {
-			System.out.println(Array.newInstance(Class.forName(className), 5));
+			s.readMigrations();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
