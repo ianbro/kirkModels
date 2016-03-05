@@ -55,12 +55,13 @@ public final class JSONClassMapping {
 			for (Object key : jsonVal.keySet()) {
 				if (!((String) key).equals("type")) {
 					//set value at key to attribute of toReturn.
-					System.out.println(Arrays.toString(((String) key).split("#")));
 					Class type = Class.forName(((String) key).split("#")[1]);
 					Object value = jsonAnyToObject(jsonVal.get(key));
+					System.out.println(type);
 					vals.put(type, value);
 				}
 			}
+			//for some reason, the keyset being passed here connot be cast to Class<?>[]
 			Constructor c = Class.forName(className).getConstructor((Class<?>[]) vals.keySet().toArray());
 			toReturn = c.newInstance(vals.entrySet().toArray());
 			
@@ -71,7 +72,6 @@ public final class JSONClassMapping {
 			Object toReturn = null;
 			
 			String dataType = jsonVal.get(0).toString();
-			System.out.println(dataType);
 			Class typeClass = Class.forName(dataType);
 			toReturn = Array.newInstance(typeClass, jsonVal.size());
 			
