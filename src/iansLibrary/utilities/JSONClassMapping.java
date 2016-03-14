@@ -7,11 +7,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import javax.management.Query;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import kirkModels.config.Settings;
 import kirkModels.fields.SavableField;
+import kirkModels.orm.backend.sync.queries.CreateTable;
 
 public final class JSONClassMapping {
 		
@@ -50,19 +54,27 @@ public final class JSONClassMapping {
 		public static Object jsonObjectToObject(JSONObject jsonVal) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 			Object toReturn = null;
 			
+			//figure out how to see if a class is a subclass of Query
+			System.out.println(Query.class.isAssignableFrom(Class.forName((String) jsonVal.get("type"))));
+			if (Query.class.isAssignableFrom(Class.forName((String) jsonVal.get("type")))) {
+				jsonVal.put("1#java.lang.String#_dbName", Settings.database.schema);
+			}
+			
 			String className = (String) jsonVal.get("type");
 			HashMap<Class<?>, Object> vals = new HashMap<Class<?>, Object>();
+			Class[] paramTypes = new Class[jsonVal.keySet().size()-1];
+			int i = 0;
 			for (Object key : jsonVal.keySet()) {
 				if (!((String) key).equals("type")) {
 					//set value at key to attribute of toReturn.
 					Class type = Class.forName(((String) key).split("#")[1]);
 					Object value = jsonAnyToObject(jsonVal.get(key));
-					System.out.println(type);
+					paramTypes[i] = type;
 					vals.put(type, value);
+					i ++;
 				}
 			}
-			//for some reason, the keyset being passed here connot be cast to Class<?>[]
-			Constructor c = Class.forName(className).getConstructor((Class<?>[]) vals.keySet().toArray());
+			Constructor c = Class.forName(className).getConstructor(paramTypes);
 			toReturn = c.newInstance(vals.entrySet().toArray());
 			
 			return toReturn;
