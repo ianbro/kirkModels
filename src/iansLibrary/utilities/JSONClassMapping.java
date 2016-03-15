@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import javax.management.Query;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -16,6 +14,7 @@ import org.json.simple.JSONValue;
 import kirkModels.config.Settings;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.backend.sync.queries.CreateTable;
+import kirkModels.queries.Query;
 
 public final class JSONClassMapping {
 		
@@ -55,27 +54,29 @@ public final class JSONClassMapping {
 			Object toReturn = null;
 			
 			//figure out how to see if a class is a subclass of Query
-			System.out.println(Query.class.isAssignableFrom(Class.forName((String) jsonVal.get("type"))));
 			if (Query.class.isAssignableFrom(Class.forName((String) jsonVal.get("type")))) {
 				jsonVal.put("1#java.lang.String#_dbName", Settings.database.schema);
 			}
 			
 			String className = (String) jsonVal.get("type");
-			HashMap<Class<?>, Object> vals = new HashMap<Class<?>, Object>();
+			Object[] paramValues = new Object[jsonVal.keySet().size()-1];
 			Class[] paramTypes = new Class[jsonVal.keySet().size()-1];
 			int i = 0;
 			for (Object key : jsonVal.keySet()) {
 				if (!((String) key).equals("type")) {
 					//set value at key to attribute of toReturn.
+					i = Integer.valueOf(((String) key).split("#")[0]) - 1;
 					Class type = Class.forName(((String) key).split("#")[1]);
 					Object value = jsonAnyToObject(jsonVal.get(key));
 					paramTypes[i] = type;
-					vals.put(type, value);
-					i ++;
+					paramValues[i] = value;
+					if(i == 2) System.out.println(Arrays.toString((Object[]) value));
 				}
 			}
+			
 			Constructor c = Class.forName(className).getConstructor(paramTypes);
-			toReturn = c.newInstance(vals.entrySet().toArray());
+			System.out.println(Arrays.toString(paramValues));
+			toReturn = c.newInstance(paramValues);
 			
 			return toReturn;
 		}
@@ -87,8 +88,10 @@ public final class JSONClassMapping {
 			Class typeClass = Class.forName(dataType);
 			toReturn = Array.newInstance(typeClass, jsonVal.size());
 			
+			System.out.println(jsonVal.size());
 			for (int i = 1; i < jsonVal.size(); i ++) {
-				Object javaVal = jsonAnyToObject(i);
+				System.out.println(jsonVal.get(i));
+				Object javaVal = jsonAnyToObject(jsonVal.get(i));
 				Array.set(toReturn, i, javaVal);
 			}
 			

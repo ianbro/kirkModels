@@ -59,37 +59,54 @@ public abstract class TestModels {
 			e.printStackTrace();
 		}
 		
-		DbSync s = new DbSync(Settings.database, new ArrayList<String>(){{
-			add("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
-		}});
+//		DbSync s = new DbSync(Settings.database, new ArrayList<String>(){{
+//			add("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
+//		}});
 		
+//		try {
+//			s.readMigrations();
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (ParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (ClassNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (NoSuchMethodException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (InstantiationException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IllegalAccessException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IllegalArgumentException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (InvocationTargetException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+		Object c = null;
 		try {
-			s.readMigrations();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
+			c = JSONClassMapping.jsonAnyToObject(new JSONParser().parse("{"
+					+ "\"type\": \"kirkModels.fields.CharField\","
+					+ "\"1#java.lang.String#label\": \"name\","
+					+ "\"2#java.lang.Boolean#isNull\": false,"
+					+ "\"3#java.lang.String#defaultValue\": null,"
+					+ "\"4#java.lang.Boolean#unique\": false,"
+					+ "\"5#java.lang.Integer#maxLength\": 45"
+					+ "}"));
+		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
+				| IllegalArgumentException | InvocationTargetException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println(c);
 		
 //		try {
 //			s.instantiateField((JSONArray) new JSONParser().parse("[\"kirkModels.fields.CharField\", \"name\", false, null, false, 45]"));

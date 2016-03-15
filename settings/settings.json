@@ -21,7 +21,7 @@
 		}
 	},
 	
-	"defaultDb": "mysql",
+	"defaultDb": "vagrant",
 	
 	"synced_models": [
 		"kirkModels.tests.Person"

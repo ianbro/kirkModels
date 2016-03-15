@@ -12,7 +12,7 @@ public class CharField extends SavableField<String> {
 	 * @param unique - whether this field contains a unique constraint
 	 * @param maxLength - the maximum length that this field is allowed to have
 	 */
-	public CharField(String label, boolean isNull, String defaultValue, boolean unique, int maxLength){
+	public CharField(String label, Boolean isNull, String defaultValue, Boolean unique, Integer maxLength){
 		<IntegerField>super(label, isNull, unique);
 		
 		this.value = defaultValue;
