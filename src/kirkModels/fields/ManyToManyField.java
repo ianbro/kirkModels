@@ -46,6 +46,18 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", refModel, false, null, false, "CASCADE");
 	}
 	
+	public ManyToManyField(String label, Class<T> hostClass, Class<R> refModel){
+		this.hostModel = hostClass.getName();
+		this.refModel = refModel.getName();
+		
+		String firstTable = hostClass.getSimpleName().toLowerCase();
+		String refTable = refModel.getSimpleName().toLowerCase();
+		this.tableName = label + "__" + firstTable + "___" + refTable;
+		
+		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", hostClass, false, null, false, "CASCADE");
+		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", refModel, false, null, false, "CASCADE");
+	}
+	
 	/**
 	 * This is an instance for an actual relationship. to asave it, call this.saveRelationship. don't use the following methods:
 	 * <br>

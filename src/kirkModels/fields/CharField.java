@@ -15,7 +15,11 @@ public class CharField extends SavableField<String> {
 	public CharField(String label, Boolean isNull, String defaultValue, Boolean unique, Integer maxLength){
 		<IntegerField>super(label, isNull, unique);
 		
-		this.value = defaultValue;
+		if(defaultValue.equals("null-value")) {
+			this.value = null;
+		} else {
+			this.value = defaultValue;
+		}
 		this.maxLength = maxLength;
 		this.MYSQL_TYPE = "VARCHAR(" + this.maxLength + ")";
 		this.PSQL_TYPE = "varchar(" + this.maxLength + ")";

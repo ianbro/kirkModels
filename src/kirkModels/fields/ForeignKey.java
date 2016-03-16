@@ -17,7 +17,7 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	
 	public String onDelete;
 
-	public ForeignKey(String label, Class<T> reference, boolean isNull, Integer defaultValue, boolean unique, String onDelete) {
+	public ForeignKey(String label, Class<T> reference, Boolean isNull, Integer defaultValue, Boolean unique, String onDelete) {
 		super(label, isNull, defaultValue, unique, null);
 		// TODO Auto-generated constructor stub
 		this.referenceClass = reference;

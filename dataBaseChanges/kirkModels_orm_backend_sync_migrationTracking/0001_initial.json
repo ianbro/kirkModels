@@ -10,7 +10,7 @@
 					"type": "kirkModels.fields.CharField",
 					"1#java.lang.String#label": "name",
 					"2#java.lang.Boolean#isNull": false,
-					"3#java.lang.String#defaultValue": null,
+					"3#java.lang.String#defaultValue": "null-value",
 					"4#java.lang.Boolean#unique": false,
 					"5#java.lang.Integer#maxLength": 45
 				},
@@ -18,7 +18,7 @@
 					"type": "kirkModels.fields.IntegerField",
 					"1#java.lang.String#label": "age",
 					"2#java.lang.Boolean#isNull": false,
-					"3#java.lang.String#defaultValue": null,
+					"3#java.lang.Integer#defaultValue": -2147483648,
 					"4#java.lang.Boolean#unique": false,
 					"5#java.lang.Integer#maxValue": 150
 				},
@@ -27,7 +27,7 @@
 					"1#java.lang.String#label": "mother",
 					"2#java.lang.Class#reference": "kirkModels.tests.Person",
 					"3#java.lang.Boolean#isNull": true,
-					"4#java.lang.String#defaultValue": null,
+					"4#java.lang.Integer#defaultValue": -2147483648,
 					"5#java.lang.Boolean#unique": false,
 					"6#java.lang.String#onDelete": "NO ACTION"
 				},
@@ -36,21 +36,24 @@
 					"1#java.lang.String#label": "father",
 					"2#java.lang.Class#reference": "kirkModels.tests.Person",
 					"3#java.lang.Boolean#isNull": true,
-					"4#java.lang.String#defaultValue": null,
+					"4#java.lang.Integer#defaultValue": -2147483648,
 					"5#java.lang.Boolean#unique": false,
 					"6#java.lang.String#onDelete": "NO ACTION"
-				},
+				}
+			],
+			"4#[LkirkModels.fields.ManyToManyField;#_m2mFields": [
+				"kirkModels.fields.ManyToManyField",
 				{
 					"type": "kirkModels.fields.ManyToManyField",
 					"1#java.lang.String#label": "friends",
-					"2#kirkModels.orm.DbObject": null, 
+					"2#java.lang.Class#hostClass": "kirkModels.tests.Person", 
 					"3#java.lang.Class#refModel": "kirkModels.tests.Person"
 				},
 				{
-					"1#type": "kirkModels.fields.ManyToManyField",
-					"2#java.lang.String#label": "enemies",
-					"3#kirkModels.orm.DbObject": null, 
-					"4#java.lang.Class#refModel": "kirkModels.tests.Person"
+					"type": "kirkModels.fields.ManyToManyField",
+					"1#java.lang.String#label": "enemies",
+					"2#java.lang.Class#hostClass": "kirkModels.tests.Person", 
+					"3#java.lang.Class#refModel": "kirkModels.tests.Person"
 				}
 			]
 		}

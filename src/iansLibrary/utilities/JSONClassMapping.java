@@ -3,17 +3,16 @@ package iansLibrary.utilities;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 import kirkModels.config.Settings;
-import kirkModels.fields.SavableField;
-import kirkModels.orm.backend.sync.queries.CreateTable;
+import kirkModels.fields.ManyToManyField;
+import kirkModels.orm.DbObject;
 import kirkModels.queries.Query;
 
 public final class JSONClassMapping {
@@ -37,10 +36,11 @@ public final class JSONClassMapping {
 		
 		public static Object jsonAnyToObject(Object jsonVal) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 			Object toReturn = null;
+			jsonVal = verifyType(jsonVal);
 			
 			if (jsonVal == null) {
 				toReturn = null;
-			} else if (jsonVal.getClass().isPrimitive() || jsonVal instanceof String) {
+			} else if (jsonVal.getClass().isPrimitive() || jsonVal instanceof String || isWrapper(jsonVal)) {
 				toReturn = jsonVal;
 			} else if (jsonVal instanceof JSONArray) {
 				toReturn = jsonArrayToArray((JSONArray) jsonVal);
@@ -67,16 +67,33 @@ public final class JSONClassMapping {
 					//set value at key to attribute of toReturn.
 					i = Integer.valueOf(((String) key).split("#")[0]) - 1;
 					Class type = Class.forName(((String) key).split("#")[1]);
-					Object value = jsonAnyToObject(jsonVal.get(key));
+//					System.out.println("key: " + key + " value: " + jsonVal.get(key));
+					Object value = null;
+					
+					if (type.equals(Class.class)) {
+						value = Class.forName((String) jsonVal.get(key));
+					} else {
+						value = jsonAnyToObject(jsonVal.get(key));
+					}
+					
+//					System.out.println("javaVal = " + value);
 					paramTypes[i] = type;
 					paramValues[i] = value;
-					if(i == 2) System.out.println(Arrays.toString((Object[]) value));
+//					if(i == 2) System.out.println(Arrays.toString((Object[]) value));
 				}
 			}
 			
 			Constructor c = Class.forName(className).getConstructor(paramTypes);
-			System.out.println(Arrays.toString(paramValues));
-			toReturn = c.newInstance(paramValues);
+			try {
+				toReturn = c.newInstance(paramValues);
+			} catch (IllegalArgumentException | InvocationTargetException e) {
+				System.out.println("constructor: " + c + " for class: " + Class.forName(className));
+				System.out.println("parameters: " + Arrays.toString(paramValues));
+				for (Object object : paramValues) {
+					System.out.println(object.getClass());
+				}
+				e.printStackTrace();
+			}
 			
 			return toReturn;
 		}
@@ -88,14 +105,57 @@ public final class JSONClassMapping {
 			Class typeClass = Class.forName(dataType);
 			toReturn = Array.newInstance(typeClass, jsonVal.size());
 			
-			System.out.println(jsonVal.size());
+//			System.out.println(jsonVal.size());
 			for (int i = 1; i < jsonVal.size(); i ++) {
-				System.out.println(jsonVal.get(i));
+//				System.out.println(jsonVal.get(i));
 				Object javaVal = jsonAnyToObject(jsonVal.get(i));
-				Array.set(toReturn, i, javaVal);
+				try {
+					Array.set(toReturn, i, javaVal);
+				} catch (IllegalArgumentException e) {
+					System.out.println(toReturn);
+					System.out.println(i);
+					System.out.println(javaVal);
+					throw e;
+				}
 			}
 			
 			return toReturn;
+		}
+		
+		private static Set<Class<?>> getWrapperTypes()
+	    {
+	        Set<Class<?>> ret = new HashSet<Class<?>>();
+	        ret.add(Boolean.class);
+	        ret.add(Character.class);
+	        ret.add(Byte.class);
+	        ret.add(Short.class);
+	        ret.add(Integer.class);
+	        ret.add(Long.class);
+	        ret.add(Float.class);
+	        ret.add(Double.class);
+	        ret.add(Void.class);
+	        return ret;
+	    }
+		
+		public static boolean isWrapper(Object o){
+			if (getWrapperTypes().contains(o.getClass())) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		
+		public static Object verifyType(Object o) {
+			Object retVal = null;
+			
+			if (o.getClass().equals(Long.class) && (Long) o < Integer.MAX_VALUE) {
+				retVal = (Integer) ((Long) o).intValue();
+			} else {
+				retVal = o;
+			}
+			
+			return retVal;
 		}
 
 }

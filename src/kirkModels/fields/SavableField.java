@@ -16,7 +16,7 @@ public abstract class SavableField <T> {
 	public String MYSQL_TYPE;
 	public String PSQL_TYPE;
 	
-	public SavableField(String label, boolean isNull, boolean unique){
+	public SavableField(String label, Boolean isNull, Boolean unique){
 		this.isNull = isNull;
 		this.label = label;
 		this.unique = unique;
@@ -28,7 +28,11 @@ public abstract class SavableField <T> {
 	 * @return String - The value of this field as a String
 	 */
 	public String toString(){
-		return this.value.toString();
+		if (this.value == null || this.value.getClass().isPrimitive()) {
+			return String.valueOf(this.value);
+		} else {
+			return this.value.toString();
+		}
 	}
 	
 	/**

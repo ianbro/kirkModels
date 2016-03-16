@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import kirkModels.config.Settings;
 import kirkModels.fields.ForeignKey;
+import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.DbObject;
 
@@ -17,6 +18,7 @@ public class CreateTable extends Query {
 	// this is that instantiated object. it is not an actual saved object.
 	public ArrayList<ForeignKey> foreignKeys = new ArrayList<ForeignKey>();
 	public ArrayList<SavableField> fields = new ArrayList<SavableField>();
+	public ArrayList<ManyToManyField> m2mFields = new ArrayList<ManyToManyField>();
 
 	public CreateTable(String _dbName, DbObject _tempObject) {
 		super(_dbName, _tempObject.tableName);
@@ -29,11 +31,14 @@ public class CreateTable extends Query {
 		this.setSql();
 	}
 	
-	public CreateTable(String _dbName, String _tableName, SavableField[] _fields){
+	public CreateTable(String _dbName, String _tableName, SavableField[] _fields, ManyToManyField[] _m2mFields){
 		super(_dbName, _tableName);
 		
 		for (SavableField field : _fields) {
 			this.fields.add(field);
+		}
+		for (ManyToManyField field : _m2mFields) {
+			this.m2mFields.add(field);
 		}
 		
 		this.setSql();

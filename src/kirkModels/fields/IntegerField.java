@@ -15,10 +15,14 @@ public class IntegerField extends SavableField<Integer> {
 	 * @param autoIncrement - whether this field will automatically increment
 	 * @param maxValue - the maximum value that this field is allowed to be
 	 */
-	public IntegerField(String label, boolean isNull, Integer defaultValue, boolean unique, Integer maxValue) {
+	public IntegerField(String label, Boolean isNull, Integer defaultValue, Boolean unique, Integer maxValue) {
 		super(label, isNull, unique);
 		
-		this.value = defaultValue;
+		if (!(defaultValue == null) && defaultValue == Integer.MIN_VALUE) {
+			this.value = null;
+		} else {
+			this.value = defaultValue;
+		}
 		this.maxVal = maxValue;
 		this.JAVA_TYPE = Integer.class;
 		
