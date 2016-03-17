@@ -71,7 +71,6 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 			ArrayList<WhereCondition> conditions = new ArrayList<WhereCondition>();
 			WhereCondition id = new WhereCondition("id", WhereCondition.EQUALS, value);
 			conditions.add(id);
-			
 			return DbObject.getObjectsForGenericType(this.referenceClass).get(conditions);
 		} else if (this.value == null) {
 			return null;
@@ -102,6 +101,8 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (NullPointerException e) {
+			return super.toString();
 		}
 		
 		if(ref_value != null){

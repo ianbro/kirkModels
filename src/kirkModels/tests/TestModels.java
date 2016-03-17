@@ -6,7 +6,9 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Scanner;
 
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
@@ -19,6 +21,7 @@ import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
 import kirkModels.fields.ForeignKey;
 import kirkModels.fields.IntegerField;
+import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.backend.sync.DbSync;
 import kirkModels.orm.backend.sync.GenerateSqlSheets;
@@ -90,6 +93,18 @@ public abstract class TestModels {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+//		Object[] j = null;
+//		try {
+//			j = (Object[]) JSONClassMapping.jsonAnyToObject(new JSONParser().parse(new Scanner(new File("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/test.json")).useDelimiter("//Z").next()));
+//		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
+//				| IllegalArgumentException | InvocationTargetException | FileNotFoundException | ParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		for (Object g : j) {
+//			System.out.println("g: " + ((SavableField) g));
+//		}
 		
 //		Object c = null;
 //		String json = "{"
