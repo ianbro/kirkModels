@@ -112,10 +112,10 @@ public class CreateTable extends Query {
 		
 		for (int i = 0; i < foreignKeys.size() - 1; i++) {
 			ForeignKey fk = foreignKeys.get(i);
-			sql = sql + "\n\tCONSRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1] + ",";
+			sql = sql + "\n\tADD CONSTRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1] + ",";
 		}
 		ForeignKey fk = foreignKeys.get(foreignKeys.size() - 1);
-		sql = sql + "\n\tCONSRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1];
+		sql = sql + "\n\tADD CONSTRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1];
 		
 		return sql;
 	}
@@ -125,10 +125,10 @@ public class CreateTable extends Query {
 		
 		for (int i = 0; i < foreignKeys.size() - 1; i++) {
 			ForeignKey fk = foreignKeys.get(i);
-			sql = sql + "\n\tCONSRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1] + ",";
+			sql = sql + "\n\tADD CONSTRAINT " + fk.symbol + " FOREIGN KEY (" + fk.label + ") " + fk.MySqlString().split("::")[1] + ",";
 		}
 		ForeignKey fk = foreignKeys.get(foreignKeys.size() - 1);
-		sql = sql + "\n\tCONSRAINT " + fk.symbol + " FOREIGN KEY " + fk.label + " " + fk.MySqlString().split("::")[1];
+		sql = sql + "\n\tADD CONSTRAINT " + fk.symbol + " FOREIGN KEY (" + fk.label + ") " + fk.MySqlString().split("::")[1];
 		
 		return sql;
 	}
@@ -162,6 +162,11 @@ public class CreateTable extends Query {
 	public void setSql() {
 		// TODO Auto-generated method stub
 		this.command = this.toString();
+		
+		for (ManyToManyField m2mf : this.m2mFields) {
+			CreateTable createM2mField = new CreateTable(this.dbName, m2mf);
+			this.command = this.command + "\n\n" + createM2mField.getCommand();
+		}
 	}
 
 	@Override
@@ -175,10 +180,10 @@ public class CreateTable extends Query {
 		// TODO Auto-generated method stub
 		String sql = "CREATE TABLE " + this.dbName + "." + this.tableName + " (";
 		sql = sql + this.getFieldStrings();
-		if (foreignKeys.size() > 0) {
-			sql = sql + "," + this.getForeignKeyStrings();
-		}
 		sql = sql + "\n);";
+		if (foreignKeys.size() > 0) {
+			sql = sql + "\nALTER TABLE " + this.tableName + this.getForeignKeyStrings() + ";";
+		}
 		return sql;
 	}
 
@@ -187,10 +192,10 @@ public class CreateTable extends Query {
 		// TODO Auto-generated method stub
 		String sql = "CREATE TABLE " + this.tableName + " (";
 		sql = sql + this.getFieldStrings();
-		if (foreignKeys.size() > 0) {
-			sql = sql + "," + this.getForeignKeyStrings();
-		}
 		sql = sql + "\n);";
+		if (foreignKeys.size() > 0) {
+			sql = sql + "\nALTER TABLE " + this.tableName + this.getForeignKeyStrings() + ";";
+		}
 		return sql;
 	}
 	

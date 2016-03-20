@@ -97,17 +97,26 @@ public class DbSync {
 			this.migrations.add(json);
 			scnr.close();
 		}
-		System.out.println(this.migrations.get(0));
 		for (int i = 0; i < this.migrations.size(); i++) {
 			this.addNextMigration(i);
 		}
-		System.out.println(this.operations.get(0));
+		System.out.println(((CreateTable) this.operations.get(0)).getCommand());
+		/*
+		 * Must make it so that the command includes ID. it does not at the moment
+		 * also, I have to add a unique constraint.
+		 */
+		try {
+			this.operations.get(0).run();
+			System.out.println("ran command #0");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private void addNextMigration(int index) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		JSONObject migration = this.migrations.get(index);
 		for (Object jsonQuery : (JSONArray) migration.get("operations")) {
-			System.out.println("json: " + jsonQuery);
 			this.operations.add((Query) JSONClassMapping.jsonObjectToObject((JSONObject) jsonQuery));
 		}
 	}
