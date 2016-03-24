@@ -9,6 +9,7 @@ public class DateField extends CharField {
 	
 	public Date dateVal;
 	
+	@Deprecated
 	public DateField(String label, Boolean isNull, Boolean autoNow, Boolean autoNowAdd) {
 		super(label, isNull, null, false, 100);
 		// TODO Auto-generated constructor stub

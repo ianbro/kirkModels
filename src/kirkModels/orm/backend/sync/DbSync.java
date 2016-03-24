@@ -31,8 +31,7 @@ public class DbSync {
 	 * contains string paths to all the migration files.
 	 */
 	public ArrayList<String> migrationFolder;
-	public ArrayList<JSONObject> migrations = new ArrayList<JSONObject>();
-	public ArrayList<Query> operations = new ArrayList<Query>();
+	public ArrayList<Migration> migrations = new ArrayList<Migration>();
 	
 	public DbSync(MetaDatabase _database){
 		this.dbConnection = _database.dbConnection;
@@ -93,31 +92,17 @@ public class DbSync {
 			Scanner scnr = new Scanner(f);
 			scnr.useDelimiter("//Z");
 			String jsonStr = scnr.next();
-			JSONObject json = (JSONObject) new JSONParser().parse(jsonStr);
-			this.migrations.add(json);
+			Migration migration = (Migration) JSONClassMapping.jsonAnyToObject(new JSONParser().parse(jsonStr));
+			this.migrations.add(migration);
 			scnr.close();
 		}
-		for (int i = 0; i < this.migrations.size(); i++) {
-			this.addNextMigration(i);
-		}
-		System.out.println(((CreateTable) this.operations.get(0)).getCommand());
-		/*
-		 * Must make it so that the command includes ID. it does not at the moment
-		 * also, I have to add a unique constraint.
-		 */
+		
 		try {
-			this.operations.get(0).run();
+			((Migration) this.migrations.get(0)).operations[0].run();
 			System.out.println("ran command #0");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-	}
-	
-	private void addNextMigration(int index) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
-		JSONObject migration = this.migrations.get(index);
-		for (Object jsonQuery : (JSONArray) migration.get("operations")) {
-			this.operations.add((Query) JSONClassMapping.jsonObjectToObject((JSONObject) jsonQuery));
 		}
 	}
 }

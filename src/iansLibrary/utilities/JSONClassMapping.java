@@ -89,10 +89,7 @@ public final class JSONClassMapping {
 			try {
 				toReturn = c.newInstance(paramValues);
 			} catch (IllegalArgumentException | InvocationTargetException e) {
-				System.out.println("constructor: " + c + " for class: " + Class.forName(className));
-				System.out.println("parameters: " + Arrays.toString(paramValues));
 				for (Object object : paramValues) {
-					System.out.println(object.getClass());
 				}
 				e.printStackTrace();
 			}
@@ -115,9 +112,6 @@ public final class JSONClassMapping {
 				try {
 					Array.set(toReturn, i-1, javaVal);
 				} catch (IllegalArgumentException e) {
-					System.out.println(toReturn);
-					System.out.println(i);
-					System.out.println(javaVal);
 					throw e;
 				}
 			}

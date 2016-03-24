@@ -2,6 +2,7 @@ package kirkModels.tests;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
@@ -11,12 +12,15 @@ import java.util.Date;
 import java.util.Scanner;
 
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
 import iansLibrary.utilities.JSONClassMapping;
+import iansLibrary.utilities.JSONFormat;
 import iansLibrary.utilities.ModdedDate;
+import iansLibrary.utilities.ObjectParser;
 import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
 import kirkModels.fields.ForeignKey;
@@ -25,6 +29,7 @@ import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.backend.sync.DbSync;
 import kirkModels.orm.backend.sync.GenerateSqlSheets;
+import kirkModels.orm.backend.sync.Migration;
 import kirkModels.orm.backend.sync.queries.AddColumn;
 import kirkModels.orm.backend.sync.queries.AddForeignKey;
 import kirkModels.orm.backend.sync.queries.AlterTable;
@@ -62,6 +67,10 @@ public abstract class TestModels {
 			e.printStackTrace();
 		}
 		
+//		Migration m = new Migration(Person.class);
+//		
+//		GenerateSqlSheets.makeInitialSql(m);
+		
 		DbSync s = new DbSync(Settings.database, new ArrayList<String>(){{
 			add("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
 		}});
@@ -93,47 +102,40 @@ public abstract class TestModels {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		Object[] j = null;
+//		String jsonforc = null;
 //		try {
-//			j = (Object[]) JSONClassMapping.jsonAnyToObject(new JSONParser().parse(new Scanner(new File("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/test.json")).useDelimiter("//Z").next()));
+//			jsonforc = new Scanner(new File("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json")).useDelimiter("\\Z").next();
+//		} catch (FileNotFoundException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+//		
+//		CreateTable c1 = null;
+//		try {
+//			c1 = (CreateTable) JSONClassMapping.jsonObjectToObject((JSONObject) new JSONParser().parse(jsonforc));
 //		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
-//				| IllegalArgumentException | InvocationTargetException | FileNotFoundException | ParseException e) {
+//				| IllegalArgumentException | InvocationTargetException | ParseException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		
+//		JSONObject j = null;
+//		try {
+//			j = (JSONObject) ObjectParser.anyObjectToJSON(c1);
+//			System.out.println(j);
+//		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 //		
-//		for (Object g : j) {
-//			System.out.println("g: " + ((SavableField) g));
-//		}
-		
-//		Object c = null;
-//		String json = "{"
-//				+ "\"type\": \"kirkModels.fields.CharField\","
-//				+ "\"1#java.lang.String#label\": \"name\","
-//				+ "\"2#java.lang.Boolean#isNull\": false,"
-//				+ "\"3#java.lang.String#defaultValue\": \"null-value\","
-//				+ "\"4#java.lang.Boolean#unique\": false,"
-//				+ "\"5#java.lang.Integer#maxLength\": 45"
-//				+ "}";
 //		try {
-//			c = JSONClassMapping.jsonAnyToObject(new JSONParser().parse(json));
+//			CreateTable c2 = (CreateTable) JSONClassMapping.jsonObjectToObject(j);
+//			System.out.println(c2.getCommand());
 //		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
-//				| IllegalArgumentException | InvocationTargetException | ParseException e) {
+//				| IllegalArgumentException | InvocationTargetException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
-//		System.out.println("value: " + c);
-		
-//		try {
-//			s.instantiateField((JSONArray) new JSONParser().parse("[\"kirkModels.fields.CharField\", \"name\", false, null, false, 45]"));
-//		} catch (ClassNotFoundException | NoSuchMethodException | ParseException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-//		TestQuerySets.run();
-		
-//		GenerateSqlSheets.makeInitialSql(Person.class);
 	}
 	
 	public static void testSelectQuery(){

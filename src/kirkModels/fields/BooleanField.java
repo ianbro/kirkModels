@@ -1,18 +1,22 @@
 package kirkModels.fields;
 
-public class BooleanField extends SavableField<Boolean> {
+import java.lang.reflect.Constructor;
+
+import iansLibrary.utilities.JSONMappable;
+
+public class BooleanField extends SavableField<Boolean> implements JSONMappable {
 	
 	public Boolean defaultValue;
 
-	public BooleanField(String label, Boolean defaultValue) {
-		super(label, false, false);
+	public BooleanField(String _label, Boolean _defaultValue) {
+		super(_label, false, false, _defaultValue);
 		
-		if(defaultValue != null){
-			this.value = defaultValue;
-			this.defaultValue = defaultValue;
+		if(_defaultValue != null){
+			this.value = _defaultValue;
+			this.defaultValue = _defaultValue;
 		} else{
 			try {
-				throw new Exception("defaultValue for BooleanField labeled " + label + " must not be null.");
+				throw new Exception("defaultValue for BooleanField labeled " + _label + " must not be null.");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -21,6 +25,28 @@ public class BooleanField extends SavableField<Boolean> {
 		this.MYSQL_TYPE = "BIT(1)";
 		this.PSQL_TYPE = "BOOLEAN";
 		this.JAVA_TYPE = Boolean.class;
+	}
+	
+	public Constructor getJsonConstructor(){
+		Class[] paramTypes = new Class[]{
+				String.class,
+				Boolean.class,
+		};
+		try {
+			return this.getClass().getConstructor(paramTypes);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public String[] getConstructorFieldOrder() {
+		return new String[]{
+				"label",
+				"defaultValue",
+		};
 	}
 
 	@Override

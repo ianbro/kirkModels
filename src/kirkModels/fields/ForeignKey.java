@@ -1,15 +1,17 @@
 package kirkModels.fields;
 
+import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import iansLibrary.utilities.JSONMappable;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 import kirkModels.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
-public class ForeignKey<T extends DbObject> extends IntegerField {
+public class ForeignKey<T extends DbObject> extends IntegerField implements JSONMappable {
 	
 	public T referencedInstant;
 	public Class<T> referenceClass;
@@ -17,18 +19,18 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	
 	public String onDelete;
 
-	public ForeignKey(String label, Class<T> reference, Boolean isNull, Integer defaultValue, Boolean unique, String onDelete) {
-		super(label, isNull, defaultValue, unique, null);
+	public ForeignKey(String _label, Class<T> _referenceClass, Boolean _isNull, Integer _defaultValue, Boolean _unique, String _onDelete) {
+		super(_label, _isNull, _defaultValue, _unique, null);
 		// TODO Auto-generated constructor stub
-		this.referenceClass = reference;
-		if(defaultValue != null){
-			this.set(defaultValue);
+		this.referenceClass = _referenceClass;
+		if(_defaultValue != null){
+			this.set(_defaultValue);
 		}
-		this.onDelete = onDelete;
-		this.symbol = ("fk_" + label + "_" + reference.getSimpleName() + "_id").toLowerCase();
+		this.onDelete = _onDelete;
+		this.symbol = ("fk_" + _label + "_" + _referenceClass.getSimpleName() + "_id").toLowerCase();
 	}
 	
-	public ForeignKey(String label, String _symbol, Class<T> reference, boolean isNull, Integer defaultValue, boolean unique, String onDelete) {
+	public ForeignKey(String label, String _symbol, Class<T> reference, Boolean isNull, Integer defaultValue, Boolean unique, String onDelete) {
 		super(label, isNull, defaultValue, unique, null);
 		// TODO Auto-generated constructor stub
 		this.referenceClass = reference;
@@ -41,6 +43,36 @@ public class ForeignKey<T extends DbObject> extends IntegerField {
 	
 	public ForeignKey() {
 		super("", true, null, false, null);
+	}
+	
+	public Constructor getJsonConstructor(){
+		Class[] paramTypes = new Class[]{
+				String.class,
+				Class.class,
+				Boolean.class,
+				Integer.class,
+				Boolean.class,
+				String.class
+		};
+		try {
+			return this.getClass().getConstructor(paramTypes);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public String[] getConstructorFieldOrder() {
+		return new String[]{
+				"label",
+				"referenceClass",
+				"isNull",
+				"defaultValue",
+				"unique",
+				"onDelete"
+		};
 	}
 	
 	/**

@@ -1,69 +1,71 @@
 {
-	"depends_on": null,
-	"operations": [
+	"1#java.lang.String#_dependsOn": "null-value",
+	"2#[LkirkModels.queries.Query;#_operations": [
+		"kirkModels.queries.Query",
 		{
-			"type": "kirkModels.orm.backend.sync.queries.CreateTable",
 			"2#java.lang.String#_tableName": "kirkmodels_tests_person",
-			"3#[LkirkModels.fields.SavableField;#_fields": [
-				"kirkModels.fields.SavableField",
-				{
-					"type": "kirkModels.fields.IntegerField",
-					"1#java.lang.String#label": "id",
-					"2#java.lang.Boolean#isNull": false,
-					"3#java.lang.Integer#defaultValue": -2147483648,
-					"4#java.lang.Boolean#unique": false,
-					"5#java.lang.Integer#maxValue": 100000
-				},
-				{
-					"type": "kirkModels.fields.CharField",
-					"1#java.lang.String#label": "name",
-					"2#java.lang.Boolean#isNull": false,
-					"3#java.lang.String#defaultValue": "null-value",
-					"4#java.lang.Boolean#unique": false,
-					"5#java.lang.Integer#maxLength": 45
-				},
-				{
-					"type": "kirkModels.fields.IntegerField",
-					"1#java.lang.String#label": "age",
-					"2#java.lang.Boolean#isNull": false,
-					"3#java.lang.Integer#defaultValue": -2147483648,
-					"4#java.lang.Boolean#unique": false,
-					"5#java.lang.Integer#maxValue": 150
-				},
-				{
-					"type": "kirkModels.fields.ForeignKey",
-					"1#java.lang.String#label": "mother",
-					"2#java.lang.Class#reference": "kirkModels.tests.Person",
-					"3#java.lang.Boolean#isNull": true,
-					"4#java.lang.Integer#defaultValue": -2147483648,
-					"5#java.lang.Boolean#unique": false,
-					"6#java.lang.String#onDelete": "NO ACTION"
-				},
-				{
-					"type": "kirkModels.fields.ForeignKey",
-					"1#java.lang.String#label": "father",
-					"2#java.lang.Class#reference": "kirkModels.tests.Person",
-					"3#java.lang.Boolean#isNull": true,
-					"4#java.lang.Integer#defaultValue": -2147483648,
-					"5#java.lang.Boolean#unique": false,
-					"6#java.lang.String#onDelete": "NO ACTION"
-				}
-			],
+			"type": "kirkModels.orm.backend.sync.queries.CreateTable",
 			"4#[LkirkModels.fields.ManyToManyField;#_m2mFields": [
 				"kirkModels.fields.ManyToManyField",
 				{
-					"type": "kirkModels.fields.ManyToManyField",
-					"1#java.lang.String#label": "friends",
-					"2#java.lang.Class#hostClass": "kirkModels.tests.Person", 
-					"3#java.lang.Class#refModel": "kirkModels.tests.Person"
+					"1#java.lang.String#_tableName": "friends__person___person",
+					"3#java.lang.Class#_refClass": "kirkModels.tests.Person",
+					"2#java.lang.Class#_hostClass": "kirkModels.tests.Person",
+					"type": "kirkModels.fields.ManyToManyField"
 				},
 				{
-					"type": "kirkModels.fields.ManyToManyField",
-					"1#java.lang.String#label": "enemies",
-					"2#java.lang.Class#hostClass": "kirkModels.tests.Person", 
-					"3#java.lang.Class#refModel": "kirkModels.tests.Person"
+					"1#java.lang.String#_tableName": "enemies__person___person",
+					"3#java.lang.Class#_refClass": "kirkModels.tests.Person",
+					"2#java.lang.Class#_hostClass": "kirkModels.tests.Person",
+					"type": "kirkModels.fields.ManyToManyField"
+				}
+			],
+			"3#[LkirkModels.fields.SavableField;#_fields": [
+				"kirkModels.fields.SavableField",
+				{
+					"3#java.lang.String#_defaultValue": "null-value",
+					"5#java.lang.Integer#_maxLength": 45,
+					"1#java.lang.String#_label": "name",
+					"type": "kirkModels.fields.CharField",
+					"2#java.lang.Boolean#_isNull": false,
+					"4#java.lang.Boolean#_unique": false
+				},
+				{
+					"3#java.lang.Integer#_defaultValue": -2147483648,
+					"5#java.lang.Integer#_maxVal": 150,
+					"1#java.lang.String#_label": "age",
+					"type": "kirkModels.fields.IntegerField",
+					"2#java.lang.Boolean#_isNull": false,
+					"4#java.lang.Boolean#_unique": false
+				},
+				{
+					"2#java.lang.Class#_referenceClass": "kirkModels.tests.Person",
+					"4#java.lang.Integer#_defaultValue": -2147483648,
+					"5#java.lang.Boolean#_unique": false,
+					"1#java.lang.String#_label": "mother",
+					"type": "kirkModels.fields.ForeignKey",
+					"6#java.lang.String#_onDelete": "NO ACTION",
+					"3#java.lang.Boolean#_isNull": true
+				},
+				{
+					"2#java.lang.Class#_referenceClass": "kirkModels.tests.Person",
+					"4#java.lang.Integer#_defaultValue": -2147483648,
+					"5#java.lang.Boolean#_unique": false,
+					"1#java.lang.String#_label": "father",
+					"type": "kirkModels.fields.ForeignKey",
+					"6#java.lang.String#_onDelete": "NO ACTION",
+					"3#java.lang.Boolean#_isNull": true
+				},
+				{
+					"3#java.lang.Integer#_defaultValue": 0,
+					"5#java.lang.Integer#_maxVal": -2147483648,
+					"1#java.lang.String#_label": "id",
+					"type": "kirkModels.fields.IntegerField",
+					"2#java.lang.Boolean#_isNull": false,
+					"4#java.lang.Boolean#_unique": true
 				}
 			]
 		}
-	]
+	],
+	"type": "kirkModels.orm.backend.sync.Migration"
 }

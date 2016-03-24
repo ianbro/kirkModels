@@ -1,37 +1,69 @@
 package kirkModels.fields;
 
+import java.lang.reflect.Constructor;
+
+import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
 
-public class IntegerField extends SavableField<Integer> {
+public class IntegerField extends SavableField<Integer> implements JSONMappable {
 
 	public Integer maxVal;
 	
 	/**
 	 * A field that, when called, will return an {@link Integer}. This field can be saved to a database and, depending on the maxValue parameter, will be saved as a TINYINT, SMALLINT, or a MEDIUMINT in SQL.
-	 * @param label - The name given to this field
-	 * @param isNull - whether this field can be set as <b>null</b>
-	 * @param defaultValue - default value of this field if left null
-	 * @param unique - whether this field contains a unique constraint
+	 * @param _label - The name given to this field
+	 * @param _isNull - whether this field can be set as <b>null</b>
+	 * @param _defaultValue - default value of this field if left null
+	 * @param _unique - whether this field contains a unique constraint
 	 * @param autoIncrement - whether this field will automatically increment
-	 * @param maxValue - the maximum value that this field is allowed to be
+	 * @param _maxVal - the maximum value that this field is allowed to be
 	 */
-	public IntegerField(String label, Boolean isNull, Integer defaultValue, Boolean unique, Integer maxValue) {
-		super(label, isNull, unique);
+	public IntegerField(String _label, Boolean _isNull, Integer _defaultValue, Boolean _unique, Integer _maxVal) {
+		super(_label, _isNull, _unique, _defaultValue);
 		
-		if (!(defaultValue == null) && defaultValue == Integer.MIN_VALUE) {
+		if (_defaultValue == null || _defaultValue == Integer.MIN_VALUE) {
 			this.value = null;
 		} else {
-			this.value = defaultValue;
+			this.value = _defaultValue;
 		}
-		this.maxVal = maxValue;
+		this.maxVal = _maxVal;
 		this.JAVA_TYPE = Integer.class;
 		
-		this.MYSQL_TYPE = this.getMySqlIntType(maxValue);
-		this.PSQL_TYPE = this.getPsqlIntType(maxValue);
+		this.MYSQL_TYPE = this.getMySqlIntType(_maxVal);
+		this.PSQL_TYPE = this.getPsqlIntType(_maxVal);
 	}
 	
 	public IntegerField() {
-		super("", true, false);
+		super("", true, false, null);
+	}
+	
+	@Override
+	public Constructor getJsonConstructor(){
+		Class[] paramTypes = new Class[]{
+				String.class,
+				Boolean.class,
+				Integer.class,
+				Boolean.class,
+				Integer.class
+		};
+		try {
+			return this.getClass().getConstructor(paramTypes);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public String[] getConstructorFieldOrder() {
+		return new String[]{
+				"label",
+				"isNull",
+				"defaultValue",
+				"unique",
+				"maxVal"
+		};
 	}
 
 	@Override

@@ -1,11 +1,13 @@
 package kirkModels.fields;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.text.DateFormat.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
@@ -18,44 +20,44 @@ import kirkModels.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
-public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbObject implements Savable<R> {
-
+public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbObject implements Savable<R>, JSONMappable {
+	
 	public ForeignKey<T> reference1; // label: "host_<T>_id"
-	public String hostModel;
+	public Class<T> hostClass;
 	
 	public ForeignKey<R> reference2; // label: "reference_<R>_id"
-	public String refModel;
+	public Class<R> refClass;
 	
 	public QuerySet<R> objectSet;
 	public QuerySet<ManyToManyField<T, R>> objects;
 	
 	/**
 	 * This is the constructor for the table and class definition. This does not cantain any actual relationships. to instantiate a relationship, use the constructor with a parent many2many field and and instance passed to it.
-	 * @param host
-	 * @param refModel
+	 * @param _host
+	 * @param _refClass
 	 */
-	public ManyToManyField(String label, DbObject host, Class<R> refModel){
-		this.hostModel = host.getClass().getName();
-		this.refModel = refModel.getName();
+	public ManyToManyField(String _tableName, DbObject _host, Class<R> _refClass){
+		this.hostClass = (Class<T>) _host.getClass();
+		this.refClass = _refClass;
 		
-		String firstTable = host.getClass().getSimpleName().toLowerCase();
-		String refTable = refModel.getSimpleName().toLowerCase();
-		this.tableName = label + "__" + firstTable + "___" + refTable;
+		String firstTable = _host.getClass().getSimpleName().toLowerCase();
+		String refTable = _refClass.getSimpleName().toLowerCase();
+		this.tableName = _tableName + "__" + firstTable + "___" + refTable;
 		
-		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", (Class<T>) host.getClass(), false, null, false, "CASCADE");
-		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", refModel, false, null, false, "CASCADE");
+		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", (Class<T>) _host.getClass(), false, null, false, "CASCADE");
+		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", _refClass, false, null, false, "CASCADE");
 	}
 	
-	public ManyToManyField(String label, Class<T> hostClass, Class<R> refModel){
-		this.hostModel = hostClass.getName();
-		this.refModel = refModel.getName();
+	public ManyToManyField(String _label, Class<T> _hostClass, Class<R> _refClass){
+		this.hostClass = _hostClass;
+		this.refClass = _refClass;
 		
-		String firstTable = hostClass.getSimpleName().toLowerCase();
-		String refTable = refModel.getSimpleName().toLowerCase();
-		this.tableName = label + "__" + firstTable + "___" + refTable;
+		String firstTable = _hostClass.getSimpleName().toLowerCase();
+		String refTable = _refClass.getSimpleName().toLowerCase();
+		this.tableName = _label;
 		
-		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", hostClass, false, null, false, "CASCADE");
-		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", refModel, false, null, false, "CASCADE");
+		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", _hostClass, false, null, false, "CASCADE");
+		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", _refClass, false, null, false, "CASCADE");
 	}
 	
 	/**
@@ -86,16 +88,36 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		this.reference2 = new ForeignKey<R>();
 	}
 	
+	@Override
+	public Constructor getJsonConstructor(){
+		Class[] paramTypes = new Class[]{
+				String.class,
+				Class.class,
+				Class.class,
+		};
+		try {
+			return this.getClass().getConstructor(paramTypes);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public String[] getConstructorFieldOrder() {
+		return new String[]{
+				"tableName",
+				"hostClass",
+				"refClass",
+		};
+	}
+	
 	public void getObjects() {
 		QuerySet<R> values = null;
 		ArrayList<Integer> ids = new ArrayList<Integer>();
 		Class<R> refClass = null;
-		try {
-			refClass = (Class<R>) Class.forName(this.refModel);
-		} catch (ClassNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+		refClass = (Class<R>) this.refClass;
 		Class m2mClass = this.getClass();
 		
 		QuerySet<ManyToManyField<T, R>> tempQ = new QuerySet<ManyToManyField<T, R>>(m2mClass, this.tableName, new ArrayList<WhereCondition>(){{
@@ -152,13 +174,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 	
 	public QuerySet<R> refClassObjects(){
-		try {
-			return (QuerySet<R>) DbObject.getObjectsForGenericType((Class<T>) Class.forName(this.refModel));
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
+		return (QuerySet<R>) DbObject.getObjectsForGenericType((Class<T>) this.refClass);
 	}
 	
 	public int getNewId(ManyToManyField instance){
@@ -300,15 +316,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 			return instance;
 			
 		} else {
-			
-			try {
-				throw new ObjectAlreadyExistsException(Class.forName(this.refModel).getSimpleName() + " instance with id " + instance.id.val() + " already is related to this object.");
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			return instance;
+			throw new ObjectAlreadyExistsException(this.refClass.getSimpleName() + " instance with id " + instance.id.val() + " already is related to this object.");
 		}
 		
 	}
@@ -375,13 +383,8 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		}
 		
 		if (instances.count() == 0) {
-			try {
-				throw new ObjectNotFoundException("Sorry, " + Class.forName(this.refModel).getSimpleName()
-						+ " intance with conditions: " + conditions + " does not exist in this relationship.");
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			throw new ObjectNotFoundException("Sorry, " + this.refClass.getSimpleName()
+					+ " intance with conditions: " + conditions + " does not exist in this relationship.");
 		}
 		
 	}

@@ -7,8 +7,9 @@ public abstract class SavableField <T> {
 	
 	//database info
 	public String label;
-	public boolean isNull;
-	public boolean unique;
+	public Boolean isNull;
+	public Boolean unique;
+	public T defaultValue;
 	
 	//used by java only
 	public Class<T> JAVA_TYPE;
@@ -16,10 +17,11 @@ public abstract class SavableField <T> {
 	public String MYSQL_TYPE;
 	public String PSQL_TYPE;
 	
-	public SavableField(String label, Boolean isNull, Boolean unique){
-		this.isNull = isNull;
-		this.label = label;
-		this.unique = unique;
+	public SavableField(String _label, Boolean _isNull, Boolean _unique, T _defaultValue){
+		this.isNull = _isNull;
+		this.label = _label;
+		this.unique = _unique;
+		this.defaultValue = _defaultValue;
 	}
 	
 	/**
@@ -29,9 +31,9 @@ public abstract class SavableField <T> {
 	 */
 	public String toString(){
 		if (this.value == null || this.value.getClass().isPrimitive()) {
-			return String.valueOf(this.value);
+			return this.label + ", " + this.getClass().getName() + ": " + String.valueOf(this.value);
 		} else {
-			return this.value.toString();
+			return this.label + ", " + this.getClass().getName() + ": " + this.value.toString();
 		}
 	}
 	

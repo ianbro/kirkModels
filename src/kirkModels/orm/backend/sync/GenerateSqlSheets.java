@@ -4,20 +4,29 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 
+import iansLibrary.utilities.JSONFormat;
+import iansLibrary.utilities.ObjectParser;
 import kirkModels.config.Settings;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.backend.sync.queries.CreateTable;
 import kirkModels.queries.Query;
+import kirkModels.tests.Person;
 
 public final class GenerateSqlSheets {
 	
-	public static PrintWriter setupSheet(Class<? extends DbObject> _type) {
+	public PrintWriter[] migrationWriters;
+	public Migration[] migrations;
+	public Class<? extends DbObject>[] types;
+	
+	public PrintWriter setupSheet(int indexOfMigration) {
 		File sqlFile = null;
 		PrintWriter sqlWriter = null;
 		DbObject tmpObj = null;
 		try {
-			tmpObj = _type.newInstance();
+			tmpObj = this.types[indexOfMigration].newInstance();
 			sqlFile = new File("databaseChanges/" + tmpObj.tableName + "/0001_initial");
 			sqlWriter = new PrintWriter(sqlFile);
 		} catch (InstantiationException | IllegalAccessException e) {
@@ -33,16 +42,24 @@ public final class GenerateSqlSheets {
 				e1.printStackTrace();
 			}
 		} finally {
-			sqlWriter.println("Table Name: " + tmpObj.tableName + "\n===================================================\nMySql initial statement:\n");
 			return sqlWriter;
 		}
 	}
 
-	public static void makeInitialSql(Class<? extends DbObject> _type) {
+	public static void makeInitialSql(Migration m) {
 		try {
-			CreateTable query = new CreateTable(Settings.database.schema, _type.newInstance());
-			System.out.println(query.getMySqlString());
-		} catch (InstantiationException | IllegalAccessException e) {
+			Object jsonObject = ObjectParser.anyObjectToJSON(m);
+			
+			String json = JSONFormat.formatJSON(jsonObject, 0);
+			
+			PrintWriter migrationWriter = new PrintWriter(new File("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json"));
+			migrationWriter.println(json);
+			migrationWriter.close();
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException
+				| ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
