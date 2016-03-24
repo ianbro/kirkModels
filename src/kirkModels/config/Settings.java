@@ -22,6 +22,8 @@ public abstract class Settings {
 	
 	public static HashMap<String, Class<? extends DbObject>> syncedModels = new HashMap<String, Class<? extends DbObject>>();
 	
+	public static String ROOT_FOLDER;
+	
 	public static void syncSettings(File configFile) throws FileNotFoundException, ParseException, SQLException{
 		JSONObject settingsJson = Utilities.json(configFile);
 		

@@ -86,7 +86,7 @@ public class DbSync {
 		query.run();
 	}
 	
-	public void readMigrations() throws FileNotFoundException, ParseException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void readMigrations() throws FileNotFoundException, ParseException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SQLException {
 		for (String path : this.migrationFolder) {
 			File f = new File(path);
 			Scanner scnr = new Scanner(f);
@@ -97,12 +97,9 @@ public class DbSync {
 			scnr.close();
 		}
 		
-		try {
-			((Migration) this.migrations.get(0)).operations[0].run();
-			System.out.println("ran command #0");
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		for (int i = 0; i < this.migrations.size(); i++) for (int j = 0; j < this.migrations.get(i).operations.length; j ++) {
+			((Migration) this.migrations.get(i)).operations[j].run();
+			System.out.println("ran migration #" + (i + 1));
 		}
 	}
 }

@@ -28,7 +28,7 @@ import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.backend.sync.DbSync;
-import kirkModels.orm.backend.sync.GenerateSqlSheets;
+import kirkModels.orm.backend.sync.MigrationGenerator;
 import kirkModels.orm.backend.sync.Migration;
 import kirkModels.orm.backend.sync.queries.AddColumn;
 import kirkModels.orm.backend.sync.queries.AddForeignKey;
@@ -69,7 +69,7 @@ public abstract class TestModels {
 		
 //		Migration m = new Migration(Person.class);
 //		
-//		GenerateSqlSheets.makeInitialSql(m);
+//		MigrationGenerator.makeInitialSql(m);
 		
 		DbSync s = new DbSync(Settings.database, new ArrayList<String>(){{
 			add("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
@@ -77,28 +77,9 @@ public abstract class TestModels {
 		
 		try {
 			s.readMigrations();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
+		} catch (FileNotFoundException | ClassNotFoundException | NoSuchMethodException | InstantiationException
+				| IllegalAccessException | IllegalArgumentException | InvocationTargetException | ParseException
+				| SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
