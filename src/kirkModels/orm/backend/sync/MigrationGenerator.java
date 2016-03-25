@@ -27,9 +27,25 @@ public final class MigrationGenerator {
 	
 	public MigrationGenerator() {
 		String pathToMigrationFolderAll = Settings.ROOT_FOLDER + "dataBseChanges/";
+		
+		this.migrationWriters = new PrintWriter[Settings.syncedModels.keySet().size()];
+		this.migrations = new Migration[Settings.syncedModels.keySet().size()];
+		this.types = new Class[Settings.syncedModels.keySet().size()];
+		
+		int i = 0;
 		for (String key : Settings.syncedModels.keySet()) {
 			Class type = Settings.syncedModels.get(key);
 			String pathToMigrationFolderSpecific = pathToMigrationFolderAll + type.getName().replace(".", "_");
+			
+			File migrationFile = this.getMigrationFile(key, pathToMigrationFolderSpecific);
+			try {
+				PrintWriter pw = new PrintWriter(migrationFile);
+				this.migrationWriters[i] = pw;
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				this.migrationWriters[i] = null;
+			}
 		}
 	}
 	
@@ -95,6 +111,7 @@ public final class MigrationGenerator {
 					migrationFile = null;
 				}
 			} else {
+				migrationFile = null;
 				errors = errors.concat("Sorry, could not create folder: " + pathToFolder + "\r\n" + Thread.getAllStackTraces().get(Thread.currentThread()) + "\r\n");
 			}
 		}
