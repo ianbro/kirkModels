@@ -2,6 +2,7 @@ package kirkModels.tests;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -72,134 +73,24 @@ public abstract class TestModels {
 //		MigrationGenerator.makeInitialSql(m);
 		
 		DbSync s = new DbSync(Settings.database, new ArrayList<String>(){{
-			add("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
+			add(Settings.MIGRATION_FOLDER + "kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
 		}});
 		
+//		try {
+//			s.readMigrations();
+//		} catch (FileNotFoundException | ClassNotFoundException | NoSuchMethodException | InstantiationException
+//				| IllegalAccessException | IllegalArgumentException | InvocationTargetException | ParseException
+//				| SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+
+		MigrationGenerator gen = new MigrationGenerator(Settings.MIGRATION_FOLDER);
 		try {
-			s.readMigrations();
-		} catch (FileNotFoundException | ClassNotFoundException | NoSuchMethodException | InstantiationException
-				| IllegalAccessException | IllegalArgumentException | InvocationTargetException | ParseException
-				| SQLException e) {
+			gen.generateMigrationFiles();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		String jsonforc = null;
-//		try {
-//			jsonforc = new Scanner(new File("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json")).useDelimiter("\\Z").next();
-//		} catch (FileNotFoundException e2) {
-//			// TODO Auto-generated catch block
-//			e2.printStackTrace();
-//		}
-//		
-//		CreateTable c1 = null;
-//		try {
-//			c1 = (CreateTable) JSONClassMapping.jsonObjectToObject((JSONObject) new JSONParser().parse(jsonforc));
-//		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
-//				| IllegalArgumentException | InvocationTargetException | ParseException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//		
-//		JSONObject j = null;
-//		try {
-//			j = (JSONObject) ObjectParser.anyObjectToJSON(c1);
-//			System.out.println(j);
-//		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//		try {
-//			CreateTable c2 = (CreateTable) JSONClassMapping.jsonObjectToObject(j);
-//			System.out.println(c2.getCommand());
-//		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
-//				| IllegalArgumentException | InvocationTargetException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-	}
-	
-	public static void testSelectQuery(){
-		WhereCondition id = new WhereCondition("id", WhereCondition.CONTAINED_IN, new ArrayList<Integer>(){{add(1); add(3);}});
-		WhereCondition name_first = new WhereCondition("name_first", WhereCondition.EQUALS, "Ian");
-		WhereCondition name_last = new WhereCondition("name_last", WhereCondition.NOT_EQUAL_TO, "Johnson");
-		
-		System.out.println(id.getMySqlString());
-		System.out.println(name_first.getMySqlString());
-		System.out.println(name_last.getMySqlString());
-		
-		SelectQuery q = new SelectQuery("kirkmodels_test_person",
-			new ArrayList<String>(){{
-				add("id");
-			}},
-			new ArrayList<WhereCondition>(){{
-				add(id);
-				add(name_first);
-				add(name_last);
-			}}
-		);
-	}
-	
-	public static void testInsertQuery(){
-		InsertValue id = new InsertValue("id", 2);
-		InsertValue name_first = new InsertValue("name_first", "Ian");
-		InsertValue name_last = new InsertValue("name_last", "Kirkpatrick");
-		
-		System.out.println(id);
-		System.out.println(name_first);
-		System.out.println(name_last);
-		
-		InsertQuery q = new InsertQuery("kirkmodels_test_person",
-			new ArrayList<InsertValue>(){{
-				add(id);
-				add(name_first);
-				add(name_last);
-			}}
-		);
-		
-		System.out.println(q.getCommand());
-	}
-
-	public static void testDeleteQuery(){
-		WhereCondition id = new WhereCondition("id", WhereCondition.CONTAINED_IN, new ArrayList<Integer>(){{add(1); add(3);}});
-		WhereCondition name_first = new WhereCondition("name_first", WhereCondition.EQUALS, "Ian");
-		WhereCondition name_last = new WhereCondition("name_last", WhereCondition.NOT_EQUAL_TO, "Johnson");
-		
-		System.out.println(id.getMySqlString());
-		System.out.println(name_first.getMySqlString());
-		System.out.println(name_last.getMySqlString());
-		
-		DeleteQuery q = new DeleteQuery("kirkmodels_test_person",
-			new ArrayList<WhereCondition>(){{
-				add(id);
-				add(name_first);
-				add(name_last);
-			}}
-		);
-		
-		System.out.println(q.getCommand());
-	}
-
-	public static void testUpdateQuery(){
-		WhereCondition id = new WhereCondition("id", WhereCondition.CONTAINED_IN, new ArrayList<Integer>(){{add(1); add(3);}});
-		
-		WhereCondition name_first = new WhereCondition("name_first", WhereCondition.EQUALS, "Ian");
-		WhereCondition name_last = new WhereCondition("name_last", WhereCondition.NOT_EQUAL_TO, "Johnson");
-		
-		System.out.println(id.getMySqlString());
-		System.out.println(name_first.getMySqlString());
-		System.out.println(name_last.getMySqlString());
-		
-		UpdateQuery q = new UpdateQuery("kirkmodels_test_person",
-			new ArrayList<WhereCondition>(){{
-				add(name_first);
-				add(name_last);
-			}},
-			new ArrayList<WhereCondition>(){{
-				add(id);
-			}}
-		);
-		
-		System.out.println(q.getCommand());
 	}
 }

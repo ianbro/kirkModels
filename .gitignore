@@ -12,6 +12,6 @@
 hs_err_pid*
 
 # nested projects
-vagrant*
+*vagrant*
 /bin/
 /target/

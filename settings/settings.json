@@ -25,5 +25,7 @@
 	
 	"synced_models": [
 		"kirkModels.tests.Person"
-	]
+	],
+	
+	"migrations_folder": "dataBaseChanges/"
 }

@@ -24,6 +24,8 @@ public abstract class Settings {
 	
 	public static String ROOT_FOLDER;
 	
+	public static String MIGRATION_FOLDER;
+	
 	public static void syncSettings(File configFile) throws FileNotFoundException, ParseException, SQLException{
 		JSONObject settingsJson = Utilities.json(configFile);
 		
@@ -45,6 +47,9 @@ public abstract class Settings {
 				e.printStackTrace();
 			}
 		}
+		
+		//set migrations folder
+		MIGRATION_FOLDER = (String) settingsJson.get("migrations_folder");
 	}
 	
 	public static void setObjectsForModels(){
