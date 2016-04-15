@@ -1,0 +1,67 @@
+package iansLibrary.data.databases;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+
+import kirkModels.fields.SavableField;
+
+public class MetaTable {
+
+	private MetaDatabase database;
+	private String tableName;
+	
+	ArrayList<MetaTableColumn> columns = new ArrayList<MetaTableColumn>();
+	ArrayList<MetaForeignKeyConstraint> foreignKeys = new ArrayList<MetaForeignKeyConstraint>();
+	
+	public MetaTable(MetaDatabase _database, String _tableName) throws SQLException {
+		this.database = _database;
+		this.tableName = _tableName;
+		
+		this.columns = this.getFields();
+		this.foreignKeys = this.getForeignKeys();
+	}
+	
+	public ArrayList<MetaTableColumn> getFields() throws SQLException {
+		ResultSet fields = this.database.metaData.getColumns(null, null, this.tableName, null);
+		ArrayList<MetaTableColumn> fieldsList = new ArrayList<MetaTableColumn>();
+		
+		while (fields.next()) {
+			MetaTableColumn column = this.getSingleField(fields);
+			fieldsList.add(column);
+		}
+		return fieldsList;
+	}
+	
+	public MetaTableColumn getSingleField(ResultSet _fieldResult) throws SQLException {
+		String columnName = _fieldResult.getString(MetaTableColumn.COLUMN_NAME);
+		String dataType = _fieldResult.getString(MetaTableColumn.DATA_TYPE);
+		int nullable = _fieldResult.getInt(MetaTableColumn.NULLABLE);
+		String defaultValue = _fieldResult.getString(MetaTableColumn.COLUMN_DEF);
+		int columnSize = _fieldResult.getInt(MetaTableColumn.COLUMN_SIZE);
+		
+		MetaTableColumn column = new MetaTableColumn(columnName, dataType, nullable, defaultValue, columnSize);
+		return column;
+	}
+	
+	public ArrayList<MetaForeignKeyConstraint> getForeignKeys() throws SQLException {
+		ResultSet constraints = this.database.metaData.getImportedKeys(null, null, this.tableName);
+		ArrayList<MetaForeignKeyConstraint> constraintList = new ArrayList<MetaForeignKeyConstraint>();
+		
+		while (constraints.next()) {
+			MetaForeignKeyConstraint constr = this.getSingleForeignKeyConstraint(constraints);
+			constraintList.add(constr);
+		}
+		return constraintList;
+	}
+	
+	public MetaForeignKeyConstraint getSingleForeignKeyConstraint(ResultSet _constraintResult) throws SQLException {
+		String pkTableName = _constraintResult.getString(MetaForeignKeyConstraint.PKTABLE_NAME);
+		String pkColumnName = _constraintResult.getString(MetaForeignKeyConstraint.PKCOLUMN_NAME);
+		String fkTableName = _constraintResult.getString(MetaForeignKeyConstraint.FKTABLE_NAME);
+		String fkColumnName = _constraintResult.getString(MetaForeignKeyConstraint.FKCOLUMN_NAME);
+		
+		MetaForeignKeyConstraint fkConstraint = new MetaForeignKeyConstraint(pkTableName, pkColumnName, fkTableName, fkColumnName);
+		return fkConstraint;
+	}
+}

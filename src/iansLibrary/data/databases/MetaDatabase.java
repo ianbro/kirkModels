@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import org.json.simple.JSONArray;
@@ -14,6 +15,9 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+
+import kirkModels.fields.SavableField;
 import kirkModels.utils.Utilities;
 
 public class MetaDatabase {
@@ -28,6 +32,7 @@ public class MetaDatabase {
 	public String language;
 	
 	public Connection dbConnection;
+	public DatabaseMetaData metaData;
 	
 	public MetaDatabase(String _name, File configFile) throws SQLException, ParseException{
 		this.name = _name;
@@ -65,6 +70,7 @@ public class MetaDatabase {
 	
 	public void connect() throws SQLException{
 		this.dbConnection = DriverManager.getConnection(this.getConnectionURL(), this.username, this.password);
+		this.metaData = this.dbConnection.getMetaData();
 	}
 	
 	public void run(String sql) throws SQLException{
@@ -80,4 +86,39 @@ public class MetaDatabase {
 	public String toString(){
 		return this.language + " database at: " + this.getConnectionURL();
 	}
+	
+	/**
+	 * documentation for this stuff is here: {@link http://tutorials.jenkov.com/jdbc/databasemetadata.html}
+	 * @throws SQLException
+	 */
+	public ArrayList<String> getTables() throws SQLException {
+		ResultSet tables = this.metaData.getTables(null, null, null, null);
+		ArrayList<String> tableNames = new ArrayList<String>();
+		
+		while (tables.next()) {
+			tableNames.add(tables.getString(3));
+		}
+		return tableNames;
+	}
+	
+	public ArrayList<SavableField<?>> getFields(String tableName) throws SQLException {
+		ResultSet fields = this.metaData.getColumns(null, null, tableName, null);
+		ArrayList<SavableField<?>> fieldsList = new ArrayList<SavableField<?>>();
+		
+		while (fields.next()) {
+			
+		}
+		return fieldsList;
+	}
+	
+//	public SavableField<?> getSavableField(ResultSet result) {
+		/*
+		 * fields I need:
+		 * 4. COLUMN_NAME String => column name
+		 * 6. TYPE_NAME String => Data source dependent type name,
+		 * 7. COLUMN_SIZE int => column size.
+		 */
+//		String fieldName = result.getString(4);
+//		String columnDef = result.getString(13);
+//	}
 }

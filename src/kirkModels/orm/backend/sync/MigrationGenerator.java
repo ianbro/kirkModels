@@ -30,6 +30,10 @@ public final class MigrationGenerator {
 		this.rootMigrationFolderPath = _migrationFolder;
 	}
 	
+	/**
+	 * loops through each syncedModel and creates a migration file for it.
+	 * @throws IOException
+	 */
 	public void generateMigrationFiles() throws IOException {
 		/*
 		 * reset migrationWriters and migrations
@@ -41,36 +45,46 @@ public final class MigrationGenerator {
 		int i = 0; //keeping track of index in the array attributes containing printwriters and migrations
 		
 		for (String key : Settings.syncedModels.keySet()) {
+			this.genterateSingleMigrationFile(key, i);
+		}
+	}
+	
+	/**
+	 * Creates the migration file for a given class type.
+	 * @param _key - the key which will be sent to {@code Settings.syncedModels} to retrieve the class type to migrate.
+	 * @param _indexInStorage - the index in which this migration file will be stored in migration array attributes.
+	 * @throws IOException
+	 */
+	public void genterateSingleMigrationFile(String _key, int _indexInStorage) throws IOException {
+		/*
+		 * The model class that we will generate migrations for.
+		 */
+		Class type = Settings.syncedModels.get(_key);
+		
+		/*
+		 * path to the model class's migration folder within the root migration folder
+		 */
+		String pathToMigrationFolderSpecific = this.rootMigrationFolderPath + type.getName().replace(".", "_") + "-migrations/";
+		
+		/*
+		 * instantiated migration folder
+		 */
+		File migrationFile = this.getMigrationFile(_key, pathToMigrationFolderSpecific);
+		
+		try {
+			PrintWriter pw = new PrintWriter(migrationFile);
+			this.migrationWriters[_indexInStorage] = pw;
+			pw.close();
+			this.types[_indexInStorage] = type;
 			/*
-			 * The model class that we will generate migrations for.
+			 * From here, generate a migration for type and add it to this.migrations at index i.
+			 * later, we will loop through this.migrations and call those migrations.
 			 */
-			Class type = Settings.syncedModels.get(key);
-			
-			/*
-			 * path to the model class's migration folder within the root migration folder
-			 */
-			String pathToMigrationFolderSpecific = this.rootMigrationFolderPath + type.getName().replace(".", "_") + "-migrations/";
-			
-			/*
-			 * instantiated migration folder
-			 */
-			File migrationFile = this.getMigrationFile(key, pathToMigrationFolderSpecific);
-			
-			try {
-				PrintWriter pw = new PrintWriter(migrationFile);
-				this.migrationWriters[i] = pw;
-				pw.close();
-				this.types[i] = type;
-				/*
-				 * From here, generate a migration for type and add it to this.migrations at index i.
-				 * later, we will loop through this.migrations and call those migrations.
-				 */
-//				this.migrations[i] = this.makeMigration(type);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				this.migrationWriters[i] = null;
-			}
+//			this.migrations[i] = this.makeMigration(type);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			this.migrationWriters[_indexInStorage] = null;
 		}
 	}
 	
@@ -195,31 +209,6 @@ public final class MigrationGenerator {
 			} else {
 				return null;
 			}
-		}
-	}
-	
-	public PrintWriter setupSheet(int indexOfMigration) {
-		File sqlFile = null;
-		PrintWriter sqlWriter = null;
-		DbObject tmpObj = null;
-		try {
-			tmpObj = this.types[indexOfMigration].newInstance();
-			sqlFile = new File("databaseChanges/" + tmpObj.tableName + "/0001_initial");
-			sqlWriter = new PrintWriter(sqlFile);
-		} catch (InstantiationException | IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			try {
-				sqlFile.createNewFile();
-				sqlWriter = new PrintWriter(sqlWriter);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		} finally {
-			return sqlWriter;
 		}
 	}
 

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,10 +86,27 @@ public abstract class TestModels {
 //			e.printStackTrace();
 //		}
 
-		MigrationGenerator gen = new MigrationGenerator(Settings.MIGRATION_FOLDER);
+//		MigrationGenerator gen = new MigrationGenerator(Settings.MIGRATION_FOLDER);
+//		try {
+//			gen.generateMigrationFiles();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
 		try {
-			gen.generateMigrationFiles();
-		} catch (IOException e) {
+			ResultSet fields = Settings.database.metaData.getColumns(null, null, "kirkmodels_tests_person", null);
+			ResultSet constraints = Settings.database.metaData.getImportedKeys(null, null, "kirkmodels_tests_person");
+			fields.next();
+			fields.next();
+			fields.next();
+			System.out.println(fields.getString(4));
+			System.out.println(fields.getString(13));
+			
+			constraints.next();
+			System.out.println(constraints.getString(8));
+			System.out.println(constraints.getString(4));
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
