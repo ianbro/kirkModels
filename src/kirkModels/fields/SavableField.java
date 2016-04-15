@@ -3,6 +3,8 @@ package kirkModels.fields;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
+import iansLibrary.data.databases.MetaTableColumn;
+
 public abstract class SavableField <T> {
 	
 	//database info
@@ -70,5 +72,7 @@ public abstract class SavableField <T> {
 	public abstract String getMySqlDefinition();
 	
 	public abstract String getPsqlDefinition();
+	
+	public abstract boolean equals(MetaTableColumn _column);
 
 }

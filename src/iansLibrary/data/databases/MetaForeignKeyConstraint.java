@@ -19,4 +19,20 @@ public class MetaForeignKeyConstraint {
 		this.fkTableName = _fkTableName;
 		this.fkColumnName = _fkColumnName;
 	}
+
+	public String getPkTableName() {
+		return pkTableName;
+	}
+
+	public String getPkColumnName() {
+		return pkColumnName;
+	}
+
+	public String getFkTableName() {
+		return fkTableName;
+	}
+
+	public String getFkColumnName() {
+		return fkColumnName;
+	}
 }

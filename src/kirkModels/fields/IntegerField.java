@@ -2,6 +2,7 @@ package kirkModels.fields;
 
 import java.lang.reflect.Constructor;
 
+import iansLibrary.data.databases.MetaTableColumn;
 import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
 
@@ -137,6 +138,25 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 		else {
 			return "integer";
 		}
+	}
+
+	@Override
+	public boolean equals(MetaTableColumn _column) {
+		// TODO Auto-generated method stub
+		if (!this.label.equals(_column.getColumnName())) {
+			return false;
+		} else if (!_column.getDataType().equalsIgnoreCase(this.MYSQL_TYPE) ||
+				!_column.getDataType().equalsIgnoreCase(this.PSQL_TYPE)) {
+			
+			return false;
+		} else if ((this.isNull.booleanValue() ? 1 : 0) != _column.getNullable()) {
+			return false;
+		} else if (!this.defaultValue.equals(_column.getDefaultValue())) {
+			return false;
+		} else if (this.maxVal != _column.getColumnSize()) {
+			return false;
+		}
+		return true;
 	}
 
 }

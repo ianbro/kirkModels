@@ -91,34 +91,13 @@ public class MetaDatabase {
 	 * documentation for this stuff is here: {@link http://tutorials.jenkov.com/jdbc/databasemetadata.html}
 	 * @throws SQLException
 	 */
-	public ArrayList<String> getTables() throws SQLException {
+	public ArrayList<MetaTable> getTables() throws SQLException {
 		ResultSet tables = this.metaData.getTables(null, null, null, null);
-		ArrayList<String> tableNames = new ArrayList<String>();
+		ArrayList<MetaTable> tableNames = new ArrayList<MetaTable>();
 		
 		while (tables.next()) {
-			tableNames.add(tables.getString(3));
+			tableNames.add(new MetaTable(this, tables.getString(3)));
 		}
 		return tableNames;
 	}
-	
-	public ArrayList<SavableField<?>> getFields(String tableName) throws SQLException {
-		ResultSet fields = this.metaData.getColumns(null, null, tableName, null);
-		ArrayList<SavableField<?>> fieldsList = new ArrayList<SavableField<?>>();
-		
-		while (fields.next()) {
-			
-		}
-		return fieldsList;
-	}
-	
-//	public SavableField<?> getSavableField(ResultSet result) {
-		/*
-		 * fields I need:
-		 * 4. COLUMN_NAME String => column name
-		 * 6. TYPE_NAME String => Data source dependent type name,
-		 * 7. COLUMN_SIZE int => column size.
-		 */
-//		String fieldName = result.getString(4);
-//		String columnDef = result.getString(13);
-//	}
 }

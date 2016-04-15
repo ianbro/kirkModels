@@ -11,12 +11,16 @@ public class MetaTable {
 	private MetaDatabase database;
 	private String tableName;
 	
-	ArrayList<MetaTableColumn> columns = new ArrayList<MetaTableColumn>();
-	ArrayList<MetaForeignKeyConstraint> foreignKeys = new ArrayList<MetaForeignKeyConstraint>();
+	public String getTableName() {
+		return tableName;
+	}
+
+	public ArrayList<MetaTableColumn> columns = new ArrayList<MetaTableColumn>();
+	public ArrayList<MetaForeignKeyConstraint> foreignKeys = new ArrayList<MetaForeignKeyConstraint>();
 	
 	public MetaTable(MetaDatabase _database, String _tableName) throws SQLException {
 		this.database = _database;
-		this.tableName = _tableName;
+		this.tableName = _tableName.replace("_pkey", "");
 		
 		this.columns = this.getFields();
 		this.foreignKeys = this.getForeignKeys();
@@ -35,7 +39,7 @@ public class MetaTable {
 	
 	public MetaTableColumn getSingleField(ResultSet _fieldResult) throws SQLException {
 		String columnName = _fieldResult.getString(MetaTableColumn.COLUMN_NAME);
-		String dataType = _fieldResult.getString(MetaTableColumn.DATA_TYPE);
+		String dataType = _fieldResult.getString(MetaTableColumn.DATA_TYPE_NAME);
 		int nullable = _fieldResult.getInt(MetaTableColumn.NULLABLE);
 		String defaultValue = _fieldResult.getString(MetaTableColumn.COLUMN_DEF);
 		int columnSize = _fieldResult.getInt(MetaTableColumn.COLUMN_SIZE);

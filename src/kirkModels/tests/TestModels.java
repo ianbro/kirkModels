@@ -19,6 +19,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import iansLibrary.data.databases.MetaDatabase;
+import iansLibrary.data.databases.MetaTable;
+import iansLibrary.data.databases.MetaTableColumn;
 import iansLibrary.utilities.JSONClassMapping;
 import iansLibrary.utilities.JSONFormat;
 import iansLibrary.utilities.ModdedDate;
@@ -95,17 +97,9 @@ public abstract class TestModels {
 //		}
 		
 		try {
-			ResultSet fields = Settings.database.metaData.getColumns(null, null, "kirkmodels_tests_person", null);
-			ResultSet constraints = Settings.database.metaData.getImportedKeys(null, null, "kirkmodels_tests_person");
-			fields.next();
-			fields.next();
-			fields.next();
-			System.out.println(fields.getString(4));
-			System.out.println(fields.getString(13));
-			
-			constraints.next();
-			System.out.println(constraints.getString(8));
-			System.out.println(constraints.getString(4));
+			MetaTable ts = Settings.database.getTables().get(2);
+			MetaTableColumn cm = ts.columns.get(0);
+			System.out.println(new Person().name.equals(cm));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
