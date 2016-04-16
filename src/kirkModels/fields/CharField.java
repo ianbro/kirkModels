@@ -95,19 +95,26 @@ public class CharField extends SavableField<String> implements JSONMappable {
 			return false;
 		} else if (!_column.getDataType().equalsIgnoreCase(this.MYSQL_TYPE.split("[(]")[0]) ||
 					!_column.getDataType().equalsIgnoreCase(this.PSQL_TYPE.split("[(]")[0])) {
-
-
 			return false;
 		} else if ((this.isNull.booleanValue() ? 1 : 0) != _column.getNullable()) {
 			return false;
 		} else if ((this.defaultValue == null && _column.getDefaultValue() != null)
 				|| (this.defaultValue != null && _column.getDefaultValue() == null)) {
-			
 			return false;
 		} else if (this.defaultValue != null && !this.defaultValue.equals(_column.getDefaultValue())) {
-			
 			return false;
 		} else if (this.maxLength != _column.getColumnSize()) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public boolean isSameColumn(MetaTableColumn _column) {
+		// TODO Auto-generated method stub
+		if (!this.label.equals(_column.getColumnName())) {
+			return false;
+		} else if (!_column.getDataType().equalsIgnoreCase("varchar")) {
 			return false;
 		}
 		return true;

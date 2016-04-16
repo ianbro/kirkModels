@@ -98,8 +98,9 @@ public abstract class TestModels {
 		
 		try {
 			MetaTable ts = Settings.database.getTables().get(2);
-			MetaTableColumn cm = ts.columns.get(0);
-			System.out.println(new Person().name.equals(cm));
+			MetaTableColumn cm = ts.columns.get(1);
+			System.out.println(cm.getColumnName());
+			System.out.println(new Person().age.equals(cm));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

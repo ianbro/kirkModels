@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import iansLibrary.data.databases.MetaTable;
 import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
 import kirkModels.fields.IntegerField;
@@ -272,4 +273,17 @@ public abstract class DbObject {
 			return null;
 		}
 	}
+	
+//	public boolean equals(MetaTable _tableDef) {
+//		if (this.savableFields.size() > _tableDef.columns.size()) {
+//			// some fields have been added to this class.
+//		} else if (this.savableFields.size() < _tableDef.columns.size()) {
+//			//some fields have been removed to this class.
+//		} else {
+//			/*
+//			 * no fields have been added
+//			 * but we need to make sure that the fields have not been altered.
+//			 */
+//		}
+//	}
 }

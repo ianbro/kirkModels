@@ -73,6 +73,20 @@ public abstract class SavableField <T> {
 	
 	public abstract String getPsqlDefinition();
 	
+	/**
+	 * This tests to see if the field is exactly the same as
+	 * _column as far as metadata goes.
+	 * @param _column
+	 * @return
+	 */
 	public abstract boolean equals(MetaTableColumn _column);
+	
+	/**
+	 * This tests to see if the field has the same name and type.
+	 * It does not necesarily have to have the same meta data such as nullable.
+	 * Just name and type.
+	 * @return
+	 */
+	public abstract boolean isSameColumn(MetaTableColumn _column);
 
 }

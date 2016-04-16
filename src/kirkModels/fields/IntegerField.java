@@ -146,17 +146,39 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 		if (!this.label.equals(_column.getColumnName())) {
 			return false;
 		} else if (!_column.getDataType().equalsIgnoreCase(this.MYSQL_TYPE) ||
-				!_column.getDataType().equalsIgnoreCase(this.PSQL_TYPE)) {
-			
+					!_column.getDataType().equalsIgnoreCase(this.PSQL_TYPE)) {
 			return false;
 		} else if ((this.isNull.booleanValue() ? 1 : 0) != _column.getNullable()) {
 			return false;
-		} else if (!this.defaultValue.equals(_column.getDefaultValue())) {
+		} else if ((this.defaultValue == null && _column.getDefaultValue() != null)
+				|| (this.defaultValue != null && _column.getDefaultValue() == null)) {
 			return false;
-		} else if (this.maxVal != _column.getColumnSize()) {
+		} else if (this.defaultValue != null && !this.defaultValue.equals(_column.getDefaultValue())) {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public boolean isSameColumn(MetaTableColumn _column) {
+		// TODO Auto-generated method stub
+		if (!this.label.equals(_column.getColumnName())) {
+			return false;
+		}
+		
+		/*
+		 * If the column is any type of int, we will say it's still the same type.
+		 * We'll handle size in the equals method above.
+		 */
+		if (_column.getDataType().equalsIgnoreCase("smallint")
+				|| _column.getDataType().equalsIgnoreCase("integer")
+				|| _column.getDataType().equalsIgnoreCase("bigint")
+				|| _column.getDataType().equalsIgnoreCase("mediumint")
+				|| _column.getDataType().equalsIgnoreCase("int")) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 }
