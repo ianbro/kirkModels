@@ -22,26 +22,11 @@ public class AddColumn extends ColumnOperation {
 		super(null);
 		this.m2mField = _field;
 	}
-	
-	public String addMySqlForeignKey() {
-		String sql = "ADD CONSTRAINT " + ((ForeignKey) this.field).symbol + " FOREIGN KEY (" + this.fieldName + ") " + this.field.MySqlString().split("::")[1];
-		
-		return sql;
-	}
-	
-	public String addPsqlForeignKey() {
-		String sql = "ADD CONSTRAINT " + ((ForeignKey) this.field).symbol + " FOREIGN KEY (" + this.fieldName + ") " + this.field.PSqlString().split("::")[1];
-		
-		return sql;
-	}
 
 	public String getMySqlString() {
 		// TODO Auto-generated method stub
 		String sql = "ADD COLUMN ";
 		sql = sql + this.field.MySqlString().split("::")[0];
-		if (this.field instanceof ForeignKey) {
-			sql = sql + ",\n\t" + this.addMySqlForeignKey();
-		}
 		return sql;
 	}
 
@@ -49,9 +34,6 @@ public class AddColumn extends ColumnOperation {
 		// TODO Auto-generated method stub
 		String sql = "ADD COLUMN ";
 		sql = sql + this.field.PSqlString().split("::")[0];
-		if (this.field instanceof ForeignKey) {
-			sql = sql + ",\n\t" + this.addMySqlForeignKey();
-		}
 		return sql;
 	}
 

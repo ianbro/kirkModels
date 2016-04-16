@@ -20,6 +20,12 @@ public class DropField extends ColumnOperation {
 		this.option = _option;
 	}
 	
+	public DropField(String _fieldName, String _option) {
+		super(_fieldName);
+
+		this.option = _option;
+	}
+	
 	public DropField(ManyToManyField _field) {
 		super(_field.tableName);
 		// TODO Auto-generated constructor stub

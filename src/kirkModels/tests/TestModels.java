@@ -96,11 +96,18 @@ public abstract class TestModels {
 //			e.printStackTrace();
 //		}
 		
+//		try {
+//			MetaTable ts = Settings.database.getTables().get(2);
+//			MetaTableColumn cm = ts.columns.get(1);
+//			System.out.println(cm.getColumnName());
+//			System.out.println(new Person().age.equals(cm));
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
 		try {
-			MetaTable ts = Settings.database.getTables().get(2);
-			MetaTableColumn cm = ts.columns.get(1);
-			System.out.println(cm.getColumnName());
-			System.out.println(new Person().age.equals(cm));
+			System.out.println(new Person().getOperationDifferencesFieldsAdded(Settings.database.getTables().get(2)));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -11,6 +11,11 @@ public class RenameField extends ColumnOperation {
 		this.newName = _newName;
 	}
 
+	public RenameField(String _fieldName, String _newName) {
+		super(_fieldName);
+		this.newName = _newName;
+	}
+
 	@Override
 	public String getMySqlString() {
 		// TODO Auto-generated method stub

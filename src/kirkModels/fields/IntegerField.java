@@ -144,16 +144,21 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 	public boolean equals(MetaTableColumn _column) {
 		// TODO Auto-generated method stub
 		if (!this.label.equals(_column.getColumnName())) {
+			System.out.println("label");
 			return false;
 		} else if (!_column.getDataType().equalsIgnoreCase(this.MYSQL_TYPE) ||
 					!_column.getDataType().equalsIgnoreCase(this.PSQL_TYPE)) {
+			System.out.println("type");
 			return false;
 		} else if ((this.isNull.booleanValue() ? 1 : 0) != _column.getNullable()) {
+			System.out.println("nullable");
 			return false;
 		} else if ((this.defaultValue == null && _column.getDefaultValue() != null)
 				|| (this.defaultValue != null && _column.getDefaultValue() == null)) {
+			System.out.println("1 default value");
 			return false;
 		} else if (this.defaultValue != null && !this.defaultValue.equals(_column.getDefaultValue())) {
+			System.out.println("2 default value");
 			return false;
 		}
 		return true;

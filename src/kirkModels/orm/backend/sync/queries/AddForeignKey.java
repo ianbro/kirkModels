@@ -15,6 +15,12 @@ public class AddForeignKey extends Constraint {
 		this.foreignKeyDef = new ForeignKey(_fromField.label, _reference.getClass(), _fromField.isNull, _default, _fromField.unique, onDelete);
 		this.fieldName = _fromField.label;
 	}
+	
+	public AddForeignKey(ForeignKey _foreignKey) {
+		// TODO Auto-generated constructor stub
+		this.foreignKeyDef = _foreignKey;
+		this.fieldName = _foreignKey.label;
+	}
 
 	@Override
 	public String getMySqlString() {
