@@ -1,6 +1,7 @@
 package kirkModels.fields;
 
 import java.lang.reflect.Constructor;
+import java.util.HashMap;
 
 import iansLibrary.data.databases.MetaTableColumn;
 import iansLibrary.utilities.JSONMappable;
@@ -107,6 +108,9 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 		if(this.label.equals("id")){
 			def = def + " PRIMARY KEY";
 		}
+		if (this.defaultValue != null) {
+			def = def + " DEFAULT " + this.defaultValue;
+		}
 		
 		return def;
 	}
@@ -116,11 +120,33 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 		if(!this.isNull){
 			def = def + " NOT NULL";
 		}
+		if (this.defaultValue != null) {
+			def = def + " DEFAULT " + this.defaultValue;
+		}
 		if(this.label.equals("id")){
 			def = def + " PRIMARY KEY";
 		}
 		
 		return def;
+	}
+	
+	/**
+	 * When querying the database for int types, they come back
+	 * as "int4", "int2" and other types like that. int2 is
+	 * a smallint while int4 is an integer and so on.
+	 * @return
+	 */
+	public String getPseudoPsqlDefinition() {
+		switch (this.PSQL_TYPE) {
+		case "smallint":
+			return "int2";
+		case "integer":
+			return "int4";
+		case "bigint":
+			return "int6"; //idk if this is correct. haven't tried this for bigint.
+		default:
+			return null;
+		}
 	}
 	
 	public String getPsqlIntType(Integer maxVal) {
@@ -142,26 +168,17 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 
 	@Override
 	public boolean equals(MetaTableColumn _column) {
-		// TODO Auto-generated method stub
-		if (!this.label.equals(_column.getColumnName())) {
-			System.out.println("label");
+		if (this.getDifferenceNullable(_column) != null) {
 			return false;
-		} else if (!_column.getDataType().equalsIgnoreCase(this.MYSQL_TYPE) ||
-					!_column.getDataType().equalsIgnoreCase(this.PSQL_TYPE)) {
-			System.out.println("type");
-			return false;
-		} else if ((this.isNull.booleanValue() ? 1 : 0) != _column.getNullable()) {
-			System.out.println("nullable");
-			return false;
-		} else if ((this.defaultValue == null && _column.getDefaultValue() != null)
-				|| (this.defaultValue != null && _column.getDefaultValue() == null)) {
-			System.out.println("1 default value");
-			return false;
-		} else if (this.defaultValue != null && !this.defaultValue.equals(_column.getDefaultValue())) {
-			System.out.println("2 default value");
+		} else if (this.getTypeDifference(_column) != null) {
 			return false;
 		}
-		return true;
+		try {
+			this.getDefaultValueDifference(_column);
+			return false;
+		} catch (NoSuchFieldException e) {
+			return true; //if it throws the exception, that means they are the same.
+		}
 	}
 
 	@Override
@@ -183,6 +200,63 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 			return true;
 		} else {
 			return false;
+		}
+	}
+	
+	public HashMap<String, Object> getDifferences(MetaTableColumn _column) {
+		HashMap<String, Object> diffs = new HashMap<String, Object>();
+		
+		if (this.getDifferenceNullable(_column) != null) {
+			diffs.put("nullable", this.getDifferenceNullable(_column));
+		} else if (this.getTypeDifference(_column) != null) {
+			diffs.put("type", this.getTypeDifference(_column));
+		}
+		try {
+			this.getDefaultValueDifference(_column);
+			diffs.put("default", this.getDefaultValueDifference(_column));
+		} catch (NoSuchFieldException e) {//if it throws the exception, that means they are the same.
+		}
+		
+		return diffs;
+	}
+	
+	public String getTypeDifference(MetaTableColumn _column) {
+		if (this.getPseudoPsqlDefinition().equals(_column.getDataType())) {
+			return null;
+		} else {
+			return _column.getDataType();
+		}
+	}
+	
+	public Integer getDefaultValueDifference(MetaTableColumn _column) throws NoSuchFieldException {
+		if (this.defaultValue == null) {
+			if (_column.getDefaultValue() != null) {
+				return Integer.valueOf((String) _column.getDefaultValue());
+			} else {
+				throw new NoSuchFieldException("The two default values are the same.");
+			}
+		} else {
+			if (_column.getDefaultValue() == null) {
+				return Integer.valueOf((String) _column.getDefaultValue());
+			} else {
+				if (Integer.valueOf((String) _column.getDefaultValue()).equals(this.defaultValue)) {
+					throw new NoSuchFieldException("The two default values are the same.");
+				} else {
+					return Integer.valueOf((String) _column.getDefaultValue());
+				}
+			}
+		}
+	}
+	
+	public Boolean getDifferenceNullable(MetaTableColumn _column) {
+		if ((this.isNull.booleanValue() ? 1 : 0) != _column.getNullable()) {
+			if (this.isNull) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return null;
 		}
 	}
 

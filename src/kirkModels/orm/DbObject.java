@@ -34,7 +34,7 @@ public abstract class DbObject {
 
 	public static QuerySet objects;
 	
-	public IntegerField id = new IntegerField("id", false, 0, true, null);
+	public IntegerField id = new IntegerField("id", false, null, true, null);
 	public ArrayList<String> savableFields = new ArrayList<String>();
 	public ArrayList<String> manyToManyFields = new ArrayList<String>();
 	public String tableName;
@@ -335,10 +335,7 @@ public abstract class DbObject {
 				}
 				fieldsDealtWith.add(operation[1]);
 			} else {
-				System.out.println(column.getColumnName() + ": " + column.getDataType());
 				if (field instanceof SavableField) {
-					System.out.println("savableField: " + ((SavableField) field).label + " " + ((SavableField) field).getPsqlDefinition());
-					System.out.println(((SavableField) field).equals(column));
 					if (!((SavableField) field).equals(column)) {
 						operations.add(new ColumnDefinitionChange(column.getColumnName(), (SavableField) field));
 					}
