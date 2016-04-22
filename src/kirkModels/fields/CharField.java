@@ -1,6 +1,7 @@
 package kirkModels.fields;
 
 import java.lang.reflect.Constructor;
+import java.util.HashMap;
 
 import iansLibrary.data.databases.MetaTableColumn;
 import iansLibrary.utilities.JSONMappable;
@@ -87,6 +88,14 @@ public class CharField extends SavableField<String> implements JSONMappable {
 		}
 		return sql;
 	}
+	
+	public String getPseudoPsqlDefinition() {
+		return "varchar";
+	}
+	
+	public String getPseudoMySqlDefinition() {
+		return "varchar";
+	}
 
 	@Override
 	public boolean equals(MetaTableColumn _column) {
@@ -118,5 +127,64 @@ public class CharField extends SavableField<String> implements JSONMappable {
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public HashMap<String, Object> getDifferences(MetaTableColumn _column) {
+		HashMap<String, Object> diffs = new HashMap<String, Object>();
+		
+		if (this.getDifferenceNullable(_column) != null) {
+			diffs.put("nullable", this.getDifferenceNullable(_column));
+		}
+		if (this.getSizeDifference(_column) != null) {
+			diffs.put("size", this.getSizeDifference(_column));
+		}
+		try {
+			this.getDefaultValueDifference(_column);
+			diffs.put("default", this.getDefaultValueDifference(_column));
+		} catch (NoSuchFieldException e) {//if it throws the exception, that means they are the same.
+		}
+		
+		return diffs;
+	}
+	
+	public Integer getSizeDifference(MetaTableColumn _column) {
+		if (this.maxLength == _column.getColumnSize()) {
+			return null;
+		} else {
+			return _column.getColumnSize();
+		}
+	}
+	
+	public String getDefaultValueDifference(MetaTableColumn _column) throws NoSuchFieldException {
+		if (this.defaultValue == null) {
+			if (_column.getDefaultValue() != null) {
+				return (String) _column.getDefaultValue();
+			} else {
+				throw new NoSuchFieldException("The two default values are the same.");
+			}
+		} else {
+			if (_column.getDefaultValue() == null) {
+				return (String) _column.getDefaultValue();
+			} else {
+				if (((String) _column.getDefaultValue()).equals(this.defaultValue)) {
+					throw new NoSuchFieldException("The two default values are the same.");
+				} else {
+					return (String) _column.getDefaultValue();
+				}
+			}
+		}
+	}
+	
+	public Boolean getDifferenceNullable(MetaTableColumn _column) {
+		if ((this.isNull.booleanValue() ? 1 : 0) != _column.getNullable()) {
+			if (this.isNull) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return null;
+		}
 	}
 }

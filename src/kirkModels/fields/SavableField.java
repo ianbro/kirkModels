@@ -74,6 +74,18 @@ public abstract class SavableField <T> {
 	public abstract String getPsqlDefinition();
 	
 	/**
+	 * returns the type returned by the jdbc field type.
+	 * @return
+	 */
+	public abstract String getPseudoPsqlDefinition();
+	
+	/**
+	 * returns the type returned by the jdbc field type.
+	 * @return
+	 */
+	public abstract String getPseudoMySqlDefinition();
+	
+	/**
 	 * This tests to see if the field is exactly the same as
 	 * _column as far as metadata goes.
 	 * @param _column
@@ -88,5 +100,7 @@ public abstract class SavableField <T> {
 	 * @return
 	 */
 	public abstract boolean isSameColumn(MetaTableColumn _column);
+	
+	public abstract HashMap<String, Object> getDifferences(MetaTableColumn _column);
 
 }

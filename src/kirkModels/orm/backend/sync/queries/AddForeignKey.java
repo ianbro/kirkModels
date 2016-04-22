@@ -5,21 +5,20 @@ import kirkModels.fields.IntegerField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.DbObject;
 
-public class AddForeignKey extends Constraint {
+public class AddForeignKey extends ColumnOperation {
 	
-	protected String fieldName;
 	protected ForeignKey foreignKeyDef;
 
 	public AddForeignKey(IntegerField _fromField, DbObject _reference, Integer _default, String onDelete) {
 		// TODO Auto-generated constructor stub
+		super(_fromField.label);
 		this.foreignKeyDef = new ForeignKey(_fromField.label, _reference.getClass(), _fromField.isNull, _default, _fromField.unique, onDelete);
-		this.fieldName = _fromField.label;
 	}
 	
 	public AddForeignKey(ForeignKey _foreignKey) {
 		// TODO Auto-generated constructor stub
+		super(_foreignKey.label);
 		this.foreignKeyDef = _foreignKey;
-		this.fieldName = _foreignKey.label;
 	}
 
 	@Override

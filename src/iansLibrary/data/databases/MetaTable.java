@@ -64,8 +64,18 @@ public class MetaTable {
 		String pkColumnName = _constraintResult.getString(MetaForeignKeyConstraint.PKCOLUMN_NAME);
 		String fkTableName = _constraintResult.getString(MetaForeignKeyConstraint.FKTABLE_NAME);
 		String fkColumnName = _constraintResult.getString(MetaForeignKeyConstraint.FKCOLUMN_NAME);
+		String fkConstraintName = _constraintResult.getString(MetaForeignKeyConstraint.FK_NAME);
 		
-		MetaForeignKeyConstraint fkConstraint = new MetaForeignKeyConstraint(pkTableName, pkColumnName, fkTableName, fkColumnName);
+		MetaForeignKeyConstraint fkConstraint = new MetaForeignKeyConstraint(pkTableName, pkColumnName, fkTableName, fkColumnName, fkConstraintName);
 		return fkConstraint;
+	}
+	
+	public MetaForeignKeyConstraint getForeignKeyConstraint(String fieldName) {
+		for (MetaForeignKeyConstraint fkConst : this.foreignKeys) {
+			if (fkConst.getFkColumnName().equals(fieldName)) {
+				return fkConst;
+			}
+		}
+		return null;
 	}
 }

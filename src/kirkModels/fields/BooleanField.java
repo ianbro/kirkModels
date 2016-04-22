@@ -1,6 +1,7 @@
 package kirkModels.fields;
 
 import java.lang.reflect.Constructor;
+import java.util.HashMap;
 
 import iansLibrary.data.databases.MetaTableColumn;
 import iansLibrary.utilities.JSONMappable;
@@ -110,5 +111,83 @@ public class BooleanField extends SavableField<Boolean> implements JSONMappable 
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * @Override
+	 */
+	public HashMap<String, Object> getDifferences(MetaTableColumn _column) {
+		HashMap<String, Object> diffs = new HashMap<String, Object>();
+		
+		if (this.getDifferenceNullable(_column) != null) {
+			diffs.put("nullable", this.getDifferenceNullable(_column));
+		} else if (this.getTypeDifference(_column) != null) {
+			diffs.put("type", this.getTypeDifference(_column));
+		}
+		try {
+			this.getDefaultValueDifference(_column);
+			diffs.put("default", this.getDefaultValueDifference(_column));
+		} catch (NoSuchFieldException e) {//if it throws the exception, that means they are the same.
+		}
+		
+		return diffs;
+	}
+	
+	public String getTypeDifference(MetaTableColumn _column) {
+		if (this.getPseudoPsqlDefinition().equals(_column.getDataType())) {
+			return null;
+		} else {
+			return _column.getDataType();
+		}
+	}
+	
+	public String getDefaultValueDifference(MetaTableColumn _column) throws NoSuchFieldException {
+		if (this.defaultValue == null) {
+			if (_column.getDefaultValue() != null) {
+				return (String) _column.getDefaultValue();
+			} else {
+				throw new NoSuchFieldException("The two default values are the same.");
+			}
+		} else {
+			if (_column.getDefaultValue() == null) {
+				return (String) _column.getDefaultValue();
+			} else {
+				if (((String) _column.getDefaultValue()).equals(this.defaultValue)) {
+					throw new NoSuchFieldException("The two default values are the same.");
+				} else {
+					return (String) _column.getDefaultValue();
+				}
+			}
+		}
+	}
+	
+	public Boolean getDifferenceNullable(MetaTableColumn _column) {
+		if ((this.isNull.booleanValue() ? 1 : 0) != _column.getNullable()) {
+			if (this.isNull) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * @Override
+	 * I don't know what will be returned at this point so this method returns null.
+	 */
+	public String getPseudoPsqlDefinition() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * @Override
+	 * I don't know what will be returned at this point so this method returns null.
+	 */
+	public String getPseudoMySqlDefinition() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

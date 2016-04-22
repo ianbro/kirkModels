@@ -8,6 +8,7 @@ import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
+import iansLibrary.data.databases.MetaForeignKeyConstraint;
 import iansLibrary.data.databases.MetaTable;
 import iansLibrary.data.databases.MetaTableColumn;
 import kirkModels.config.Settings;
@@ -20,6 +21,7 @@ import kirkModels.orm.backend.sync.queries.AddColumn;
 import kirkModels.orm.backend.sync.queries.AddForeignKey;
 import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
 import kirkModels.orm.backend.sync.queries.ColumnOperation;
+import kirkModels.orm.backend.sync.queries.DropConstraint;
 import kirkModels.orm.backend.sync.queries.DropField;
 import kirkModels.orm.backend.sync.queries.RenameField;
 import kirkModels.queries.DeleteQuery;
@@ -296,31 +298,22 @@ public abstract class DbObject {
 		}
 	}
 	
-//	public ArrayList<ColumnOperation> getOperationDifferences(MetaTable _tableDef) {
-//		if (this.savableFields.size() > _tableDef.columns.size()) {
-//			// some fields have been added to this class.
-//		} else if (this.savableFields.size() < _tableDef.columns.size()) {
-//			//some fields have been removed to this class.
-//		} else {
-//			/*
-//			 * no fields have been added
-//			 * but we need to make sure that the fields have not been altered.
-//			 */
-//		}
-//	}
-	
 	/**
-	 * If fields have been added, get the difference between database state and the current
+	 * get the difference between database state and the current
 	 * class definition
 	 * @return
 	 */
-	public ArrayList<ColumnOperation> getOperationDifferencesFieldsAdded(MetaTable _tableDef) {
+	public ArrayList<ColumnOperation> getOperationDifferences(MetaTable _tableDef) {
 		ArrayList<ColumnOperation> operations = new ArrayList<ColumnOperation>();
 		ArrayList<String> fieldsDealtWith = new ArrayList<String>(); //field names that have already been handeled
 		
 		for (MetaTableColumn column : _tableDef.columns) {
 			Object field = this.getFieldGeneric(column.getColumnName());
 			if (field == null) {
+				if (_tableDef.getForeignKeyConstraint(column.getColumnName()) != null) {
+					System.err.println("Cannot remove field: " + column.getColumnName() + " because it has a foreign key constraint.");
+					continue;
+				}
 				//this field has been dropped
 				/*
 				 * Query user and ask if they renamed the field to something else
@@ -332,12 +325,23 @@ public abstract class DbObject {
 					operations.add(new DropField(column.getColumnName(), DropField.CASCADE));
 				} else {
 					operations.add(new RenameField(column.getColumnName(), operation[1]));
+					fieldsDealtWith.add(operation[1]);
 				}
-				fieldsDealtWith.add(operation[1]);
 			} else {
 				if (field instanceof SavableField) {
 					if (!((SavableField) field).equals(column)) {
-						operations.add(new ColumnDefinitionChange(column.getColumnName(), (SavableField) field));
+						/*
+						 * refer to the method below: getOperationsForField
+						 */
+						if (field instanceof ForeignKey) {
+							if (_tableDef.getForeignKeyConstraint(((SavableField) field).label) == null) {
+								operations.add(new AddForeignKey((ForeignKey) field));
+							}
+						} else if (_tableDef.getForeignKeyConstraint(((SavableField) field).label) != null) {
+							operations.add(new DropConstraint(_tableDef.getForeignKeyConstraint(((SavableField) field).label).getFkConstraintName()));
+						}
+						ArrayList<ColumnOperation> operationsForCurrentField = this.getOperationsForField((SavableField) field, column);
+						operations.addAll(operationsForCurrentField);
 					}
 				} else if (field instanceof ManyToManyField) {
 					//the field has been changed to a many to many field
@@ -352,11 +356,49 @@ public abstract class DbObject {
 			fieldsDealtWith.add(column.getColumnName());
 		}
 		
+		/*
+		 * Now go add fields that have been added but are not yet reflected in the database.
+		 */
 		for (String fieldName : this.savableFields) {
 			if (!fieldsDealtWith.contains(fieldName)) {
 				//this field needs to be added
 				operations.add(new AddColumn(this.getField(fieldName)));
+				if (this.getField(fieldName) instanceof ForeignKey) {
+					operations.add(new AddForeignKey((ForeignKey) this.getField(fieldName)));
+				}
 				fieldsDealtWith.add(fieldName);
+			}
+		}
+		
+		return operations;
+	}
+	
+	public ArrayList<ColumnOperation> getOperationsForField(SavableField _newField, MetaTableColumn _column) {
+		ArrayList<ColumnOperation> operations = new ArrayList<ColumnOperation>();
+		
+		HashMap<String, Object> diffs = _newField.getDifferences(_column);
+		for (String operationDesc : diffs.keySet()) {
+			if (operationDesc.equals("type")) {
+				operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.TYPE));
+			} else if (operationDesc.equals("nullable")) {
+				if (_newField.isNull) {
+					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.NULL_YES));
+				} else {
+					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.NULL_NO));
+				}
+			} else if (operationDesc.equals("default")) {
+				if (_newField.defaultValue == null) {
+					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.DEFAULT_DROP));
+				} else {
+					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.DEFAULT_CHANGE));
+				}
+			} else if (operationDesc.equals("size")) {
+				if (((CharField) _newField).maxLength > _column.getColumnSize()) {
+					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.INCREASE_SIZE));
+				} else {
+					operations.add(new DropField(_newField.label, DropField.CASCADE));
+					operations.add(new AddColumn(_newField));
+				}
 			}
 		}
 		

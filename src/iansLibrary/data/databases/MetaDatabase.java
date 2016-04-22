@@ -17,6 +17,7 @@ import org.json.simple.parser.ParseException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 
+import kirkModels.config.Settings;
 import kirkModels.fields.SavableField;
 import kirkModels.utils.Utilities;
 
@@ -99,5 +100,14 @@ public class MetaDatabase {
 			tableNames.add(new MetaTable(this, tables.getString(3)));
 		}
 		return tableNames;
+	}
+	
+	public MetaTable getSpecificTable(String tableLabel) throws SQLException {
+		for (MetaTable table : this.getTables()) {
+			if (table.getTableName().equals(tableLabel)) {
+				return table;
+			}
+		}
+		return null;
 	}
 }

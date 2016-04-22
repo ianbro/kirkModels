@@ -5,17 +5,24 @@ import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.text.NumberFormatter;
 
+import iansLibrary.data.databases.MetaTable;
 import iansLibrary.utilities.JSONFormat;
 import iansLibrary.utilities.ObjectParser;
 import kirkModels.config.Settings;
+import kirkModels.fields.ManyToManyField;
 import kirkModels.orm.DbObject;
+import kirkModels.orm.backend.sync.queries.AlterTable;
+import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
+import kirkModels.orm.backend.sync.queries.ColumnOperation;
 import kirkModels.orm.backend.sync.queries.CreateTable;
+import kirkModels.orm.backend.sync.queries.Operation;
 import kirkModels.queries.Query;
 import kirkModels.tests.Person;
 
@@ -226,6 +233,55 @@ public final class MigrationGenerator {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public boolean tableExists(MetaTable _table) {
+		for (Class modelClass : Settings.syncedModels.values()) {
+			try {
+				DbObject modelObject = (DbObject) modelClass.newInstance();
+				if (modelObject.tableName.equals(_table.getTableName())) {
+					return true;
+				}
+			} catch (InstantiationException | IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	public ArrayList<Query> getTableDifferences(Class<? extends DbObject> _newDef, MetaTable _databaseState) throws SQLException {
+		ArrayList<Query> queries = new ArrayList<Query>();
+		
+		try {
+			DbObject modelObject = (DbObject) _newDef.newInstance();
+			MetaTable savedTable = Settings.database.getSpecificTable(modelObject.tableName);
+			if (savedTable == null) {
+				return new ArrayList<Query>(){{ add(new CreateTable(modelObject.tableName, modelObject)); }};
+			} else {
+				//table was found but there may be differences
+				ArrayList<ColumnOperation> diffs = modelObject.getOperationDifferences(savedTable);
+				ArrayList<CreateTable> m2mFieldAdds = new ArrayList<CreateTable>();
+				for (String m2mFieldName : modelObject.manyToManyFields) {
+					ManyToManyField m2mField = (ManyToManyField) modelObject.getFieldGeneric(m2mFieldName);
+					if (Settings.database.getSpecificTable(m2mField.tableName) == null) {
+						m2mFieldAdds.add(new CreateTable(m2mField.tableName, m2mField));
+					}
+				}
+				
+				if (diffs.size() > 0) {
+					AlterTable at = new AlterTable(Settings.database.schema, modelObject.tableName, (Operation[]) diffs.toArray());
+					queries.add(at);
+				}
+				
+				if (m2mFieldAdds.size() > 0) {
+					queries.addAll(m2mFieldAdds);
+				}
+			}
+		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

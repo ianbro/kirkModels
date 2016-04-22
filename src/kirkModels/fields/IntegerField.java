@@ -131,6 +131,7 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 	}
 	
 	/**
+	 * @Override
 	 * When querying the database for int types, they come back
 	 * as "int4", "int2" and other types like that. int2 is
 	 * a smallint while int4 is an integer and so on.
@@ -147,6 +148,15 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 		default:
 			return null;
 		}
+	}
+
+	/**
+	 * @Override
+	 * I don't know what will be returned by jdbc at this point so this will return null
+	 */
+	public String getPseudoMySqlDefinition() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	public String getPsqlIntType(Integer maxVal) {
@@ -203,6 +213,7 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 		}
 	}
 	
+	@Override
 	public HashMap<String, Object> getDifferences(MetaTableColumn _column) {
 		HashMap<String, Object> diffs = new HashMap<String, Object>();
 		
@@ -237,7 +248,7 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 			}
 		} else {
 			if (_column.getDefaultValue() == null) {
-				return Integer.valueOf((String) _column.getDefaultValue());
+				return this.defaultValue;
 			} else {
 				if (Integer.valueOf((String) _column.getDefaultValue()).equals(this.defaultValue)) {
 					throw new NoSuchFieldException("The two default values are the same.");
