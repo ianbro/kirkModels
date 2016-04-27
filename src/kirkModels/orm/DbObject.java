@@ -23,6 +23,7 @@ import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
 import kirkModels.orm.backend.sync.queries.ColumnOperation;
 import kirkModels.orm.backend.sync.queries.DropConstraint;
 import kirkModels.orm.backend.sync.queries.DropField;
+import kirkModels.orm.backend.sync.queries.Operation;
 import kirkModels.orm.backend.sync.queries.RenameField;
 import kirkModels.queries.DeleteQuery;
 import kirkModels.queries.InsertQuery;
@@ -303,17 +304,17 @@ public abstract class DbObject {
 	 * class definition
 	 * @return
 	 */
-	public ArrayList<ColumnOperation> getOperationDifferences(MetaTable _tableDef) {
-		ArrayList<ColumnOperation> operations = new ArrayList<ColumnOperation>();
+	public ArrayList<Operation> getOperationDifferences(MetaTable _tableDef) {
+		ArrayList<Operation> operations = new ArrayList<Operation>();
 		ArrayList<String> fieldsDealtWith = new ArrayList<String>(); //field names that have already been handeled
 		
 		for (MetaTableColumn column : _tableDef.columns) {
 			Object field = this.getFieldGeneric(column.getColumnName());
 			if (field == null) {
 				if (_tableDef.getForeignKeyConstraint(column.getColumnName()) != null) {
-					System.err.println("Cannot remove field: " + column.getColumnName() + " because it has a foreign key constraint.");
-					continue;
+					operations.add(new DropConstraint(_tableDef.getForeignKeyConstraint(column.getColumnName()).getFkConstraintName()));
 				}
+				
 				//this field has been dropped
 				/*
 				 * Query user and ask if they renamed the field to something else
@@ -329,6 +330,11 @@ public abstract class DbObject {
 				}
 			} else {
 				if (field instanceof SavableField) {
+					//see if the field once had a foreignkey constraint on it. if so, add a drop constraint for that.
+					if (_tableDef.getForeignKeyConstraint(((SavableField) field).label) != null && !(field instanceof ForeignKey)) {
+						operations.add(new DropConstraint(_tableDef.getForeignKeyConstraint(((SavableField) field).label).getFkConstraintName()));
+					}
+					
 					if (!((SavableField) field).equals(column)) {
 						/*
 						 * refer to the method below: getOperationsForField
@@ -337,8 +343,6 @@ public abstract class DbObject {
 							if (_tableDef.getForeignKeyConstraint(((SavableField) field).label) == null) {
 								operations.add(new AddForeignKey((ForeignKey) field));
 							}
-						} else if (_tableDef.getForeignKeyConstraint(((SavableField) field).label) != null) {
-							operations.add(new DropConstraint(_tableDef.getForeignKeyConstraint(((SavableField) field).label).getFkConstraintName()));
 						}
 						ArrayList<ColumnOperation> operationsForCurrentField = this.getOperationsForField((SavableField) field, column);
 						operations.addAll(operationsForCurrentField);

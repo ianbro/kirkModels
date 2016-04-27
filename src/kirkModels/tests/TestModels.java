@@ -107,7 +107,7 @@ public abstract class TestModels {
 //		}
 		
 		try {
-			System.out.println(new Person().getOperationDifferences(Settings.database.getTables().get(2)));
+			System.out.println(MigrationGenerator.getTableDifferences(Person.class, Settings.database.getSpecificTable(new Person().tableName)));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

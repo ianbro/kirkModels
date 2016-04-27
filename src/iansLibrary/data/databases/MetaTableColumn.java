@@ -13,7 +13,7 @@ public class MetaTableColumn {
 	private int nullable;
 	private Object defaultValue;
 	private int columnSize;
-	
+
 	public MetaTableColumn(String _columnName, String _dataType, int _nullable, Object _defaultValue, int _columnSize) {
 		super();
 		this.columnName = _columnName;

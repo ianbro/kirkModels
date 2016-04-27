@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 import javax.swing.text.NumberFormatter;
 
@@ -22,6 +24,7 @@ import kirkModels.orm.backend.sync.queries.AlterTable;
 import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
 import kirkModels.orm.backend.sync.queries.ColumnOperation;
 import kirkModels.orm.backend.sync.queries.CreateTable;
+import kirkModels.orm.backend.sync.queries.DropTable;
 import kirkModels.orm.backend.sync.queries.Operation;
 import kirkModels.queries.Query;
 import kirkModels.tests.Person;
@@ -253,18 +256,26 @@ public final class MigrationGenerator {
 		return false;
 	}
 	
-	public ArrayList<Query> getTableDifferences(Class<? extends DbObject> _newDef, MetaTable _databaseState) throws SQLException {
+	public static ArrayList<Query> getTableDifferences(Class<? extends DbObject> _newDef, MetaTable _databaseState) throws SQLException {
 		ArrayList<Query> queries = new ArrayList<Query>();
 		
 		try {
+			//make a temporary object out of that class. This is because the fields need to be instantiated in order
+			//		to do anything with them.
 			DbObject modelObject = (DbObject) _newDef.newInstance();
+			//table to compare the fields with modelObject
 			MetaTable savedTable = Settings.database.getSpecificTable(modelObject.tableName);
+			
 			if (savedTable == null) {
+				//If this is true, then the class has been added recently since the last migration file
 				return new ArrayList<Query>(){{ add(new CreateTable(modelObject.tableName, modelObject)); }};
 			} else {
 				//table was found but there may be differences
-				ArrayList<ColumnOperation> diffs = modelObject.getOperationDifferences(savedTable);
+				ArrayList<Operation> diffs = modelObject.getOperationDifferences(savedTable);
 				ArrayList<CreateTable> m2mFieldAdds = new ArrayList<CreateTable>();
+				ArrayList<DropTable> m2mFieldRemoves = new ArrayList<DropTable>();
+				
+				//adding create table for m2m field
 				for (String m2mFieldName : modelObject.manyToManyFields) {
 					ManyToManyField m2mField = (ManyToManyField) modelObject.getFieldGeneric(m2mFieldName);
 					if (Settings.database.getSpecificTable(m2mField.tableName) == null) {
@@ -272,8 +283,34 @@ public final class MigrationGenerator {
 					}
 				}
 				
+				for (MetaTable metaTable : Settings.database.getTables()) {
+					if (metaTable.getTableName().split("___").length == 4 && metaTable.getTableName().split("___")[0].equals("mtm")) {
+						/*
+						 * If this m2m table belongs to this this model. We don't know if it's necesarilly the right field yet.
+						 */
+						if (metaTable.getTableName().split("___")[2].equals(_databaseState.getTableName().split("_")[_databaseState.getTableName().split("_").length])) {
+							/*
+							 * does the field exist still? if not, drop this table/m2m field
+							 */
+							if (!modelObject.manyToManyFields.contains(metaTable.getTableName().split("___")[1])) {
+								//Then this field has been dropped.
+								m2mFieldRemoves.add(new DropTable(Settings.database.schema, metaTable.getTableName()));
+							} else {
+								String metaTableRefName = metaTable.getTableName().split("___")[3];
+								ManyToManyField m2mf = (ManyToManyField) modelObject.getFieldGeneric(metaTable.getTableName().split("___")[1]);
+								if (!metaTableRefName.equals(m2mf.refClass.getSimpleName().toLowerCase())) {
+									m2mFieldRemoves.add(new DropTable(Settings.database.schema, metaTable.getTableName()));
+									m2mFieldAdds.add(new CreateTable(Settings.database.schema, m2mf));
+								}
+								
+							}
+						}
+					}
+				}
+				
 				if (diffs.size() > 0) {
-					AlterTable at = new AlterTable(Settings.database.schema, modelObject.tableName, (Operation[]) diffs.toArray());
+					Operation[] operations = new Operation[diffs.size()];
+					AlterTable at = new AlterTable(Settings.database.schema, modelObject.tableName, diffs.toArray(operations));
 					queries.add(at);
 				}
 				
@@ -281,10 +318,12 @@ public final class MigrationGenerator {
 					queries.addAll(m2mFieldAdds);
 				}
 			}
+			return queries;
 		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
 	public static void printToSqlSheet(Query _query) {

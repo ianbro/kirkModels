@@ -15,8 +15,10 @@ public class Person extends DbObject{
 	public IntegerField age = new IntegerField("age", false, null, false, 150);
 	public ForeignKey<Person> mother = new ForeignKey<Person>("mother", Person.class, true, null, false, "NO ACTION");
 	public ForeignKey<Person> father = new ForeignKey<Person>("father", Person.class, true, null, false, "NO ACTION");
+//	public IntegerField mother = new IntegerField("mother", true, null, false, null);
 	public ManyToManyField<Person, Person> friends = new ManyToManyField<Person, Person>("friends", this, Person.class);
 	public ManyToManyField<Person, Person> enemies = new ManyToManyField<Person, Person>("enemies", this, Person.class);
+//	public ManyToManyField<Person, Person> teachers = new ManyToManyField<Person, Person>("teachers", this, Person.class);
 	public int fjslkfsjflasfjslfs;
 	
 	public String toString(){

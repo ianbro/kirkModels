@@ -42,7 +42,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 		
 		String firstTable = _host.getClass().getSimpleName().toLowerCase();
 		String refTable = _refClass.getSimpleName().toLowerCase();
-		this.tableName = _tableName + "__" + firstTable + "___" + refTable;
+		this.tableName = "mtm___" + _tableName + "___" + firstTable + "___" + refTable;
 		
 		this.reference1 = new ForeignKey<T>("host_" + firstTable + "_id", (Class<T>) _host.getClass(), false, null, false, "CASCADE");
 		this.reference2 = new ForeignKey<R>("reference_" + refTable + "_id", _refClass, false, null, false, "CASCADE");

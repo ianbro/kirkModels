@@ -27,7 +27,7 @@ public class ForeignKey<T extends DbObject> extends IntegerField implements JSON
 			this.set(_defaultValue);
 		}
 		this.onDelete = _onDelete;
-		this.symbol = ("fk_" + _label + "_" + _referenceClass.getSimpleName() + "_id").toLowerCase();
+		this.symbol = ("fk__" + _label + "__" + _referenceClass.getSimpleName() + "__id").toLowerCase();
 	}
 	
 	public ForeignKey(String label, String _symbol, Class<T> reference, Boolean isNull, Integer defaultValue, Boolean unique, String onDelete) {
