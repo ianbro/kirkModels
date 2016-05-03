@@ -8,19 +8,23 @@ import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.backend.sync.queries.CreateTable;
 
-public class SqlSheetTracking extends DbObject {
+public class MigrationTracking extends DbObject {
 
-	public static QuerySet<SqlSheetTracking> objects;
+	public static QuerySet<MigrationTracking> objects;
 
-	public static CharField model_name = new CharField("model_name", false, null, true, 50);	
-	public CharField last_ran = new CharField("last_ran", true, null, false, 50);
+	public static CharField model_name = new CharField("model_name", false, null, true, 100);
+	public CharField last_ran = new CharField("last_ran", true, null, true, 100);
+	
+	public void setLastRan(MigrationFile f) {
+		this.last_ran.set(f.file_name.val());
+	}
 	
 	public String toString() {
 		return this.model_name.val() + " - last ran: " + this.last_ran.val();
 	}
 	
 	public static void syncTable(){
-		CreateTable createTracking = new CreateTable(Settings.database.schema, new SqlSheetTracking());
+		CreateTable createTracking = new CreateTable(Settings.database.schema, new MigrationTracking());
 		try {
 			createTracking.run();
 		} catch (SQLException e) {

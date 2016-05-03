@@ -27,5 +27,9 @@
 		"kirkModels.tests.Person"
 	],
 	
-	"migrations_folder": "dataBaseChanges/"
+	"migrations_folder": "dataBaseChanges/",
+	
+	"project_development_root_parent": "Users/kirkp1ia/projects/java/kirkModels/",
+	
+	"binary_root_parent": "Users/kirkp1ia/projects/projects/java/kirkModels/"
 }

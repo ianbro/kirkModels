@@ -5,6 +5,7 @@ import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -14,48 +15,45 @@ import java.util.Collections;
 
 import javax.swing.text.NumberFormatter;
 
+import org.json.simple.parser.JSONParser;
+
 import iansLibrary.data.databases.MetaTable;
+import iansLibrary.utilities.JSONClassMapping;
 import iansLibrary.utilities.JSONFormat;
 import iansLibrary.utilities.ObjectParser;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.orm.DbObject;
+import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
+import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
 import kirkModels.orm.backend.sync.queries.AlterTable;
 import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
 import kirkModels.orm.backend.sync.queries.ColumnOperation;
 import kirkModels.orm.backend.sync.queries.CreateTable;
 import kirkModels.orm.backend.sync.queries.DropTable;
 import kirkModels.orm.backend.sync.queries.Operation;
+import kirkModels.orm.backend.sync.queries.RenameTable;
 import kirkModels.queries.Query;
+import kirkModels.queries.scripts.WhereCondition;
 import kirkModels.tests.Person;
+import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
+import kirkModels.utils.exceptions.ObjectNotFoundException;
 
 public final class MigrationGenerator {
 	
 	public String rootMigrationFolderPath;
-	public PrintWriter[] migrationWriters;
-	public Migration[] migrations;
-	public Class<? extends DbObject>[] types;
+	public PrintWriter migrationWriters;
+	public Migration migrations;
+	public File migrationFile;
+	public Class<? extends DbObject> types;
 	
-	public MigrationGenerator(String _migrationFolder) {
-		this.rootMigrationFolderPath = _migrationFolder;
-	}
-	
-	/**
-	 * loops through each syncedModel and creates a migration file for it.
-	 * @throws IOException
-	 */
-	public void generateMigrationFiles() throws IOException {
-		/*
-		 * reset migrationWriters and migrations
-		 */
-		this.migrationWriters = new PrintWriter[Settings.syncedModels.keySet().size()];
-		this.migrations = new Migration[Settings.syncedModels.keySet().size()];
-		this.types = new Class[Settings.syncedModels.keySet().size()];
-		
-		int i = 0; //keeping track of index in the array attributes containing printwriters and migrations
-		
-		for (String key : Settings.syncedModels.keySet()) {
-			this.genterateSingleMigrationFile(key, i);
+	public MigrationGenerator(Class<? extends DbObject> _type) {
+		this.types = _type;
+		try {
+			this.rootMigrationFolderPath = Settings.MIGRATION_FOLDER + this.types.newInstance().tableName + "-migrations/";
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
@@ -65,27 +63,16 @@ public final class MigrationGenerator {
 	 * @param _indexInStorage - the index in which this migration file will be stored in migration array attributes.
 	 * @throws IOException
 	 */
-	public void genterateSingleMigrationFile(String _key, int _indexInStorage) throws IOException {
-		/*
-		 * The model class that we will generate migrations for.
-		 */
-		Class type = Settings.syncedModels.get(_key);
-		
-		/*
-		 * path to the model class's migration folder within the root migration folder
-		 */
-		String pathToMigrationFolderSpecific = this.rootMigrationFolderPath + type.getName().replace(".", "_") + "-migrations/";
+	public void genterateMigrationFile() throws IOException {
 		
 		/*
 		 * instantiated migration folder
 		 */
-		File migrationFile = this.getMigrationFile(_key, pathToMigrationFolderSpecific);
+		this.migrationFile = this.getMigrationFile();
 		
 		try {
-			PrintWriter pw = new PrintWriter(migrationFile);
-			this.migrationWriters[_indexInStorage] = pw;
-			pw.close();
-			this.types[_indexInStorage] = type;
+			PrintWriter pw = new PrintWriter(this.migrationFile);
+			this.migrationWriters = pw;
 			/*
 			 * From here, generate a migration for type and add it to this.migrations at index i.
 			 * later, we will loop through this.migrations and call those migrations.
@@ -94,7 +81,7 @@ public final class MigrationGenerator {
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			this.migrationWriters[_indexInStorage] = null;
+			this.migrationWriters = null;
 		}
 	}
 	
@@ -191,7 +178,7 @@ public final class MigrationGenerator {
 	 * @return
 	 * @throws IOException - if a migration file has been deleted.
 	 */
-	public File getMigrationFile(String keyForSyncedModels, String pathToFolder) throws IOException {
+	public File getMigrationFile() throws IOException {
 		/*
 		 * the file returned will be used to print a migration operation to.
 		 * 
@@ -205,7 +192,7 @@ public final class MigrationGenerator {
 		/*
 		 * This file is the folder that contains the migration files for the given type.
 		 */
-		File migrationFolder = new File(pathToFolder);
+		File migrationFolder = new File(this.rootMigrationFolderPath);
 		
 		if (migrationFolder.exists()) {
 			File nextMigrationFile = this.createMigrationFile(migrationFolder);
@@ -219,25 +206,6 @@ public final class MigrationGenerator {
 			} else {
 				return null;
 			}
-		}
-	}
-
-	public void makeInitialSql(Migration m) {
-		try {
-			Object jsonObject = ObjectParser.anyObjectToJSON(m);
-			
-			String json = JSONFormat.formatJSON(jsonObject, 0);
-			
-			PrintWriter migrationWriter = new PrintWriter(new File("dataBaseChanges/kirkModels_orm_backend_sync_migrationTracking/0001_initial.json"));
-			migrationWriter.println(json);
-			migrationWriter.close();
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException
-				| ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
@@ -256,13 +224,31 @@ public final class MigrationGenerator {
 		return false;
 	}
 	
-	public static ArrayList<Query> getTableDifferences(Class<? extends DbObject> _newDef, MetaTable _databaseState) throws SQLException {
+	/**
+	 * This method will loop through the fields in a class and determin the differences between them and
+	 * the fields contained in the database. It will also loop through the database and determin which
+	 * fields have been dropped.<br><br>
+	 * This method assumes the table exists in the database for the type {@code _newDef}.
+	 * @param _newDef
+	 * @param _databaseState
+	 * @return
+	 * @throws SQLException
+	 */
+	public ArrayList<Query> getTableDifferences() throws SQLException {
+		MetaTable databaseState = null;
+		try {
+			databaseState = Settings.database.getSpecificTable(this.types.newInstance().tableName);
+		} catch (InstantiationException | IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		ArrayList<Query> queries = new ArrayList<Query>();
 		
 		try {
 			//make a temporary object out of that class. This is because the fields need to be instantiated in order
 			//		to do anything with them.
-			DbObject modelObject = (DbObject) _newDef.newInstance();
+			DbObject modelObject = (DbObject) this.types.newInstance();
 			//table to compare the fields with modelObject
 			MetaTable savedTable = Settings.database.getSpecificTable(modelObject.tableName);
 			
@@ -288,7 +274,7 @@ public final class MigrationGenerator {
 						/*
 						 * If this m2m table belongs to this this model. We don't know if it's necesarilly the right field yet.
 						 */
-						if (metaTable.getTableName().split("___")[2].equals(_databaseState.getTableName().split("_")[_databaseState.getTableName().split("_").length])) {
+						if (metaTable.getTableName().split("___")[2].equals(databaseState.getTableName().split("_")[databaseState.getTableName().split("_").length])) {
 							/*
 							 * does the field exist still? if not, drop this table/m2m field
 							 */
@@ -296,11 +282,16 @@ public final class MigrationGenerator {
 								//Then this field has been dropped.
 								m2mFieldRemoves.add(new DropTable(Settings.database.schema, metaTable.getTableName()));
 							} else {
+								//The field still exists but may have been altered
 								String metaTableRefName = metaTable.getTableName().split("___")[3];
 								ManyToManyField m2mf = (ManyToManyField) modelObject.getFieldGeneric(metaTable.getTableName().split("___")[1]);
+								
 								if (!metaTableRefName.equals(m2mf.refClass.getSimpleName().toLowerCase())) {
+									/*
+									 * Then the field has been altered. drop the table. It has laready been taken care of above while
+									 * adding tables that have been created as new.
+									 */
 									m2mFieldRemoves.add(new DropTable(Settings.database.schema, metaTable.getTableName()));
-									m2mFieldAdds.add(new CreateTable(Settings.database.schema, m2mf));
 								}
 								
 							}
@@ -326,8 +317,211 @@ public final class MigrationGenerator {
 		return null;
 	}
 	
-	public static void printToSqlSheet(Query _query) {
+	public String getLastMigrationRan() {
+		try {
+			File migrationFolder = new File(this.rootMigrationFolderPath + this.types.newInstance().tableName + "-migrations/");
+			File[] migrationFiles = migrationFolder.listFiles(new FileFilter() {
+				
+				@Override
+				public boolean accept(File pathname) {
+					if (pathname.getName().contains(".json")) {
+						return true;
+					}
+					return false;
+				}
+			});
+			int max = 0;
+			for (File migFile : migrationFiles) {
+				int otherNum = Integer.parseInt(migFile.getName().split("_")[0]);
+				if (max - otherNum > 0) {
+					max = otherNum;
+				}
+			}
+			for (File migFile : migrationFiles) {
+				if (Integer.parseInt(migFile.getName().split("_")[0]) == max) {
+					return migFile.getName();
+				}
+			}
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public void generate() {
+		String tableName = null;
+		try {
+			tableName = this.types.newInstance().tableName;
+		} catch (InstantiationException e3) {
+			// TODO Auto-generated catch block
+			e3.printStackTrace();
+		} catch (IllegalAccessException e3) {
+			// TODO Auto-generated catch block
+			e3.printStackTrace();
+		}
 		
+		try {
+			if (Settings.database.getSpecificTable(this.types.getName()) == null) {
+				//table has been added so we need to make a create table query.
+				try {
+					this.genterateMigrationFile();
+					this.migrations = new Migration(this.types);
+					return;
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} catch (SQLException e3) {
+			// TODO Auto-generated catch block
+			e3.printStackTrace();
+		}
+		
+		try {
+			this.types.getField("DROP_TABLE");
+			/*
+			 * add drop table stuff here.
+			 */
+			Migration newMigration = null;
+			
+			String last = this.getLastMigrationRan();
+			if (last == null) {
+				newMigration = new Migration(this.getLastMigrationRan(), new Query[]{
+						new DropTable(Settings.database.schema, tableName)
+				});
+			} else {
+				newMigration = new Migration(null, new Query[]{
+						new DropTable(Settings.database.schema, tableName)
+				});
+			}
+			
+			this.genterateMigrationFile();
+			this.migrations = newMigration;
+			
+		} catch (NoSuchFieldException e) {
+			//This field does not exist so now see if this table was renamed.
+			
+			try {
+				Field renameField = this.types.getField("RENAME_TABLE");
+				Migration newMigration = null;
+				
+				String last = this.getLastMigrationRan();
+				if (last == null) {
+					String newName = (String) renameField.get(null);
+					newMigration = new Migration(last, new Query[]{
+							new AlterTable(Settings.database.schema, this.types.newInstance().tableName, new Operation[]{
+									new RenameTable(newName)
+							})
+					});
+				} else {
+					String newName = (String) renameField.get(null);
+					newMigration = new Migration(null, new Query[]{
+							new AlterTable(Settings.database.schema, this.types.newInstance().tableName, new Operation[]{
+									new RenameTable(newName)
+							})
+					});
+				}
+				this.genterateMigrationFile();
+				this.migrations = newMigration;
+			} catch (NoSuchFieldException e1) {
+				//This field does not exist so now get the differences in the class from the database.
+				
+				try {
+					ArrayList<Query> queryDifferences = this.getTableDifferences();
+					
+					
+					if (queryDifferences != null) {
+						Query[] queries = new Query[queryDifferences.size()];
+						queries = queryDifferences.toArray(queries);
+						if (this.getLastMigrationRan() == null) {
+							this.genterateMigrationFile();
+							this.migrations = new Migration(this.getLastMigrationRan(), queries);
+						} else {
+							//This is the initial migration
+							this.genterateMigrationFile();
+							this.migrations = new Migration(null, queries);
+						}
+					}
+				} catch (SQLException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				} catch (IOException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+				
+			} catch (SecurityException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IllegalArgumentException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InstantiationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static ArrayList<MigrationGenerator> getMigrations(){
+		ArrayList<MigrationGenerator> migrations = new ArrayList<MigrationGenerator>();
+//		ArrayList<PrintWriter> migrationWriters = new ArrayList<PrintWriter>();
+		
+		/*
+		 * loop through synced models and evaluate the differences between this software and the database
+		 */
+		int index = 0;
+		for (String tableName : Settings.syncedModels.keySet()) {
+			Class<? extends DbObject> classType = Settings.syncedModels.get(tableName);
+			MigrationGenerator migGen = new MigrationGenerator(classType);
+			migGen.generate();
+			migGen.printToSqlSheet();
+			migrations.add(migGen);
+		}
+		
+		return migrations;
+	}
+	
+	public void printToSqlSheet() {
+		try {
+			String jsonToPrint = JSONFormat.formatJSON(ObjectParser.anyObjectToJSON(this.migrations), 0);
+			this.migrationWriters.print(jsonToPrint);
+			this.migrationWriters.close();
+		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException
+				| ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public String toString() {
+		try {
+			return this.types.newInstance().tableName;
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

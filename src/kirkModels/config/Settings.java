@@ -24,6 +24,8 @@ public abstract class Settings {
 	
 	public static String ROOT_FOLDER;
 	
+	public static String BINARY_ROOT;
+	
 	public static String MIGRATION_FOLDER;
 	
 	public static void syncSettings(File configFile) throws FileNotFoundException, ParseException, SQLException{
@@ -50,6 +52,12 @@ public abstract class Settings {
 		
 		//set migrations folder
 		MIGRATION_FOLDER = (String) settingsJson.get("migrations_folder");
+		
+		//set Root Folder for project development
+		ROOT_FOLDER = (String) settingsJson.get("project_development_root_parent");
+		
+		//set root folder for binary files
+		BINARY_ROOT = (String) settingsJson.get("binary_root_parent");
 	}
 	
 	public static void setObjectsForModels(){

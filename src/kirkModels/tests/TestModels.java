@@ -33,6 +33,8 @@ import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.backend.sync.DbSync;
 import kirkModels.orm.backend.sync.MigrationGenerator;
+import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
+import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
 import kirkModels.orm.backend.sync.Migration;
 import kirkModels.orm.backend.sync.queries.AddColumn;
 import kirkModels.orm.backend.sync.queries.AddForeignKey;
@@ -55,16 +57,14 @@ import kirkModels.queries.scripts.InsertValue;
 public abstract class TestModels {
 
 	@SuppressWarnings("unchecked")
-	public static void main(String[] args) throws ObjectNotFoundException {
+	public static void main(String[] args) throws ObjectNotFoundException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException {
 		// TODO Auto-generated method stub
 
 		MetaDatabase db = null;
 		try {
 			Settings.syncSettings(new File("settings/settings.json"));
 			
-//			new DbSync(Settings.database).migrateModel(Person.class);
-			
-//			Settings.database.connect();
+			Settings.database.connect();
 //			Settings.setObjectsForModels();
 		} catch (FileNotFoundException | ParseException | SQLException e) {
 			// TODO Auto-generated catch block
@@ -74,10 +74,6 @@ public abstract class TestModels {
 //		Migration m = new Migration(Person.class);
 //		
 //		MigrationGenerator.makeInitialSql(m);
-		
-		DbSync s = new DbSync(Settings.database, new ArrayList<String>(){{
-			add(Settings.MIGRATION_FOLDER + "kirkModels_orm_backend_sync_migrationTracking/0001_initial.json");
-		}});
 		
 //		try {
 //			s.readMigrations();
@@ -106,11 +102,10 @@ public abstract class TestModels {
 //			e.printStackTrace();
 //		}
 		
-		try {
-			System.out.println(MigrationGenerator.getTableDifferences(Person.class, Settings.database.getSpecificTable(new Person().tableName)));
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		MigrationTracking.syncTable();
+//		MigrationFile.syncTable();
+//		MigrationGenerator mg = new MigrationGenerator(Person.class);
+		System.out.println(MigrationGenerator.getMigrations());
+//		DbSync.migrate();
 	}
 }
