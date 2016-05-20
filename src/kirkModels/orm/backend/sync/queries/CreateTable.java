@@ -41,6 +41,7 @@ public class CreateTable extends Query implements JSONMappable {
 		this.setForeignKeys();
 		
 		this.setSql();
+		this.shortDescription = "Create Model: " + Settings.syncedModels.get(this.tableName);
 	}
 	
 	public CreateTable(String _dbName, String _tableName, SavableField[] _fields, ManyToManyField[] _m2mFields){
@@ -51,6 +52,7 @@ public class CreateTable extends Query implements JSONMappable {
 		this.setForeignKeys();
 		
 		this.setSql();
+		this.shortDescription = "Create Model: " + Settings.syncedModels.get(this.tableName);
 	}
 	
 	public void setForeignKeys(){

@@ -1,6 +1,6 @@
 {
 	"1#java.lang.String#_dependsOn": "null-value",
-	"2#[LkirkModels.queries.Query;#_operations": [
+	"2#[LkirkModels.orm.queries.Query;#_operations": [
 		"kirkModels.orm.queries.Query",
 		{
 			"2#java.lang.String#_tableName": "kirkmodels_tests_person",
@@ -67,7 +67,8 @@
 			]
 		}
 	],
-	"3#[LkirkModels.queries.Query;#_foreignKeyOperations": [
+	"type": "kirkModels.orm.backend.sync.Migration",
+	"3#[LkirkModels.orm.queries.Query;#_foreignKeyOperations": [
 		"kirkModels.orm.queries.Query",
 		{
 			"2#java.lang.String#_tableName": "kirkmodels_tests_person",
@@ -100,6 +101,5 @@
 				}
 			]
 		}
-	],
-	"type": "kirkModels.orm.backend.sync.Migration"
+	]
 }

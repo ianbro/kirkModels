@@ -15,6 +15,7 @@ public class DropTable extends Query implements JSONMappable {
 		super(_dbName, _tabelName);
 		// TODO Auto-generated constructor stub
 		this.setSql();
+		this.shortDescription = "Remove Model: " + Settings.syncedModels.get(this.tableName);
 	}
 
 	@Override

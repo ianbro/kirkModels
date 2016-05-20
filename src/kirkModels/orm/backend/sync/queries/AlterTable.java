@@ -19,6 +19,7 @@ public class AlterTable extends Query implements JSONMappable {
 		
 		this.operations = _operations;
 		this.setSql();
+		this.shortDescription = "Change Model: " + Settings.syncedModels.get(this.tableName);
 	}
 
 	@Override
