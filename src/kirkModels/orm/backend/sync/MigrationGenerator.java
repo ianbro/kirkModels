@@ -26,6 +26,8 @@ import kirkModels.fields.ManyToManyField;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
+import kirkModels.orm.backend.sync.queries.AddColumn;
+import kirkModels.orm.backend.sync.queries.AddForeignKey;
 import kirkModels.orm.backend.sync.queries.AlterTable;
 import kirkModels.orm.backend.sync.queries.ColumnDefinitionChange;
 import kirkModels.orm.backend.sync.queries.ColumnOperation;
@@ -33,8 +35,8 @@ import kirkModels.orm.backend.sync.queries.CreateTable;
 import kirkModels.orm.backend.sync.queries.DropTable;
 import kirkModels.orm.backend.sync.queries.Operation;
 import kirkModels.orm.backend.sync.queries.RenameTable;
-import kirkModels.queries.Query;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.Query;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.tests.Person;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
@@ -42,15 +44,15 @@ import kirkModels.utils.exceptions.ObjectNotFoundException;
 public final class MigrationGenerator {
 	
 	public String rootMigrationFolderPath;
-	public PrintWriter migrationWriters;
-	public Migration migrations;
+	public PrintWriter migrationWriter;
+	public Migration migration;
 	public File migrationFile;
-	public Class<? extends DbObject> types;
+	public Class<? extends DbObject> type;
 	
 	public MigrationGenerator(Class<? extends DbObject> _type) {
-		this.types = _type;
+		this.type = _type;
 		try {
-			this.rootMigrationFolderPath = Settings.MIGRATION_FOLDER + this.types.newInstance().tableName + "-migrations/";
+			this.rootMigrationFolderPath = Settings.MIGRATION_FOLDER + this.type.newInstance().tableName + "-migrations/";
 		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -72,16 +74,16 @@ public final class MigrationGenerator {
 		
 		try {
 			PrintWriter pw = new PrintWriter(this.migrationFile);
-			this.migrationWriters = pw;
+			this.migrationWriter = pw;
 			/*
 			 * From here, generate a migration for type and add it to this.migrations at index i.
-			 * later, we will loop through this.migrations and call those migrations.
+			 * later, we will loop through this.migrations and call those migration.
 			 */
 //			this.migrations[i] = this.makeMigration(type);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			this.migrationWriters = null;
+			this.migrationWriter = null;
 		}
 	}
 	
@@ -185,7 +187,7 @@ public final class MigrationGenerator {
 		 * This file should be contained in the following directory system:
 		 * 
 		 * - <migrationFolder>
-		 * 		- <DbObject_type_folderName>-migrations
+		 * 		- <DbObject_type_folderName>-migration
 		 * 			- [migrationfiles]
 		 */
 		
@@ -237,7 +239,7 @@ public final class MigrationGenerator {
 	public ArrayList<Query> getTableDifferences() throws SQLException {
 		MetaTable databaseState = null;
 		try {
-			databaseState = Settings.database.getSpecificTable(this.types.newInstance().tableName);
+			databaseState = Settings.database.getSpecificTable(this.type.newInstance().tableName);
 		} catch (InstantiationException | IllegalAccessException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -248,7 +250,7 @@ public final class MigrationGenerator {
 		try {
 			//make a temporary object out of that class. This is because the fields need to be instantiated in order
 			//		to do anything with them.
-			DbObject modelObject = (DbObject) this.types.newInstance();
+			DbObject modelObject = (DbObject) this.type.newInstance();
 			//table to compare the fields with modelObject
 			MetaTable savedTable = Settings.database.getSpecificTable(modelObject.tableName);
 			
@@ -260,38 +262,48 @@ public final class MigrationGenerator {
 				ArrayList<Operation> diffs = modelObject.getOperationDifferences(savedTable);
 				ArrayList<CreateTable> m2mFieldAdds = new ArrayList<CreateTable>();
 				ArrayList<DropTable> m2mFieldRemoves = new ArrayList<DropTable>();
+				ArrayList<String> m2mFieldsDealtWith = new ArrayList<String>();
 				
 				//adding create table for m2m field
 				for (String m2mFieldName : modelObject.manyToManyFields) {
 					ManyToManyField m2mField = (ManyToManyField) modelObject.getFieldGeneric(m2mFieldName);
-					if (Settings.database.getSpecificTable(m2mField.tableName) == null) {
+					if (Settings.database.getSpecificTable(m2mField.tableName) == null && !m2mFieldsDealtWith.contains(m2mField.tableName)) {
 						m2mFieldAdds.add(new CreateTable(m2mField.tableName, m2mField));
+						m2mFieldsDealtWith.add(m2mField.tableName);
 					}
 				}
 				
-				for (MetaTable metaTable : Settings.database.getTables()) {
-					if (metaTable.getTableName().split("___").length == 4 && metaTable.getTableName().split("___")[0].equals("mtm")) {
+				for (MetaTable metam2mTable : Settings.database.getTables()) {
+					if (m2mFieldsDealtWith.contains(metam2mTable.getTableName())) {
+						continue;
+					}
+					if (metam2mTable.getTableName().split("___").length == 4 && metam2mTable.getTableName().split("___")[0].equals("mtm") && !metam2mTable.getTableName().contains("pkey")) {
 						/*
+						 * This is a many to many field
 						 * If this m2m table belongs to this this model. We don't know if it's necesarilly the right field yet.
 						 */
-						if (metaTable.getTableName().split("___")[2].equals(databaseState.getTableName().split("_")[databaseState.getTableName().split("_").length])) {
+						if (metam2mTable.getTableName().split("___")[2].equals(databaseState.getTableName().split("_")[databaseState.getTableName().split("_").length - 1])) {
 							/*
 							 * does the field exist still? if not, drop this table/m2m field
 							 */
-							if (!modelObject.manyToManyFields.contains(metaTable.getTableName().split("___")[1])) {
+							if (!modelObject.manyToManyFields.contains(metam2mTable.getTableName().split("___")[1])) {
 								//Then this field has been dropped.
-								m2mFieldRemoves.add(new DropTable(Settings.database.schema, metaTable.getTableName()));
+								m2mFieldRemoves.add(new DropTable(Settings.database.dbName, metam2mTable.getTableName()));
+								m2mFieldsDealtWith.add(metam2mTable.getTableName());
 							} else {
 								//The field still exists but may have been altered
-								String metaTableRefName = metaTable.getTableName().split("___")[3];
-								ManyToManyField m2mf = (ManyToManyField) modelObject.getFieldGeneric(metaTable.getTableName().split("___")[1]);
+								String metaTableRefName = metam2mTable.getTableName().split("___")[3];
+								ManyToManyField m2mf = (ManyToManyField) modelObject.getFieldGeneric(metam2mTable.getTableName().split("___")[1]);
 								
 								if (!metaTableRefName.equals(m2mf.refClass.getSimpleName().toLowerCase())) {
 									/*
 									 * Then the field has been altered. drop the table. It has laready been taken care of above while
 									 * adding tables that have been created as new.
 									 */
-									m2mFieldRemoves.add(new DropTable(Settings.database.schema, metaTable.getTableName()));
+									m2mFieldRemoves.add(new DropTable(Settings.database.dbName, metam2mTable.getTableName()));
+									m2mFieldsDealtWith.add(metam2mTable.getTableName());
+								} else {
+									m2mFieldsDealtWith.add(metam2mTable.getTableName());
 								}
 								
 							}
@@ -301,12 +313,16 @@ public final class MigrationGenerator {
 				
 				if (diffs.size() > 0) {
 					Operation[] operations = new Operation[diffs.size()];
-					AlterTable at = new AlterTable(Settings.database.schema, modelObject.tableName, diffs.toArray(operations));
+					AlterTable at = new AlterTable(Settings.database.dbName, modelObject.tableName, diffs.toArray(operations));
 					queries.add(at);
 				}
 				
 				if (m2mFieldAdds.size() > 0) {
 					queries.addAll(m2mFieldAdds);
+				}
+				
+				if (m2mFieldRemoves.size() > 0) {
+					queries.addAll(m2mFieldRemoves);
 				}
 			}
 			return queries;
@@ -319,7 +335,7 @@ public final class MigrationGenerator {
 	
 	public String getLastMigrationRan() {
 		try {
-			File migrationFolder = new File(this.rootMigrationFolderPath + this.types.newInstance().tableName + "-migrations/");
+			File migrationFolder = new File(this.rootMigrationFolderPath + this.type.newInstance().tableName + "-migrations/");
 			File[] migrationFiles = migrationFolder.listFiles(new FileFilter() {
 				
 				@Override
@@ -345,6 +361,8 @@ public final class MigrationGenerator {
 		} catch (InstantiationException | IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (NullPointerException e) {
+			return null;
 		}
 		return null;
 	}
@@ -352,7 +370,7 @@ public final class MigrationGenerator {
 	public void generate() {
 		String tableName = null;
 		try {
-			tableName = this.types.newInstance().tableName;
+			tableName = this.type.newInstance().tableName;
 		} catch (InstantiationException e3) {
 			// TODO Auto-generated catch block
 			e3.printStackTrace();
@@ -362,11 +380,11 @@ public final class MigrationGenerator {
 		}
 		
 		try {
-			if (Settings.database.getSpecificTable(this.types.getName()) == null) {
+			if (Settings.database.getSpecificTable(this.type.newInstance().tableName) == null) {
 				//table has been added so we need to make a create table query.
 				try {
 					this.genterateMigrationFile();
-					this.migrations = new Migration(this.types);
+					this.migration = new Migration(this.type);
 					return;
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
@@ -379,10 +397,16 @@ public final class MigrationGenerator {
 		} catch (SQLException e3) {
 			// TODO Auto-generated catch block
 			e3.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		try {
-			this.types.getField("DROP_TABLE");
+			this.type.getField("DROP_TABLE");
 			/*
 			 * add drop table stuff here.
 			 */
@@ -391,59 +415,73 @@ public final class MigrationGenerator {
 			String last = this.getLastMigrationRan();
 			if (last == null) {
 				newMigration = new Migration(this.getLastMigrationRan(), new Query[]{
-						new DropTable(Settings.database.schema, tableName)
-				});
+						new DropTable(Settings.database.dbName, tableName)
+				}, new Query[0]);
 			} else {
 				newMigration = new Migration(null, new Query[]{
-						new DropTable(Settings.database.schema, tableName)
-				});
+						new DropTable(Settings.database.dbName, tableName)
+				}, new Query[0]);
 			}
 			
 			this.genterateMigrationFile();
-			this.migrations = newMigration;
+			this.migration = newMigration;
 			
 		} catch (NoSuchFieldException e) {
 			//This field does not exist so now see if this table was renamed.
 			
 			try {
-				Field renameField = this.types.getField("RENAME_TABLE");
+				Field renameField = this.type.getField("RENAME_TABLE");
 				Migration newMigration = null;
 				
 				String last = this.getLastMigrationRan();
 				if (last == null) {
 					String newName = (String) renameField.get(null);
 					newMigration = new Migration(last, new Query[]{
-							new AlterTable(Settings.database.schema, this.types.newInstance().tableName, new Operation[]{
+							new AlterTable(Settings.database.dbName, this.type.newInstance().tableName, new Operation[]{
 									new RenameTable(newName)
 							})
-					});
+					}, new Query[0]);
 				} else {
 					String newName = (String) renameField.get(null);
 					newMigration = new Migration(null, new Query[]{
-							new AlterTable(Settings.database.schema, this.types.newInstance().tableName, new Operation[]{
+							new AlterTable(Settings.database.dbName, this.type.newInstance().tableName, new Operation[]{
 									new RenameTable(newName)
 							})
-					});
+					}, new Query[0]);
 				}
 				this.genterateMigrationFile();
-				this.migrations = newMigration;
+				this.migration = newMigration;
 			} catch (NoSuchFieldException e1) {
 				//This field does not exist so now get the differences in the class from the database.
 				
 				try {
 					ArrayList<Query> queryDifferences = this.getTableDifferences();
+					ArrayList<Query> foreignKeysAL = new ArrayList<Query>();
 					
-					
-					if (queryDifferences != null) {
+					if (queryDifferences.size() > 0) {
+						ArrayList<Query> queryDifferencesTemp = (ArrayList<Query>) queryDifferences.clone();
+						for (int i = 0; i < queryDifferencesTemp.size(); i ++) {
+							Query query = queryDifferencesTemp.get(i);
+							if (query instanceof AlterTable) {
+								for (Operation op : ((AlterTable) query).operations) {
+									if (op instanceof AddForeignKey) {
+										foreignKeysAL.add(queryDifferences.get(i));
+										queryDifferences.remove(i);
+									}
+								}
+							}
+						}
 						Query[] queries = new Query[queryDifferences.size()];
 						queries = queryDifferences.toArray(queries);
+						Query[] foreignKeys = new Query[foreignKeysAL.size()];
+						foreignKeys = foreignKeysAL.toArray(foreignKeys);
 						if (this.getLastMigrationRan() == null) {
 							this.genterateMigrationFile();
-							this.migrations = new Migration(this.getLastMigrationRan(), queries);
+							this.migration = new Migration(this.getLastMigrationRan(), queries, foreignKeys);
 						} else {
 							//This is the initial migration
 							this.genterateMigrationFile();
-							this.migrations = new Migration(null, queries);
+							this.migration = new Migration(null, queries, foreignKeys);
 						}
 					}
 				} catch (SQLException e2) {
@@ -482,12 +520,11 @@ public final class MigrationGenerator {
 	
 	public static ArrayList<MigrationGenerator> getMigrations(){
 		ArrayList<MigrationGenerator> migrations = new ArrayList<MigrationGenerator>();
-//		ArrayList<PrintWriter> migrationWriters = new ArrayList<PrintWriter>();
+//		ArrayList<PrintWriter> migrationWriter = new ArrayList<PrintWriter>();
 		
 		/*
 		 * loop through synced models and evaluate the differences between this software and the database
 		 */
-		int index = 0;
 		for (String tableName : Settings.syncedModels.keySet()) {
 			Class<? extends DbObject> classType = Settings.syncedModels.get(tableName);
 			MigrationGenerator migGen = new MigrationGenerator(classType);
@@ -501,19 +538,21 @@ public final class MigrationGenerator {
 	
 	public void printToSqlSheet() {
 		try {
-			String jsonToPrint = JSONFormat.formatJSON(ObjectParser.anyObjectToJSON(this.migrations), 0);
-			this.migrationWriters.print(jsonToPrint);
-			this.migrationWriters.close();
+			String jsonToPrint = JSONFormat.formatJSON(ObjectParser.anyObjectToJSON(this.migration), 0);
+			this.migrationWriter.print(jsonToPrint);
+			this.migrationWriter.close();
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException
 				| ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (NullPointerException e) {
+			System.out.println("No migration for class: " + this.type);
 		}
 	}
 	
 	public String toString() {
 		try {
-			return this.types.newInstance().tableName;
+			return this.type.newInstance().tableName;
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

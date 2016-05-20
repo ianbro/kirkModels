@@ -22,6 +22,7 @@ public class CharField extends SavableField<String> implements JSONMappable {
 		<IntegerField>super(_label, _isNull, _unique, _defaultValue);
 		
 		if(_defaultValue == null || _defaultValue.equals("null-value")) {
+			this.defaultValue = null;
 			this.value = null;
 		} else {
 			this.value = _defaultValue;

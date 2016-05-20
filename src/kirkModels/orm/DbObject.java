@@ -25,11 +25,11 @@ import kirkModels.orm.backend.sync.queries.DropConstraint;
 import kirkModels.orm.backend.sync.queries.DropField;
 import kirkModels.orm.backend.sync.queries.Operation;
 import kirkModels.orm.backend.sync.queries.RenameField;
-import kirkModels.queries.DeleteQuery;
-import kirkModels.queries.InsertQuery;
-import kirkModels.queries.Query;
-import kirkModels.queries.UpdateQuery;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.DeleteQuery;
+import kirkModels.orm.queries.InsertQuery;
+import kirkModels.orm.queries.Query;
+import kirkModels.orm.queries.UpdateQuery;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.tests.Person;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
@@ -415,7 +415,7 @@ public abstract class DbObject {
 	 * @return
 	 */
 	public String[] queryUserForRenameOrDrop(String _columnOrigionalName) {
-		String option = JOptionPane.showInputDialog("We have detected a change in the schema for the class: " + this.getClass().getSimpleName() + " at column: " + _columnOrigionalName + ". did you drop this field or rename it? type \"drop\" or \"rename\" respectively.");
+		String option = JOptionPane.showInputDialog("We have detected a change in the dbName for the class: " + this.getClass().getSimpleName() + " at column: " + _columnOrigionalName + ". did you drop this field or rename it? type \"drop\" or \"rename\" respectively.");
 		if (option.equalsIgnoreCase("drop")) {
 			return new String[]{"drop"};
 		} else if (option.equalsIgnoreCase("rename")) {

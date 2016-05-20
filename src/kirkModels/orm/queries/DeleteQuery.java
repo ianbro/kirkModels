@@ -1,16 +1,16 @@
-package kirkModels.queries;
+package kirkModels.orm.queries;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import kirkModels.config.Settings;
 import kirkModels.orm.DbObject;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.scripts.WhereCondition;
 
 public class DeleteQuery extends WhereConditionedQuery {
 
 	public DeleteQuery(String _tabelName, ArrayList<WhereCondition> _conditions) {
-		super(Settings.database.schema, _tabelName, _conditions);
+		super(Settings.database.dbName, _tabelName, _conditions);
 		// TODO Auto-generated constructor stub
 		
 		this.setSql();

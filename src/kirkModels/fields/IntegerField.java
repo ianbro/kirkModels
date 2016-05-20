@@ -24,11 +24,16 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 		super(_label, _isNull, _unique, _defaultValue);
 		
 		if (_defaultValue == null || _defaultValue == Integer.MIN_VALUE) {
+			this.defaultValue = null;
 			this.value = null;
 		} else {
 			this.value = _defaultValue;
 		}
-		this.maxVal = _maxVal;
+		if (_maxVal == null) {
+			this.maxVal = 100000;
+		} else {
+			this.maxVal = _maxVal;
+		}
 		this.JAVA_TYPE = Integer.class;
 		
 		this.MYSQL_TYPE = this.getMySqlIntType(_maxVal);
@@ -132,8 +137,8 @@ public class IntegerField extends SavableField<Integer> implements JSONMappable 
 	
 	/**
 	 * @Override
-	 * When querying the database for int types, they come back
-	 * as "int4", "int2" and other types like that. int2 is
+	 * When querying the database for int type, they come back
+	 * as "int4", "int2" and other type like that. int2 is
 	 * a smallint while int4 is an integer and so on.
 	 * @return
 	 */

@@ -12,7 +12,7 @@ public class MigrationTracking extends DbObject {
 
 	public static QuerySet<MigrationTracking> objects;
 
-	public static CharField model_name = new CharField("model_name", false, null, true, 100);
+	public CharField model_name = new CharField("model_name", false, null, true, 100);
 	public CharField last_ran = new CharField("last_ran", true, null, true, 100);
 	
 	public void setLastRan(MigrationFile f) {
@@ -24,7 +24,7 @@ public class MigrationTracking extends DbObject {
 	}
 	
 	public static void syncTable(){
-		CreateTable createTracking = new CreateTable(Settings.database.schema, new MigrationTracking());
+		CreateTable createTracking = new CreateTable(Settings.database.dbName, new MigrationTracking());
 		try {
 			createTracking.run();
 		} catch (SQLException e) {

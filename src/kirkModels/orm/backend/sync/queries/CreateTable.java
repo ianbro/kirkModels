@@ -1,7 +1,5 @@
 package kirkModels.orm.backend.sync.queries;
 
-import kirkModels.queries.Query;
-
 import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,6 +10,7 @@ import kirkModels.fields.ForeignKey;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.DbObject;
+import kirkModels.orm.queries.Query;
 
 public class CreateTable extends Query implements JSONMappable {
 	
@@ -193,6 +192,7 @@ public class CreateTable extends Query implements JSONMappable {
 	@Override
 	public void run() throws SQLException {
 		// TODO Auto-generated method stub
+//		System.out.println(this.command);
 		Settings.database.run(this.command);
 	}
 
@@ -202,9 +202,9 @@ public class CreateTable extends Query implements JSONMappable {
 		String sql = "CREATE TABLE " + this.dbName + "." + this.tableName + " (";
 		sql = sql + this.getFieldStrings();
 		sql = sql + "\n);";
-		if (foreignKeys.length > 0) {
-			sql = sql + "\nALTER TABLE " + this.tableName + this.getForeignKeyStrings() + ";";
-		}
+//		if (foreignKeys.length > 0) {
+//			sql = sql + "\nALTER TABLE " + this.tableName + this.getForeignKeyStrings() + ";";
+//		}
 		return sql;
 	}
 
@@ -214,9 +214,9 @@ public class CreateTable extends Query implements JSONMappable {
 		String sql = "CREATE TABLE " + this.tableName + " (";
 		sql = sql + this.getFieldStrings();
 		sql = sql + "\n);";
-		if (foreignKeys.length > 0) {
-			sql = sql + "\nALTER TABLE " + this.tableName + this.getForeignKeyStrings() + ";";
-		}
+//		if (foreignKeys.length > 0) {
+//			sql = sql + "\nALTER TABLE " + this.tableName + this.getForeignKeyStrings() + ";";
+//		}
 		return sql;
 	}
 

@@ -9,7 +9,7 @@ import kirkModels.fields.ForeignKey;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.backend.sync.queries.CreateTable;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.scripts.WhereCondition;
 
 public class MigrationFile extends DbObject implements Comparable<MigrationFile>{
 
@@ -39,7 +39,7 @@ public class MigrationFile extends DbObject implements Comparable<MigrationFile>
 	}
 	
 	public static void syncTable(){
-		CreateTable createFileTable = new CreateTable(Settings.database.schema, new MigrationFile());
+		CreateTable createFileTable = new CreateTable(Settings.database.dbName, new MigrationFile());
 		try {
 			createFileTable.run();
 		} catch (SQLException e) {

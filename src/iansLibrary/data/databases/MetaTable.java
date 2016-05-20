@@ -78,4 +78,8 @@ public class MetaTable {
 		}
 		return null;
 	}
+	
+	public String toString() {
+		return this.tableName;
+	}
 }

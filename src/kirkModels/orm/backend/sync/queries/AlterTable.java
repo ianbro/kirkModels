@@ -1,11 +1,15 @@
 package kirkModels.orm.backend.sync.queries;
 
+import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 
+import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
-import kirkModels.queries.Query;
+import kirkModels.fields.ManyToManyField;
+import kirkModels.fields.SavableField;
+import kirkModels.orm.queries.Query;
 
-public class AlterTable extends Query {
+public class AlterTable extends Query implements JSONMappable {
 	
 	public Operation[] operations;
 
@@ -37,7 +41,9 @@ public class AlterTable extends Query {
 			Operation oper = this.operations[i];
 			sql = sql + "\n\t" + oper.getMySqlString() + ",";
 		}
-		sql = sql + "\n\t" + this.operations[this.operations.length].getMySqlString();
+		if (this.operations.length > 0) {
+			sql = sql + "\n\t" + this.operations[this.operations.length].getMySqlString();
+		}
 		
 		sql = end(sql);
 		return sql;
@@ -45,16 +51,44 @@ public class AlterTable extends Query {
 
 	@Override
 	public String getPsqlString() {
-String sql = "ALTER TABLE " + this.tableName;
+		String sql = "ALTER TABLE " + this.tableName;
 		
 		for (int i = 0; i < this.operations.length - 1; i++) {
 			Operation oper = this.operations[i];
 			sql = sql + "\n\t" + oper.getPsqlString() + ",";
 		}
-		sql = sql + "\n\t" + this.operations[this.operations.length - 1].getPsqlString();
+		if (this.operations.length > 0) {
+			sql = sql + "\n\t" + this.operations[this.operations.length - 1].getPsqlString();
+		}
 		
 		sql = end(sql);
 		return sql;
+	}
+
+	@Override
+	public Constructor getJsonConstructor() {
+		// TODO Auto-generated method stub
+		Class[] paramTypes = new Class[]{
+				String.class,
+				String.class,
+				Operation[].class,
+		};
+		try {
+			return this.getClass().getConstructor(paramTypes);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public String[] getConstructorFieldOrder() {
+		return new String[]{
+				"dbName",
+				"tableName",
+				"operations",
+		};
 	}
 
 }

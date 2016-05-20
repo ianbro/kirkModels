@@ -13,7 +13,7 @@ import org.json.simple.JSONObject;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.orm.DbObject;
-import kirkModels.queries.Query;
+import kirkModels.orm.queries.Query;
 
 public final class JSONClassMapping {
 		
@@ -56,7 +56,7 @@ public final class JSONClassMapping {
 			
 			//figure out how to see if a class is a subclass of Query
 			if (Query.class.isAssignableFrom(Class.forName((String) jsonVal.get("type")))) {
-				jsonVal.put("1#java.lang.String#_dbName", Settings.database.schema);
+				jsonVal.put("1#java.lang.String#_dbName", Settings.database.dbName);
 			}
 			
 			String className = (String) jsonVal.get("type");

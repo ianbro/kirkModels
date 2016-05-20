@@ -1,4 +1,4 @@
-package kirkModels.queries;
+package kirkModels.orm.queries;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -7,14 +7,14 @@ import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.DbObject;
-import kirkModels.queries.scripts.InsertValue;
+import kirkModels.orm.queries.scripts.InsertValue;
 
 public class InsertQuery extends Query {
 	
 	public ArrayList<InsertValue> insertVals = new ArrayList<InsertValue>();
 
 	public InsertQuery(String _tabelName, ArrayList<InsertValue> _insertVals) {
-		super(Settings.database.schema, _tabelName);
+		super(Settings.database.dbName, _tabelName);
 		// TODO Auto-generated constructor stub
 		
 		this.insertVals = _insertVals;
@@ -22,7 +22,7 @@ public class InsertQuery extends Query {
 	}
 	
 	public InsertQuery(DbObject instance) {
-		super(Settings.database.schema, instance.tableName);
+		super(Settings.database.dbName, instance.tableName);
 		
 		this.setValuesFromInstance(instance);
 		this.setSql();

@@ -6,17 +6,18 @@ import java.sql.SQLException;
 import java.text.DateFormat.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.Savable;
-import kirkModels.queries.DeleteQuery;
-import kirkModels.queries.InsertQuery;
-import kirkModels.queries.SelectQuery;
-import kirkModels.queries.UpdateQuery;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.DeleteQuery;
+import kirkModels.orm.queries.InsertQuery;
+import kirkModels.orm.queries.SelectQuery;
+import kirkModels.orm.queries.UpdateQuery;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
@@ -327,43 +328,112 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 
 	@Override
-	public QuerySet<R> getOrCreate(ArrayList<WhereCondition> conditions) {
-		QuerySet<R> set = this.filter(conditions);
+	public Entry<R, Boolean> getOrCreate(ArrayList<WhereCondition> conditions) {
 		
-		if (set.count() == 0) {
-			
+		try{
+			R result = this.get(conditions);
+			return new Entry<R, Boolean>() {
+
+				@Override
+				public R getKey() {
+					// TODO Auto-generated method stub
+					return result;
+				}
+
+				@Override
+				public Boolean getValue() {
+					// TODO Auto-generated method stub
+					return false;
+				}
+
+				@Override
+				public Boolean setValue(Boolean value) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+			};
+		} catch (ObjectNotFoundException e) {
 			try {
-				this.create(conditions);
-			} catch (ObjectAlreadyExistsException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				R instance = this.create(conditions);
+				
+				return new Entry<R, Boolean>() {
+	
+					@Override
+					public R getKey() {
+						// TODO Auto-generated method stub
+						return instance;
+					}
+	
+					@Override
+					public Boolean getValue() {
+						// TODO Auto-generated method stub
+						return true;
+					}
+	
+					@Override
+					public Boolean setValue(Boolean value) {
+						// TODO Auto-generated method stub
+						return null;
+					}
+				};
+			} catch (ObjectAlreadyExistsException e1) {
+				return null;
 			}
-			
-			return this.filter(conditions);
-			
-		} else {
-			return set;
 		}
 	}
 	
-	public QuerySet<R> getOrAdd(ArrayList<WhereCondition> conditions) throws SQLException {
-		QuerySet<R> set = this.filter(conditions);
+	public Entry<R, Boolean> getOrAdd(ArrayList<WhereCondition> conditions) throws SQLException, ObjectNotFoundException {
 		
-		if (set.count() == 0) {
-			
-			for (R instance : this.refClassObjects().filter(conditions)) {
-				try {
-					this.add(instance);
-				} catch (ObjectAlreadyExistsException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+		try{
+			R result = this.get(conditions);
+			return new Entry<R, Boolean>() {
+
+				@Override
+				public R getKey() {
+					// TODO Auto-generated method stub
+					return result;
 				}
+
+				@Override
+				public Boolean getValue() {
+					// TODO Auto-generated method stub
+					return false;
+				}
+
+				@Override
+				public Boolean setValue(Boolean value) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+			};
+		} catch (ObjectNotFoundException e) {
+			try{
+				R instance = this.refClassObjects().get(conditions);
+				this.add(instance);
+				
+				return new Entry<R, Boolean>() {
+	
+					@Override
+					public R getKey() {
+						// TODO Auto-generated method stub
+						return instance;
+					}
+	
+					@Override
+					public Boolean getValue() {
+						// TODO Auto-generated method stub
+						return true;
+					}
+	
+					@Override
+					public Boolean setValue(Boolean value) {
+						// TODO Auto-generated method stub
+						return null;
+					}
+				};
+			} catch (ObjectAlreadyExistsException e1) {
+				return null;
 			}
-			
-			return this.filter(conditions);
-			
-		} else {
-			return set;
 		}
 	}
 

@@ -1,4 +1,4 @@
-package kirkModels.queries;
+package kirkModels.orm.queries;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -6,15 +6,15 @@ import java.util.ArrayList;
 import kirkModels.config.Settings;
 import kirkModels.fields.SavableField;
 import kirkModels.orm.DbObject;
-import kirkModels.queries.scripts.InsertValue;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.scripts.InsertValue;
+import kirkModels.orm.queries.scripts.WhereCondition;
 
 public class UpdateQuery extends WhereConditionedQuery {
 	
 	ArrayList<WhereCondition> newValues = new ArrayList<WhereCondition>();
 
 	public UpdateQuery(String _tableName, ArrayList<WhereCondition> _newValues, ArrayList<WhereCondition> _conditions) {
-		super(Settings.database.schema, _tableName, _conditions);
+		super(Settings.database.dbName, _tableName, _conditions);
 		// TODO Auto-generated constructor stub
 		
 		this.newValues = _newValues;
@@ -22,7 +22,7 @@ public class UpdateQuery extends WhereConditionedQuery {
 	}
 	
 	public UpdateQuery(DbObject updatedInstance) {
-		super(Settings.database.schema, updatedInstance.tableName, null);
+		super(Settings.database.dbName, updatedInstance.tableName, null);
 		// TODO Auto-generated constructor stub
 		
 		this.setConditionsFromInstance(updatedInstance);

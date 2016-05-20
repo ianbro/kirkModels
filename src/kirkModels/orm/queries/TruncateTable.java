@@ -1,4 +1,4 @@
-package kirkModels.queries;
+package kirkModels.orm.queries;
 
 import java.sql.SQLException;
 

@@ -1,11 +1,15 @@
 package kirkModels.orm.backend.sync.queries;
 
+import java.lang.reflect.Constructor;
 import java.sql.SQLException;
 
+import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
-import kirkModels.queries.Query;
+import kirkModels.fields.ManyToManyField;
+import kirkModels.fields.SavableField;
+import kirkModels.orm.queries.Query;
 
-public class DropTable extends Query {
+public class DropTable extends Query implements JSONMappable {
 
 	public DropTable(String _dbName, String _tabelName) {
 		super(_dbName, _tabelName);
@@ -35,6 +39,30 @@ public class DropTable extends Query {
 	public String getPsqlString() {
 		// TODO Auto-generated method stub
 		return "DROP TABLE " + this.tableName + ";";
+	}
+	
+	@Override
+	public Constructor getJsonConstructor() {
+		// TODO Auto-generated method stub
+		Class[] paramTypes = new Class[]{
+				String.class,
+				String.class,
+		};
+		try {
+			return this.getClass().getConstructor(paramTypes);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public String[] getConstructorFieldOrder() {
+		return new String[]{
+				"dbName",
+				"tableName",
+		};
 	}
 
 }

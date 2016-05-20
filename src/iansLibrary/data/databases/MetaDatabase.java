@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Scanner;
 
 import org.json.simple.JSONArray;
@@ -28,6 +29,7 @@ public class MetaDatabase {
 	public String host;
 	public String port;
 	public String schema;
+	public String dbName;
 	public String username;
 	public String password;
 	public String language;
@@ -59,13 +61,14 @@ public class MetaDatabase {
 		this.host = (String) trueDbMap.get("host");
 		this.port = (String) trueDbMap.get("port");
 		this.schema = (String) trueDbMap.get("schema");
+		this.dbName = (String) trueDbMap.get("db_name");
 		this.username = (String) trueDbMap.get("username");
 		this.password = (String) trueDbMap.get("password");
 		this.language = (String) trueDbMap.get("language");
 	}
 	
 	public String getConnectionURL(){
-		String connectionURL = this.urlHeader + "://" + this.host + ":" + this.port + "/" + this.schema;
+		String connectionURL = this.urlHeader + "://" + this.host + ":" + this.port + "/" + this.dbName;
 		return connectionURL;
 	}
 	
@@ -93,13 +96,20 @@ public class MetaDatabase {
 	 * @throws SQLException
 	 */
 	public ArrayList<MetaTable> getTables() throws SQLException {
-		ResultSet tables = this.metaData.getTables(null, null, null, null);
-		ArrayList<MetaTable> tableNames = new ArrayList<MetaTable>();
+		ResultSet tables = this.metaData.getTables(null, Settings.database.schema, null, null);
+		HashSet<String> names = new HashSet<String>();
+		ArrayList<MetaTable> metaTables = new ArrayList<MetaTable>();
 		
 		while (tables.next()) {
-			tableNames.add(new MetaTable(this, tables.getString(3)));
+			if (!names.contains(tables.getString(3))) {
+				names.add(tables.getString(3));
+			}
 		}
-		return tableNames;
+		
+		for (String name : names) {
+			metaTables.add(new MetaTable(this, name));
+		}
+		return metaTables;
 	}
 	
 	public MetaTable getSpecificTable(String tableLabel) throws SQLException {

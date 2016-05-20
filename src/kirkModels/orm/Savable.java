@@ -3,8 +3,9 @@ package kirkModels.orm;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
@@ -16,7 +17,7 @@ public interface Savable <T extends DbObject> {
 	
 	public T get(ArrayList<WhereCondition> conditions) throws ObjectNotFoundException;
 	
-	public QuerySet<T> getOrCreate(ArrayList<WhereCondition> conditions);
+	public Entry<T, Boolean> getOrCreate(ArrayList<WhereCondition> conditions);
 	
 	public QuerySet<T> filter(ArrayList<WhereCondition> conditions);
 	

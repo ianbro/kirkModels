@@ -1,4 +1,4 @@
-package kirkModels.queries;
+package kirkModels.orm.queries;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -8,13 +8,14 @@ import java.util.HashMap;
 import kirkModels.config.Settings;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.scripts.WhereCondition;
 
 public abstract class Query {
 
 	public String tableName;
 	public String dbName;
 	
+	public String shortDescription;
 	protected String command;
 	
 	public Query(String _dbName, String _tabelName) {

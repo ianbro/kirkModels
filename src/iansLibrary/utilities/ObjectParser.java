@@ -11,7 +11,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-import kirkModels.queries.Query;
+import kirkModels.orm.queries.Query;
 
 public final class ObjectParser {
 	
@@ -85,7 +85,7 @@ public final class ObjectParser {
 		if (object == null) {
 			json = new HashMap<String, Object>();
 			((HashMap) json).put(String.class.getName(), "null-value");
-			((HashMap) json).put(Integer.class.getName(), -2147483648);
+			((HashMap) json).put(Integer.class.getName(), Integer.MIN_VALUE);
 		} else if (object instanceof JSONMappable) {
 			json = objectToJSON((JSONMappable) object);
 		} else if (object.getClass().isArray()) {

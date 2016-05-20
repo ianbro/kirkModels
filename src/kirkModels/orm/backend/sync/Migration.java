@@ -18,11 +18,14 @@ import kirkModels.config.Settings;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
+import kirkModels.orm.backend.sync.queries.AddForeignKey;
+import kirkModels.orm.backend.sync.queries.AlterTable;
 import kirkModels.orm.backend.sync.queries.CreateTable;
 import kirkModels.orm.backend.sync.queries.DropTable;
-import kirkModels.queries.InsertQuery;
-import kirkModels.queries.Query;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.backend.sync.queries.Operation;
+import kirkModels.orm.queries.InsertQuery;
+import kirkModels.orm.queries.Query;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.tests.Person;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
@@ -31,8 +34,9 @@ public class Migration implements JSONMappable{
 	
 	public String dependsOn = null;
 	public Query[] operations;
+	public Query[] foreignKeyOperations;
 
-	public Migration(String _dependsOn, Query[] _operations) {
+	public Migration(String _dependsOn, Query[] _operations, Query[] _foreignKeyOperations) {
 		// TODO Auto-generated constructor stub
 		if (_operations != null && _operations.equals("null-value")) {
 			this.dependsOn = null;
@@ -40,6 +44,8 @@ public class Migration implements JSONMappable{
 			this.dependsOn = _dependsOn;
 		}
 		this.operations = _operations;
+		this.foreignKeyOperations = _foreignKeyOperations;
+		this.moveForeignKeyOperationsFromOperations();
 	}
 	
 	/**
@@ -61,15 +67,48 @@ public class Migration implements JSONMappable{
 			e.printStackTrace();
 			this.operations = new Query[0];
 		}
+		this.moveForeignKeyOperationsFromOperations();
 	}
 	
 	public Migration(String dependsOn, boolean blank) {
 		this.dependsOn = dependsOn;
 		this.operations = new Query[0];
+		this.foreignKeyOperations = new Query[0];
+	}
+	
+	/**
+	 * takes any foreign key operations from the array operations and moves it to the field foreignKeyOperations
+	 */
+	public void moveForeignKeyOperationsFromOperations(){
+		ArrayList<AlterTable> foreignKeyOperationsTemp = new ArrayList<AlterTable>();
+		ArrayList<Query> operationsTemp = this.getOpertations();
+		for (int i = 0; i < operationsTemp.size(); i ++) {
+			Query query = operationsTemp.get(i);
+			if (query instanceof AlterTable) {
+				for (Operation op : ((AlterTable) query).operations) {
+					if (op instanceof AddForeignKey) {
+						foreignKeyOperationsTemp.add((AlterTable) operationsTemp.get(i));
+						operationsTemp.remove(i);
+					}
+				}
+			} else if (query instanceof CreateTable) {
+				AddForeignKey[] afk = new AddForeignKey[((CreateTable) query).foreignKeys.length];
+				for (int j = 0; j < afk.length; j++) {
+					afk[j] = new AddForeignKey(((CreateTable) query).foreignKeys[j]);
+				}
+				if (afk.length > 0){
+					foreignKeyOperationsTemp.add(new AlterTable(query.dbName, query.tableName, afk));
+				}
+			}
+		}
+		this.foreignKeyOperations = new Query[foreignKeyOperationsTemp.size()];
+		this.foreignKeyOperations = foreignKeyOperationsTemp.toArray(this.foreignKeyOperations);
+		this.operations = operationsTemp.toArray(this.operations);
 	}
 	
 	public void run() throws SQLException {
 		for (Query query : this.operations) {
+			System.out.println("\t" + query.shortDescription);
 			query.run();
 		}
 	}
@@ -80,6 +119,7 @@ public class Migration implements JSONMappable{
 		try {
 			return this.getClass().getConstructor(new Class[]{
 					String.class,
+					Query[].class,
 					Query[].class,
 			});
 		} catch (NoSuchMethodException | SecurityException e) {
@@ -94,7 +134,8 @@ public class Migration implements JSONMappable{
 		// TODO Auto-generated method stub
 		return new String[]{
 				"dependsOn",
-				"operations"
+				"operations",
+				"foreignKeyOperations",
 		};
 	}
 	
@@ -111,6 +152,32 @@ public class Migration implements JSONMappable{
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public ArrayList<Query> getOpertations() {
+		ArrayList<Query> list = new ArrayList<Query>();
+		for (int i = 0; i < operations.length; i++) {
+			list.add(operations[i]);
+		}
+		return list;
+	}
+	
+	public ArrayList<AlterTable> getForeignKeyOpertations() {
+		ArrayList<AlterTable> list = new ArrayList<AlterTable>();
+		for (int i = 0; i < foreignKeyOperations.length; i++) {
+			list.add((AlterTable) foreignKeyOperations[i]);
+		}
+		return list;
+	}
+	
+	public String toString() {
+		String str = "Depends on: " + this.dependsOn + "\n";
+		for (int i = 0; i < this.operations.length; i++) {
+			Query op = this.operations[i];
+			str = str + "\n" + op.toString();
+		}
+		str = str + "\n====================================================================";
+		return str;
 	}
 
 }

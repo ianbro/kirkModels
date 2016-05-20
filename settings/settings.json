@@ -4,7 +4,8 @@
 			"urlHeader": "jdbc:postgresql",
 			"host": "localhost",
 			"port": "5432",
-			"schema": "vagrant",
+			"db_name": "vagrant",
+			"schema": "public",
 			"username": "vagrant",
 			"password": "vagrant",
 			"language": "postgreSQL"
@@ -14,6 +15,7 @@
 			"urlHeader": "jdbc:mysql",
 			"host": "localhost",
 			"port": "3306",
+			"db_name": "kirkmodels",
 			"schema": "kirkmodels",
 			"username": "root",
 			"password": "saline54",
@@ -24,7 +26,8 @@
 	"defaultDb": "vagrant",
 	
 	"synced_models": [
-		"kirkModels.tests.Person"
+		"kirkModels.tests.Person",
+		"kirkModels.tests.Course"
 	],
 	
 	"migrations_folder": "dataBaseChanges/",

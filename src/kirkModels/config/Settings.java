@@ -50,7 +50,7 @@ public abstract class Settings {
 			}
 		}
 		
-		//set migrations folder
+		//set migration folder
 		MIGRATION_FOLDER = (String) settingsJson.get("migrations_folder");
 		
 		//set Root Folder for project development

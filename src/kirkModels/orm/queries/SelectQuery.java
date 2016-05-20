@@ -1,4 +1,4 @@
-package kirkModels.queries;
+package kirkModels.orm.queries;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +9,8 @@ import java.util.HashMap;
 import kirkModels.config.Settings;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
+import kirkModels.orm.queries.scripts.WhereCondition;
 
 public class SelectQuery extends WhereConditionedQuery {
 	
@@ -18,14 +19,14 @@ public class SelectQuery extends WhereConditionedQuery {
 	public ResultSet results;
 
 	public SelectQuery(String _tabelName, ArrayList<WhereCondition> _conditions) {
-		super(Settings.database.schema, _tabelName, _conditions);
+		super(Settings.database.dbName, _tabelName, _conditions);
 		
 		this.fields.add("*");
 		this.setSql();
 	}
 	
 	public SelectQuery(String _tabelName, ArrayList<String> fields, ArrayList<WhereCondition> _conditions) {
-		super(Settings.database.schema, _tabelName, _conditions);
+		super(Settings.database.dbName, _tabelName, _conditions);
 		
 		this.fields = fields;
 		this.setSql();

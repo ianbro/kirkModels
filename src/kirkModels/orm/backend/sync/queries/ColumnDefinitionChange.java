@@ -1,11 +1,14 @@
 package kirkModels.orm.backend.sync.queries;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 
+import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
+import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
 
-public class ColumnDefinitionChange extends ColumnOperation {
+public class ColumnDefinitionChange extends ColumnOperation implements JSONMappable {
 	
 	public static final String TYPE = "CHANGE_TYPE";
 	public static final String DEFAULT_CHANGE = "CHANGE_DEFAULT";
@@ -32,17 +35,17 @@ public class ColumnDefinitionChange extends ColumnOperation {
 		put("INCREASE_SIZE", "MODIFY COLUMN %s %s");
 	}};
 	
-	private SavableField newDef;
-	private String type;
+	public SavableField newDefinition;
+	public String type;
 	
 	private String mySqlNewDefinition;
 	private String pSqlNewDefinition;
 
-	public ColumnDefinitionChange(String _name, SavableField _newDefinition, String _type) {
+	public ColumnDefinitionChange(String _fieldName, SavableField _newDefinition, String _type) {
 		// TODO Auto-generated constructor stub
-		super(_name);
+		super(_fieldName);
 		
-		this.newDef = _newDefinition;
+		this.newDefinition = _newDefinition;
 		this.type = _type;
 		
 		this.mySqlNewDefinition = _newDefinition.getMySqlDefinition();
@@ -55,22 +58,22 @@ public class ColumnDefinitionChange extends ColumnOperation {
 		switch (this.type) {
 		case TYPE:
 			template = MYSQL_OPERATIONS.get(TYPE);
-			return String.format(template, this.fieldName, this.newDef.getMySqlDefinition());
+			return String.format(template, this.fieldName, this.newDefinition.getMySqlDefinition());
 		case DEFAULT_CHANGE:
 			template = MYSQL_OPERATIONS.get(DEFAULT_CHANGE);
-			return String.format(template, this.fieldName, this.newDef.defaultValue);
+			return String.format(template, this.fieldName, this.newDefinition.defaultValue);
 		case DEFAULT_DROP:
 			template = MYSQL_OPERATIONS.get(DEFAULT_DROP);
 			return String.format(template, this.fieldName);
 		case NULL_NO:
 			template = MYSQL_OPERATIONS.get(NULL_NO);
-			return String.format(template, this.fieldName, this.newDef.getMySqlDefinition());
+			return String.format(template, this.fieldName, this.newDefinition.getMySqlDefinition());
 		case NULL_YES:
 			template = MYSQL_OPERATIONS.get(NULL_YES);
-			return String.format(template, this.fieldName, this.newDef.getMySqlDefinition());
+			return String.format(template, this.fieldName, this.newDefinition.getMySqlDefinition());
 		case INCREASE_SIZE:
 			template = MYSQL_OPERATIONS.get(INCREASE_SIZE);
-			return String.format(template, this.fieldName, this.newDef.getMySqlDefinition());
+			return String.format(template, this.fieldName, this.newDefinition.getMySqlDefinition());
 		default:
 			return "";
 		}
@@ -81,10 +84,10 @@ public class ColumnDefinitionChange extends ColumnOperation {
 		switch (this.type) {
 		case TYPE:
 			template = PSQL_OPERATIONS.get(TYPE);
-			return String.format(template, this.fieldName, this.newDef.PSQL_TYPE);
+			return String.format(template, this.fieldName, this.newDefinition.PSQL_TYPE);
 		case DEFAULT_CHANGE:
-			Object defVal = this.newDef.defaultValue;
-			if (this.newDef.defaultValue instanceof String) {
+			Object defVal = this.newDefinition.defaultValue;
+			if (this.newDefinition.defaultValue instanceof String) {
 				defVal = "'" + defVal + "'";
 			}
 			template = PSQL_OPERATIONS.get(DEFAULT_CHANGE);
@@ -100,10 +103,36 @@ public class ColumnDefinitionChange extends ColumnOperation {
 			return String.format(template, this.fieldName);
 		case INCREASE_SIZE:
 			template = PSQL_OPERATIONS.get(INCREASE_SIZE);
-			return String.format(template, this.fieldName, this.newDef.PSQL_TYPE);
+			return String.format(template, this.fieldName, this.newDefinition.PSQL_TYPE);
 		default:
 			return "";
 		}
+	}
+
+	@Override
+	public Constructor getJsonConstructor() {
+		// TODO Auto-generated method stub
+		Class[] paramTypes = new Class[]{
+				String.class,
+				SavableField.class,
+				String.class,
+		};
+		try {
+			return this.getClass().getConstructor(paramTypes);
+		} catch (NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@Override
+	public String[] getConstructorFieldOrder() {
+		return new String[]{
+				"fieldName",
+				"newDefinition",
+				"type",
+		};
 	}
 
 }

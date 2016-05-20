@@ -9,13 +9,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
-import kirkModels.queries.InsertQuery;
-import kirkModels.queries.SelectQuery;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.InsertQuery;
+import kirkModels.orm.queries.SelectQuery;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
@@ -432,24 +433,59 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 	}
 
 	@Override
-	public QuerySet<T> getOrCreate(ArrayList<WhereCondition> conditions){
+	public Entry<T, Boolean> getOrCreate(ArrayList<WhereCondition> conditions){
 		conditions = this.combineConditions(conditions);
 		
-		QuerySet<T> results = this.filter(conditions);
-		
-		if (results.count() > 0) {
-			return results;
-		}
-		else {
+		try{
+			T result = this.get(conditions);
+			return new Entry<T, Boolean>() {
+
+				@Override
+				public T getKey() {
+					// TODO Auto-generated method stub
+					return result;
+				}
+
+				@Override
+				public Boolean getValue() {
+					// TODO Auto-generated method stub
+					return false;
+				}
+
+				@Override
+				public Boolean setValue(Boolean value) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+			};
+		} catch (ObjectNotFoundException e) {
 			try {
 				T newInstance = this.create(conditions);
-			} catch (ObjectAlreadyExistsException e) {
+				return new Entry<T, Boolean>() {
+
+					@Override
+					public T getKey() {
+						// TODO Auto-generated method stub
+						return newInstance;
+					}
+
+					@Override
+					public Boolean getValue() {
+						// TODO Auto-generated method stub
+						return true;
+					}
+
+					@Override
+					public Boolean setValue(Boolean value) {
+						// TODO Auto-generated method stub
+						return null;
+					}
+				};
+			} catch (ObjectAlreadyExistsException e1) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e1.printStackTrace();
+				return null;
 			}
-			
-			QuerySet<T> querySet = this.filter(conditions);
-			return querySet;
 		}
 	}
 	
@@ -462,16 +498,14 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 
 	@Override
 	public QuerySet<T> filter(ArrayList<WhereCondition> conditions) {
-		WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, 0);
 		
 		ArrayList<WhereCondition> tempConditions = this.combineConditions(conditions);
-		tempConditions.add(c);
 		
 		//empty queryset
 		QuerySet<T> newQuerySet = new QuerySet<T>(this.type, this.tableName);
 		
 		for (T instance : this.storage) {
-			if(instance.meetsConditions(conditions)){
+			if(instance.meetsConditions(tempConditions)){
 				newQuerySet.storage.add(instance);
 			}
 		}

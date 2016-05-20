@@ -45,14 +45,14 @@ import kirkModels.orm.backend.sync.queries.DropField;
 import kirkModels.orm.backend.sync.queries.Operation;
 import kirkModels.orm.backend.sync.queries.RenameField;
 import kirkModels.orm.backend.sync.queries.RenameTable;
-import kirkModels.queries.DeleteQuery;
-import kirkModels.queries.InsertQuery;
-import kirkModels.queries.SelectQuery;
-import kirkModels.queries.UpdateQuery;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.DeleteQuery;
+import kirkModels.orm.queries.InsertQuery;
+import kirkModels.orm.queries.SelectQuery;
+import kirkModels.orm.queries.UpdateQuery;
+import kirkModels.orm.queries.scripts.InsertValue;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
-import kirkModels.queries.scripts.InsertValue;
 
 public abstract class TestModels {
 
@@ -104,8 +104,7 @@ public abstract class TestModels {
 		
 //		MigrationTracking.syncTable();
 //		MigrationFile.syncTable();
-//		MigrationGenerator mg = new MigrationGenerator(Person.class);
-		System.out.println(MigrationGenerator.getMigrations());
-//		DbSync.migrate();
+//		System.out.println(MigrationGenerator.getMigrations());
+		DbSync.migrate();
 	}
 }

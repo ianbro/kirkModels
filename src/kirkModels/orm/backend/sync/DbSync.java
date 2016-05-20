@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import org.json.simple.JSONArray;
@@ -24,15 +25,15 @@ import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
+import kirkModels.orm.backend.sync.queries.AlterTable;
 import kirkModels.orm.backend.sync.queries.CreateTable;
-import kirkModels.queries.Query;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.Query;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
 public class DbSync {
-
-	String dbName;
-	Connection dbConnection;
+	
+	static ArrayList<AlterTable> foreignKeyOperations = null;
 	
 	public static void migrate() throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException, ObjectNotFoundException {
 		if (Settings.database.getSpecificTable(new MigrationTracking().tableName) == null) {
@@ -50,7 +51,7 @@ public class DbSync {
 			Class<? extends DbObject> modelClass = Settings.syncedModels.get(tableName);
 			MigrationTracking mt = MigrationTracking.objects.getOrCreate(new ArrayList<WhereCondition>(){{
 				add(new WhereCondition("model_name", WhereCondition.EQUALS, modelClass.getName()));
-			}}).getRow(0);
+			}}).getKey();
 			
 			for (int i = 0; i < getMigrationFilesForModel(getMigrationFolderForModel(modelClass)).length; i++) {
 				File migFile = getMigrationFilesForModel(getMigrationFolderForModel(modelClass))[i];
@@ -61,7 +62,7 @@ public class DbSync {
 					add(new WhereCondition("dir_path", WhereCondition.EQUALS, dirName));
 					add(new WhereCondition("model_name", WhereCondition.EQUALS, modelClass.getName()));
 					add(new WhereCondition("migration_tracker", WhereCondition.EQUALS, mt.id.val()));
-				}}).getRow(0);
+				}}).getKey();
 			}
 		}
 	}
@@ -92,14 +93,17 @@ public class DbSync {
 	}
 	
 	public static void migrateModels() throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException, ObjectNotFoundException {
+		foreignKeyOperations = new ArrayList<AlterTable>();
 		for (String modelKey : Settings.syncedModels.keySet()) {
 			Class<? extends DbObject> modelClass = Settings.syncedModels.get(modelKey);
 
 			runNextMigrationForModel(modelClass);
 		}
+		runForeignKeyOperations();
 	}
 	
 	public static void runNextMigrationForModel(Class<? extends DbObject> modelClass) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException, ObjectNotFoundException {
+		System.out.println("Applying Migrations for " + modelClass.getName() + "...");
 		MigrationTracking migrationTracker = MigrationTracking.objects.get(new ArrayList<WhereCondition>(){{
 			add(new WhereCondition("model_name", WhereCondition.EQUALS, modelClass.getName()));
 		}});
@@ -143,12 +147,23 @@ public class DbSync {
 					runNextMigrationForModel(modelClass);
 				}
 			} catch (ObjectNotFoundException e) {
+				System.out.println("\t" + toRun.file_name + "...");
 				toMigrate.run();
+				foreignKeyOperations.addAll(toMigrate.getForeignKeyOpertations());
 				migrationTracker.setLastRan(toRun);
 				migrationTracker.save();
 				runNextMigrationForModel(modelClass);
 			}
+		} else {
+			System.out.println("\tNo Migrations need to be applied for " + modelClass.getName() + ".");
 		}
+	}
+	
+	public static void runForeignKeyOperations() throws SQLException{
+		for (AlterTable query : foreignKeyOperations) {
+			query.run();
+		}
+		foreignKeyOperations = null;
 	}
 	
 	

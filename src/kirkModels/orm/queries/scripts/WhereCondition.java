@@ -1,4 +1,4 @@
-package kirkModels.queries.scripts;
+package kirkModels.orm.queries.scripts;
 
 import java.util.ArrayList;
 import java.util.HashMap;

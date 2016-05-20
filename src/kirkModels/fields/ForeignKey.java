@@ -8,7 +8,7 @@ import java.util.HashMap;
 import iansLibrary.utilities.JSONMappable;
 import kirkModels.orm.DbObject;
 import kirkModels.orm.QuerySet;
-import kirkModels.queries.scripts.WhereCondition;
+import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
 public class ForeignKey<T extends DbObject> extends IntegerField implements JSONMappable {
