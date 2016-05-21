@@ -52,46 +52,98 @@ import kirkModels.utils.exceptions.ObjectNotFoundException;
  * 			public IntegerField age = new IntegerField("age", *parameters*);<br><br>
  * 
  * 		}
+ * </p>
+ * Note: you must always have a constructor that takes no parameters.<br><br>
  * @author kirkp1ia
  *
  */
 public abstract class Model {
 
+	/**
+	 * <p>Query Set object that represents the instances of the class that extends Model.
+	 * This essentially a list of objects in the database that are contained in the table represented by this class.</p>
+	 */
+	@SuppressWarnings("rawtypes")
 	public static QuerySet objects;
 	
+	/**
+	 * Every Model must have a field called id that will 
+	 * be used as the primary key for the object.
+	 */
 	public IntegerField id = new IntegerField("id", false, null, true, null);
+	
+	/**
+	 * A list of all fields (excluding ManyToManyField's. 
+	 * These are stored in {@code manyToManyFields}.) that 
+	 * will be mapped onto the database.
+	 */
 	public ArrayList<String> savableFields = new ArrayList<String>();
+	
+	/**
+	 * A list of ManyToManyFields that will be represented 
+	 * as seperate tables handling the relationships between 
+	 * the host objects (this object) and the related objects.
+	 */
 	public ArrayList<String> manyToManyFields = new ArrayList<String>();
+	
+	/**
+	 * Name of the table which represents this class in the database.<br>
+	 * By default, table names are the the full name of the class 
+	 * including packages with the '.'s replaced with '_'s and every 
+	 * character turned lowercase. so a class foo.bar.Person would 
+	 * have a table name of "foo_bar_person".
+	 */
 	public String tableName;
 	
 	/**
-	 * When instantiating a Model, if it contains a many to many field, you must call manyToManyfield.setHostId(id).
-	 * This tells the field what instance is the host instance.
+	 * Constructs the model object. This will add any Savable Fields 
+	 * to the list {@code savableFields} and any Many To Many Fields 
+	 * to the list {@code manyToManyFields}.
 	 */
 	public Model(){
+		
+		// Set default tablename for this model.
 		this.tableName = this.getClass().getName().replace(".", "_").toLowerCase();
-		int id = 1;
-		//get id to set this to
+		
+		/*
+		 * Adding fields of class SavableField to this.savableFields
+		 * Adding fields of class Many To Many Field to this.manyToManyFields
+		 */
 		for(Field field : this.getClass().getFields()){
 			if(!ManyToManyField.class.isAssignableFrom(field.getType()) && !SavableField.class.isAssignableFrom(field.getType())){
+				// Then this field is neither a Many To Many Field or a SavableField.
+				// So don't do anything with this field. It has no effect on the ORM.
 				continue;
-			} if (ManyToManyField.class.isAssignableFrom(field.getType())) {
+			} else if (ManyToManyField.class.isAssignableFrom(field.getType())) {
+				// Then this field is a ManyToManyField
 				this.manyToManyFields.add(field.getName());
-			}
-			else{
+			} else{
+				// Then this field is a SavableField
 				this.savableFields.add(field.getName());
 			}
 		}
 	}
 	
+	/**
+	 * Delete this object from the database.
+	 */
 	public void delete() {
+		/**
+		 * If this instance is actually saved to the database, delete it
+		 */
 		if(((QuerySet) Model.getObjectsForGenericType(this.getClass())).exists(this)){
+			/*
+			 * Then the object exists
+			 */
+			
+			// Create the delete query for this item
 			DeleteQuery query = new DeleteQuery(this.tableName, new ArrayList<WhereCondition>(){{
 				add(new WhereCondition("id", WhereCondition.EQUALS, id.val()));
 			}});
 			
 			try {
 				query.run();
+				Settings.setObjectsForModel(this.getClass()); // Refresh the storage for this class to reflect the deletion.
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -99,30 +151,44 @@ public abstract class Model {
 		}
 	}
 	
+	/**
+	 * Saves this object to the database. If it already exists, it simply updates it. 
+	 * This method sets the id automatically if the object doesn't exist.
+	 */
 	public void save() {
 
 		if(this.id.val() == 0 || ! ((QuerySet) Model.getObjectsForGenericType(this.getClass())).exists(this)){
+			/*
+			 *  Then the object does not exist already in the database so we will add it.
+			 */
+			
 			int newId = Model.getNewId(this);
 			this.id.set(newId);
 			
+			// Prepare the query to add this object to the database.
 			InsertQuery query = new InsertQuery(this);
 			try {
 				query.run();
+				Settings.setObjectsForModel(this.getClass()); // Refresh the storage for this class to reflect the new instance.
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-			Settings.setObjectsForModels();
 		} else {
+			/*
+			 * Then the object exists. So it will simply be updated in the database.
+			 */
+			
 			UpdateQuery query = new UpdateQuery(this);
 			try {
 				query.run();
+				Settings.setObjectsForModel(this.getClass()); // Refresh the storage for this calss to reflect the change in this object.
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			Settings.setObjectsForModel(this.getClass());
+			
 		}
 		
 		this.initializeManyToManyFields();
