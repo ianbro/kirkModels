@@ -15,7 +15,7 @@ import org.json.simple.parser.ParseException;
 import iansLibrary.utilities.JSONClassMapping;
 import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
 import kirkModels.orm.backend.sync.queries.AddForeignKey;
@@ -52,7 +52,7 @@ public class Migration implements JSONMappable{
 	 * creates the initial migration for {@code type}.
 	 * @param type
 	 */
-	public Migration(Class<? extends DbObject> type) {
+	public Migration(Class<? extends Model> type) {
 		this.dependsOn = null;
 		try {
 			this.operations = new Query[]{

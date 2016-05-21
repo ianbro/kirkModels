@@ -33,7 +33,29 @@ import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.tests.Person;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
-public abstract class DbObject {
+/**
+ * <p>Class to be extended in order to reflect a class to the database and run queries on for that class.</p>
+ * <p>
+ * 	This class is fairly simple to set up. When extending this class, the child class must have the following ellements:<br>
+ * 	- {@code public static QuerySet<*classType*> objects;}<br>
+ *  - any fields to be reflected onto the database. These fields must have the public keyword applied to them.<br><br>
+ * 
+ * 	For example, assume a class Person exists. Person extends Model because the developer wants to map the class as a table
+ * 		onto a database. The developer wants the class to contain 2 field: name(string) and age(integer) the class definition
+ * 		must at least have the following definition:<br><br><br>
+ * 
+ * 		class Person extends Model {<br><br>
+ * 			
+ * 			public static QuerySet<Person> objects;<br><br>
+ * 			
+ * 			public CharField name = new CharField("name", *parameters*);<br>
+ * 			public IntegerField age = new IntegerField("age", *parameters*);<br><br>
+ * 
+ * 		}
+ * @author kirkp1ia
+ *
+ */
+public abstract class Model {
 
 	public static QuerySet objects;
 	
@@ -43,10 +65,10 @@ public abstract class DbObject {
 	public String tableName;
 	
 	/**
-	 * When instantiating a DbObject, if it contains a many to many field, you must call manyToManyfield.setHostId(id).
+	 * When instantiating a Model, if it contains a many to many field, you must call manyToManyfield.setHostId(id).
 	 * This tells the field what instance is the host instance.
 	 */
-	public DbObject(){
+	public Model(){
 		this.tableName = this.getClass().getName().replace(".", "_").toLowerCase();
 		int id = 1;
 		//get id to set this to
@@ -63,7 +85,7 @@ public abstract class DbObject {
 	}
 	
 	public void delete() {
-		if(((QuerySet) DbObject.getObjectsForGenericType(this.getClass())).exists(this)){
+		if(((QuerySet) Model.getObjectsForGenericType(this.getClass())).exists(this)){
 			DeleteQuery query = new DeleteQuery(this.tableName, new ArrayList<WhereCondition>(){{
 				add(new WhereCondition("id", WhereCondition.EQUALS, id.val()));
 			}});
@@ -79,8 +101,8 @@ public abstract class DbObject {
 	
 	public void save() {
 
-		if(this.id.val() == 0 || ! ((QuerySet) DbObject.getObjectsForGenericType(this.getClass())).exists(this)){
-			int newId = DbObject.getNewId(this);
+		if(this.id.val() == 0 || ! ((QuerySet) Model.getObjectsForGenericType(this.getClass())).exists(this)){
+			int newId = Model.getNewId(this);
 			this.id.set(newId);
 			
 			InsertQuery query = new InsertQuery(this);
@@ -106,8 +128,8 @@ public abstract class DbObject {
 		this.initializeManyToManyFields();
 	}
 	
-	public static int getNewId(DbObject instance){
-		int newId = DbObject.getObjectsForGenericType(instance.getClass()).count() + 1;
+	public static int getNewId(Model instance){
+		int newId = Model.getObjectsForGenericType(instance.getClass()).count() + 1;
 		boolean idWorks = false;
 		
 		while (!idWorks){
@@ -116,7 +138,7 @@ public abstract class DbObject {
 			WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, newId);
 			
 			try {
-				DbObject o = DbObject.getObjectsForGenericType(instance.getClass()).get(new ArrayList<WhereCondition>(){{
+				Model o = Model.getObjectsForGenericType(instance.getClass()).get(new ArrayList<WhereCondition>(){{
 					add(c);
 				}});
 			} catch (ObjectNotFoundException e) {
@@ -271,7 +293,7 @@ public abstract class DbObject {
 		}
 	}
 	
-	public static <T extends DbObject> QuerySet<T> getObjectsForGenericType(Class<T> type){
+	public static <T extends Model> QuerySet<T> getObjectsForGenericType(Class<T> type){
 		Field objectsTemp = null;
 		try {
 			objectsTemp = type.getField("objects");

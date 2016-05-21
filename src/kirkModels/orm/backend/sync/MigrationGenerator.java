@@ -23,7 +23,7 @@ import iansLibrary.utilities.JSONFormat;
 import iansLibrary.utilities.ObjectParser;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
 import kirkModels.orm.backend.sync.queries.AddColumn;
@@ -47,9 +47,9 @@ public final class MigrationGenerator {
 	public PrintWriter migrationWriter;
 	public Migration migration;
 	public File migrationFile;
-	public Class<? extends DbObject> type;
+	public Class<? extends Model> type;
 	
-	public MigrationGenerator(Class<? extends DbObject> _type) {
+	public MigrationGenerator(Class<? extends Model> _type) {
 		this.type = _type;
 		try {
 			this.rootMigrationFolderPath = Settings.MIGRATION_FOLDER + this.type.newInstance().tableName + "-migrations/";
@@ -214,7 +214,7 @@ public final class MigrationGenerator {
 	public boolean tableExists(MetaTable _table) {
 		for (Class modelClass : Settings.syncedModels.values()) {
 			try {
-				DbObject modelObject = (DbObject) modelClass.newInstance();
+				Model modelObject = (Model) modelClass.newInstance();
 				if (modelObject.tableName.equals(_table.getTableName())) {
 					return true;
 				}
@@ -250,7 +250,7 @@ public final class MigrationGenerator {
 		try {
 			//make a temporary object out of that class. This is because the fields need to be instantiated in order
 			//		to do anything with them.
-			DbObject modelObject = (DbObject) this.type.newInstance();
+			Model modelObject = (Model) this.type.newInstance();
 			//table to compare the fields with modelObject
 			MetaTable savedTable = Settings.database.getSpecificTable(modelObject.tableName);
 			
@@ -526,7 +526,7 @@ public final class MigrationGenerator {
 		 * loop through synced models and evaluate the differences between this software and the database
 		 */
 		for (String tableName : Settings.syncedModels.keySet()) {
-			Class<? extends DbObject> classType = Settings.syncedModels.get(tableName);
+			Class<? extends Model> classType = Settings.syncedModels.get(tableName);
 			MigrationGenerator migGen = new MigrationGenerator(classType);
 			migGen.generate();
 			migGen.printToSqlSheet();

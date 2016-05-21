@@ -10,7 +10,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import kirkModels.fields.SavableField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 
 public abstract class Utilities {
 
@@ -26,11 +26,11 @@ public abstract class Utilities {
 		return json(jsonReader.next());
 	}
 	
-	public static DbObject instantiateDbObject(HashMap<String, Object> kwargs){
+	public static Model instantiateDbObject(HashMap<String, Object> kwargs){
 		Class<?> table = (Class<?>) kwargs.get("table_label");
-		DbObject instance = null;
+		Model instance = null;
 		try {
-			instance = (DbObject) table.newInstance();
+			instance = (Model) table.newInstance();
 			for(String key : kwargs.keySet()){
 				if(!key.equals("table_label")){
 					((SavableField) instance.getClass().getField(key).get(instance)).set(kwargs.get(key));

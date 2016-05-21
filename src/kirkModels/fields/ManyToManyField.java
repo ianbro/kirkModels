@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 
 import iansLibrary.utilities.JSONMappable;
 import kirkModels.config.Settings;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.Savable;
 import kirkModels.orm.queries.DeleteQuery;
@@ -21,7 +21,7 @@ import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
-public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbObject implements Savable<R>, JSONMappable {
+public class ManyToManyField<T extends Model, R extends Model> extends Model implements Savable<R>, JSONMappable {
 	
 	public ForeignKey<T> reference1; // label: "host_<T>_id"
 	public Class<T> hostClass;
@@ -37,7 +37,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	 * @param _host
 	 * @param _refClass
 	 */
-	public ManyToManyField(String _tableName, DbObject _host, Class<R> _refClass){
+	public ManyToManyField(String _tableName, Model _host, Class<R> _refClass){
 		this.hostClass = (Class<T>) _host.getClass();
 		this.refClass = _refClass;
 		
@@ -151,7 +151,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 			
 		}
 		
-		values = DbObject.getObjectsForGenericType(refClass).filter(conditions);
+		values = Model.getObjectsForGenericType(refClass).filter(conditions);
 		values.conditions = new ArrayList<WhereCondition>();
 		
 		this.objectSet = values;
@@ -175,7 +175,7 @@ public class ManyToManyField<T extends DbObject, R extends DbObject> extends DbO
 	}
 	
 	public QuerySet<R> refClassObjects(){
-		return (QuerySet<R>) DbObject.getObjectsForGenericType((Class<T>) this.refClass);
+		return (QuerySet<R>) Model.getObjectsForGenericType((Class<T>) this.refClass);
 	}
 	
 	public int getNewId(ManyToManyField instance){

@@ -9,7 +9,7 @@ import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
-public interface Savable <T extends DbObject> {
+public interface Savable <T extends Model> {
 	
 	public QuerySet<T> all();
 	

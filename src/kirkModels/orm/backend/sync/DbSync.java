@@ -21,7 +21,7 @@ import iansLibrary.data.databases.MetaDatabase;
 import iansLibrary.utilities.JSONClassMapping;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationTracking;
@@ -48,7 +48,7 @@ public class DbSync {
 	
 	public static void syncBaseDatabase() {
 		for (String tableName : Settings.syncedModels.keySet()) {
-			Class<? extends DbObject> modelClass = Settings.syncedModels.get(tableName);
+			Class<? extends Model> modelClass = Settings.syncedModels.get(tableName);
 			MigrationTracking mt = MigrationTracking.objects.getOrCreate(new ArrayList<WhereCondition>(){{
 				add(new WhereCondition("model_name", WhereCondition.EQUALS, modelClass.getName()));
 			}}).getKey();
@@ -81,7 +81,7 @@ public class DbSync {
 		return migrationFiles;
 	}
 	
-	public static File getMigrationFolderForModel(Class<? extends DbObject> _modelClass) {
+	public static File getMigrationFolderForModel(Class<? extends Model> _modelClass) {
 		try {
 			String path = Settings.MIGRATION_FOLDER + _modelClass.newInstance().tableName + "-migrations/";
 			return new File(path);
@@ -95,14 +95,14 @@ public class DbSync {
 	public static void migrateModels() throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException, ObjectNotFoundException {
 		foreignKeyOperations = new ArrayList<AlterTable>();
 		for (String modelKey : Settings.syncedModels.keySet()) {
-			Class<? extends DbObject> modelClass = Settings.syncedModels.get(modelKey);
+			Class<? extends Model> modelClass = Settings.syncedModels.get(modelKey);
 
 			runNextMigrationForModel(modelClass);
 		}
 		runForeignKeyOperations();
 	}
 	
-	public static void runNextMigrationForModel(Class<? extends DbObject> modelClass) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException, ObjectNotFoundException {
+	public static void runNextMigrationForModel(Class<? extends Model> modelClass) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException, ObjectNotFoundException {
 		System.out.println("Applying Migrations for " + modelClass.getName() + "...");
 		MigrationTracking migrationTracker = MigrationTracking.objects.get(new ArrayList<WhereCondition>(){{
 			add(new WhereCondition("model_name", WhereCondition.EQUALS, modelClass.getName()));

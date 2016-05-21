@@ -31,6 +31,7 @@ import kirkModels.fields.ForeignKey;
 import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
+import kirkModels.orm.Project;
 import kirkModels.orm.backend.sync.DbSync;
 import kirkModels.orm.backend.sync.MigrationGenerator;
 import kirkModels.orm.backend.sync.migrationTracking.MigrationFile;
@@ -57,53 +58,11 @@ import kirkModels.utils.exceptions.ObjectNotFoundException;
 public abstract class TestModels {
 
 	@SuppressWarnings("unchecked")
-	public static void main(String[] args) throws ObjectNotFoundException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException {
+	public static void main(String[] args) throws ObjectNotFoundException, ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, FileNotFoundException, SQLException, ParseException {
 		// TODO Auto-generated method stub
 
-		MetaDatabase db = null;
-		try {
-			Settings.syncSettings(new File("settings/settings.json"));
-			
-			Settings.database.connect();
-//			Settings.setObjectsForModels();
-		} catch (FileNotFoundException | ParseException | SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Project.initialize("settings/settings.json");
 		
-//		Migration m = new Migration(Person.class);
-//		
-//		MigrationGenerator.makeInitialSql(m);
-		
-//		try {
-//			s.readMigrations();
-//		} catch (FileNotFoundException | ClassNotFoundException | NoSuchMethodException | InstantiationException
-//				| IllegalAccessException | IllegalArgumentException | InvocationTargetException | ParseException
-//				| SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
-//		MigrationGenerator gen = new MigrationGenerator(Settings.MIGRATION_FOLDER);
-//		try {
-//			gen.generateMigrationFiles();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-//		try {
-//			MetaTable ts = Settings.database.getTables().get(2);
-//			MetaTableColumn cm = ts.columns.get(1);
-//			System.out.println(cm.getColumnName());
-//			System.out.println(new Person().age.equals(cm));
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-//		MigrationTracking.syncTable();
-//		MigrationFile.syncTable();
 //		System.out.println(MigrationGenerator.getMigrations());
 		DbSync.migrate();
 	}

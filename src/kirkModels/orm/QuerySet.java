@@ -20,7 +20,7 @@ import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectAlreadyExistsException;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
-public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
+public class QuerySet<T extends Model> implements Savable<T>, Iterable<T>{
 	
 	public ArrayList<T> storage;
 	public ResultSet results;
@@ -389,7 +389,7 @@ public class QuerySet<T extends DbObject> implements Savable<T>, Iterable<T>{
 		}
 		
 		{
-			int newId = DbObject.getNewId(newInstance);
+			int newId = Model.getNewId(newInstance);
 			newInstance.id.set(newId);
 			
 			InsertQuery query = new InsertQuery(newInstance);

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import kirkModels.config.Settings;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.queries.scripts.WhereCondition;
 

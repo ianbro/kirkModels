@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import iansLibrary.utilities.JSONMappable;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.queries.scripts.WhereCondition;
 import kirkModels.utils.exceptions.ObjectNotFoundException;
 
-public class ForeignKey<T extends DbObject> extends IntegerField implements JSONMappable {
+public class ForeignKey<T extends Model> extends IntegerField implements JSONMappable {
 	
 	public T referencedInstant;
 	public Class<T> referenceClass;
@@ -76,7 +76,7 @@ public class ForeignKey<T extends DbObject> extends IntegerField implements JSON
 	}
 	
 	/**
-	 * set the DbObject that this field will reference
+	 * set the Model that this field will reference
 	 * @param value
 	 */
 	public void setObject(T value){
@@ -103,7 +103,7 @@ public class ForeignKey<T extends DbObject> extends IntegerField implements JSON
 			ArrayList<WhereCondition> conditions = new ArrayList<WhereCondition>();
 			WhereCondition id = new WhereCondition("id", WhereCondition.EQUALS, value);
 			conditions.add(id);
-			return DbObject.getObjectsForGenericType(this.referenceClass).get(conditions);
+			return Model.getObjectsForGenericType(this.referenceClass).get(conditions);
 		} else if (this.value == null) {
 			return null;
 		}

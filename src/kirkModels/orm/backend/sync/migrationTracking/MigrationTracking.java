@@ -4,11 +4,11 @@ import java.sql.SQLException;
 
 import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.backend.sync.queries.CreateTable;
 
-public class MigrationTracking extends DbObject {
+public class MigrationTracking extends Model {
 
 	public static QuerySet<MigrationTracking> objects;
 

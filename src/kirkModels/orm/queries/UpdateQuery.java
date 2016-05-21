@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import kirkModels.config.Settings;
 import kirkModels.fields.SavableField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.queries.scripts.InsertValue;
 import kirkModels.orm.queries.scripts.WhereCondition;
 
@@ -21,7 +21,7 @@ public class UpdateQuery extends WhereConditionedQuery {
 		this.setSql();
 	}
 	
-	public UpdateQuery(DbObject updatedInstance) {
+	public UpdateQuery(Model updatedInstance) {
 		super(Settings.database.dbName, updatedInstance.tableName, null);
 		// TODO Auto-generated constructor stub
 		
@@ -30,13 +30,13 @@ public class UpdateQuery extends WhereConditionedQuery {
 		this.setSql();
 	}
 	
-	public void setConditionsFromInstance(DbObject instance){
+	public void setConditionsFromInstance(Model instance){
 		WhereCondition c = new WhereCondition(instance.id.label, WhereCondition.EQUALS, instance.id.val());
 		this.conditions = new ArrayList<WhereCondition>();
 		this.conditions.add(c);
 	}
 	
-	public void setNewValuesFromInstance(DbObject instance){
+	public void setNewValuesFromInstance(Model instance){
 		for (int i = 0; i < instance.savableFields.size(); i++) {
 			SavableField field = instance.getField(instance.savableFields.get(i));
 			

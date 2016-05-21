@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import kirkModels.config.Settings;
 import kirkModels.fields.CharField;
 import kirkModels.fields.ForeignKey;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.QuerySet;
 import kirkModels.orm.backend.sync.queries.CreateTable;
 import kirkModels.orm.queries.scripts.WhereCondition;
 
-public class MigrationFile extends DbObject implements Comparable<MigrationFile>{
+public class MigrationFile extends Model implements Comparable<MigrationFile>{
 
 	public static QuerySet<MigrationFile> objects;
 	
@@ -20,9 +20,9 @@ public class MigrationFile extends DbObject implements Comparable<MigrationFile>
 	public CharField model_name = new CharField("model_name", false, null, false, 100);
 	public ForeignKey<MigrationTracking> migration_tracker = new ForeignKey<MigrationTracking>("migration_tracker", MigrationTracking.class, false, null, false, " CASCADE");
 	
-	public Class<? extends DbObject> getModelClass() {
+	public Class<? extends Model> getModelClass() {
 		try {
-			return (Class<? extends DbObject>) Class.forName(model_name.val());
+			return (Class<? extends Model>) Class.forName(model_name.val());
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -6,13 +6,13 @@ import iansLibrary.utilities.JSONMappable;
 import kirkModels.fields.ForeignKey;
 import kirkModels.fields.IntegerField;
 import kirkModels.fields.SavableField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 
 public class AddForeignKey extends ColumnOperation implements JSONMappable {
 	
 	public ForeignKey foreignKeyDef;
 
-	public AddForeignKey(IntegerField _fromField, DbObject _reference, Integer _default, String onDelete) {
+	public AddForeignKey(IntegerField _fromField, Model _reference, Integer _default, String onDelete) {
 		// TODO Auto-generated constructor stub
 		super(_fromField.label);
 		this.foreignKeyDef = new ForeignKey(_fromField.label, _reference.getClass(), _fromField.isNull, _default, _fromField.unique, onDelete);

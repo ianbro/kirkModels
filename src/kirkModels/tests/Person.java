@@ -4,10 +4,10 @@ import kirkModels.fields.CharField;
 import kirkModels.fields.ForeignKey;
 import kirkModels.fields.IntegerField;
 import kirkModels.fields.ManyToManyField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.QuerySet;
 
-public class Person extends DbObject{
+public class Person extends Model{
 	
 	public static QuerySet<Person> objects;
 

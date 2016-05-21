@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.queries.scripts.InsertValue;
 
 public class InsertQuery extends Query {
@@ -21,14 +21,14 @@ public class InsertQuery extends Query {
 		this.setSql();
 	}
 	
-	public InsertQuery(DbObject instance) {
+	public InsertQuery(Model instance) {
 		super(Settings.database.dbName, instance.tableName);
 		
 		this.setValuesFromInstance(instance);
 		this.setSql();
 	}
 	
-	public void setValuesFromInstance(DbObject instance){
+	public void setValuesFromInstance(Model instance){
 		for (int i = 0; i < instance.savableFields.size(); i++) {
 			
 			SavableField field = instance.getField(instance.savableFields.get(i));

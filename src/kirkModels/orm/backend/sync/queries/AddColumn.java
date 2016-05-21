@@ -6,7 +6,7 @@ import kirkModels.config.Settings;
 import kirkModels.fields.ForeignKey;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 
 public class AddColumn extends ColumnOperation {
 	

@@ -9,7 +9,7 @@ import kirkModels.config.Settings;
 import kirkModels.fields.ForeignKey;
 import kirkModels.fields.ManyToManyField;
 import kirkModels.fields.SavableField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.queries.Query;
 
 public class CreateTable extends Query implements JSONMappable {
@@ -21,7 +21,7 @@ public class CreateTable extends Query implements JSONMappable {
 	public SavableField[] fields = null;
 	public ManyToManyField[] m2mFields = null;
 
-	public CreateTable(String _dbName, DbObject _tempObject) {
+	public CreateTable(String _dbName, Model _tempObject) {
 		super(_dbName, _tempObject.tableName);
 		// TODO Auto-generated constructor stub
 		

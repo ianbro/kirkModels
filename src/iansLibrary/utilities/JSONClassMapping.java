@@ -12,7 +12,7 @@ import org.json.simple.JSONObject;
 
 import kirkModels.config.Settings;
 import kirkModels.fields.ManyToManyField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.queries.Query;
 
 public final class JSONClassMapping {

@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import kirkModels.config.Settings;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.queries.scripts.WhereCondition;
 
 public class DeleteQuery extends WhereConditionedQuery {

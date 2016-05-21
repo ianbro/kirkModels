@@ -1,10 +1,10 @@
 package kirkModels.tests;
 
 import kirkModels.fields.CharField;
-import kirkModels.orm.DbObject;
+import kirkModels.orm.Model;
 import kirkModels.orm.QuerySet;
 
-public class Course extends DbObject {
+public class Course extends Model {
 
 	public QuerySet<Course> objects;
 	
