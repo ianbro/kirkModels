@@ -36,7 +36,7 @@ import kirkModels.utils.exceptions.ObjectNotFoundException;
 /**
  * <p>Class to be extended in order to reflect a class to the database and run queries on for that class.</p>
  * <p>
- * 	This class is fairly simple to set up. When extending this class, the child class must have the following ellements:<br>
+ * 	This class is fairly simple to set up. When extending this class, the child class must have the following elements:<br>
  * 	- {@code public static QuerySet<*classType*> objects;}<br>
  *  - any fields to be reflected onto the database. These fields must have the public keyword applied to them.<br><br>
  * 
@@ -58,13 +58,6 @@ import kirkModels.utils.exceptions.ObjectNotFoundException;
  *
  */
 public abstract class Model {
-
-	/**
-	 * <p>Query Set object that represents the instances of the class that extends Model.
-	 * This essentially a list of objects in the database that are contained in the table represented by this class.</p>
-	 */
-	@SuppressWarnings("rawtypes")
-	public static QuerySet objects;
 	
 	/**
 	 * Every Model must have a field called id that will 
@@ -90,7 +83,7 @@ public abstract class Model {
 	 * Name of the table which represents this class in the database.<br>
 	 * By default, table names are the the full name of the class 
 	 * including packages with the '.'s replaced with '_'s and every 
-	 * character turned lowercase. so a class foo.bar.Person would 
+	 * character turned lower case. so a class foo.bar.Person would 
 	 * have a table name of "foo_bar_person".
 	 */
 	public String tableName;
@@ -127,6 +120,7 @@ public abstract class Model {
 	/**
 	 * Delete this object from the database.
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void delete() {
 		/**
 		 * If this instance is actually saved to the database, delete it
@@ -137,7 +131,9 @@ public abstract class Model {
 			 */
 			
 			// Create the delete query for this item
-			DeleteQuery query = new DeleteQuery(this.tableName, new ArrayList<WhereCondition>(){{
+			DeleteQuery query = new DeleteQuery(this.tableName, new ArrayList<WhereCondition>(){
+			private static final long serialVersionUID = 1L;
+			{
 				add(new WhereCondition("id", WhereCondition.EQUALS, id.val()));
 			}});
 			
@@ -155,6 +151,7 @@ public abstract class Model {
 	 * Saves this object to the database. If it already exists, it simply updates it. 
 	 * This method sets the id automatically if the object doesn't exist.
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void save() {
 
 		if(this.id.val() == 0 || ! ((QuerySet) Model.getObjectsForGenericType(this.getClass())).exists(this)){
@@ -194,19 +191,48 @@ public abstract class Model {
 		this.initializeManyToManyFields();
 	}
 	
-	public static int getNewId(Model instance){
-		int newId = Model.getObjectsForGenericType(instance.getClass()).count() + 1;
-		boolean idWorks = false;
+	/**
+	 * <p>Returns an id to be used in saving new instances.</p>
+	 * 
+	 * <p>TODO:<br>
+	 * Use a SQL Sequence table instead of doing it this way. 
+	 * This way, the program won't need to loop over the list of
+	 * instances for that model which can take time depending 
+	 * on how many instances there are.</p>
+	 * 
+	 * @param _instance
+	 * @return
+	 */
+	public static int getNewId(Model _instance){
+		//The id will default to the length of the Query Set of instance's model class.
+		int newId = Model.getObjectsForGenericType(_instance.getClass()).count() + 1;
 		
+		/*
+		 * If no instance with an id of the same value of newId exists in the Query Set
+		 * of instance's model class, then the current value of newId will be used as
+		 * the id for the instance to be created.
+		 * 
+		 * If there is an instance in the Query Set that has an id of the same value as
+		 * newId, then increment newId by 1 and try again. repeat this until an id is found
+		 * which not used by any instance in the Query Set of instance's model class.
+		 */
+		boolean idWorks = false;
 		while (!idWorks){
 			newId ++;
 			
 			WhereCondition c = new WhereCondition("id", WhereCondition.EQUALS, newId);
 			
 			try {
-				Model o = Model.getObjectsForGenericType(instance.getClass()).get(new ArrayList<WhereCondition>(){{
+				@SuppressWarnings("unused")
+				Model o = Model.getObjectsForGenericType(_instance.getClass()).get(new ArrayList<WhereCondition>(){
+				private static final long serialVersionUID = 1L;
+				{
 					add(c);
 				}});
+				/*
+				 * If no instance is returned by the line above, then it will throw an
+				 * ObjectNotFoundException. In this case, newId will work as a new id.
+				 */
 			} catch (ObjectNotFoundException e) {
 				// TODO Auto-generated catch block
 				idWorks = true;
@@ -216,8 +242,20 @@ public abstract class Model {
 		return newId;
 	}
 	
-	public boolean meetsConditions(ArrayList<WhereCondition> conditions){
-		for (WhereCondition c : conditions) {
+	/**
+	 * this.meetsConditions is mainly used by this objects Query Set to determine if an instance meets the conditions
+	 * sent through filter, get, create and the other functions in the Query Set.
+	 */ 
+	/**
+	 * <p>If this instance meets every WhereCondition object in {@code _conditions}, this
+	 * function will return true. If just one WhereCondition object is not met, this will
+	 * return false.</p>
+	 * 
+	 * @param _conditions
+	 * @return
+	 */
+	public boolean meetsConditions(ArrayList<WhereCondition> _conditions){
+		for (WhereCondition c : _conditions) {
 			if(!this.meetsSpecificCondition(c)){
 				return false;
 			}
@@ -225,23 +263,34 @@ public abstract class Model {
 		return true;
 	}
 	
-	public boolean meetsSpecificCondition(WhereCondition c){
-		switch (c.type) {
+	/**
+	 * Determins whether this instance meets the single WhereCondition stored
+	 * in {@code _condition}.
+	 * 
+	 * <p>TODO:<br>
+	 * add to this method to factor in other condition types.</p>
+	 * 
+	 * @param _condition
+	 * @return
+	 */
+	public boolean meetsSpecificCondition(WhereCondition _condition){
+		switch (_condition.type) {
 		case WhereCondition.EQUALS:
 			
-			SavableField field = this.getField(c.fieldName);
+			SavableField<?> field = this.getField(_condition.fieldName);
 			
-			if(!field.val().equals(c.value)){
+			if(!field.val().equals(_condition.value)){
 				return false;
 			}
 			break;
 			
 		case WhereCondition.CONTAINED_IN:
 			boolean contained = false;
-			ArrayList<Object> values = (ArrayList<Object>) c.value;
+			@SuppressWarnings("unchecked")
+			ArrayList<Object> values = (ArrayList<Object>) _condition.value;
 			
 			for (Object value : values) {
-				if(this.getField(c.fieldName).val().equals(value)){
+				if(this.getField(_condition.fieldName).val().equals(value)){
 					contained = true;
 				}
 			}
@@ -258,32 +307,65 @@ public abstract class Model {
 		return true;
 	}
 	
-	public Object getFieldGeneric(String name) {
+	/**
+	 * This function is mainly used by MigrationGenerator to return a field by name because
+	 * at that time, the generator does not know if the field is going to be a ManyToManyField
+	 * or a SavableField so the methods to get this field as one of those specific types won't work.
+	 */
+	/**
+	 * <p>Return the field with the label contained in {@code _fieldName}. This field can
+	 * be of any type including primitive types and is returned as a general Object
+	 * class meant to be cast into it's appropriate type.</p>
+	 * 
+	 * <p>This is essentially a wrapper class which returns<br>
+	 * {@code this.getClass().getField(_fieldName).get(this)}</p>
+	 * @param _fieldName
+	 * @return
+	 */
+	public Object getFieldGeneric(String _fieldName) {
 		Object field = null;
 		try {
-			field = this.getClass().getField(name).get(this);
+			field = this.getClass().getField(_fieldName).get(this);
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			// TODO Auto-generated catch block
-			System.out.println(name + " field not found for class: " + this.getClass());
+			System.out.println(_fieldName + " field not found for class: " + this.getClass());
 		}
 		return field;
 	}
 	
-	public SavableField getField(String name){
-		SavableField field = null;
+	/**
+	 * <p>Return the field with the label contained in {@code _fieldName}. This field must be of a class that
+	 * extends SavableField such as CharField or IntegerField</p>
+	 * 
+	 * <p>This is essentially a wrapper class which returns<br>
+	 * {@code this.getClass().getField(_fieldName).get(this)}</p>
+	 * @param _fieldName
+	 * @return
+	 */
+	public SavableField<?> getField(String _fieldName){
+		SavableField<?> field = null;
 		try {
-			field = (SavableField) this.getClass().getField(name).get(this);
+			field = (SavableField<?>) this.getClass().getField(_fieldName).get(this);
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			// TODO Auto-generated catch block
-			System.out.println(name + " field not found for class: " + this.getClass());
+			System.out.println(_fieldName + " field not found for class: " + this.getClass());
 		}
 		return field;
 	}
 	
-	public QuerySet getM2MSet(String fieldName){
-		ManyToManyField field = null;
+	/**
+	 * <p>Return the field with the label contained in {@code _fieldName}. This field must be of a class that
+	 * extends ManyToManyField.</p>
+	 * 
+	 * <p>This is essentially a wrapper class which returns<br>
+	 * {@code this.getClass().getField(_fieldName).get(this)}</p>
+	 * @param _fieldName
+	 * @return
+	 */
+	public QuerySet<?> getM2MSet(String _fieldName){
+		ManyToManyField<?, ?> field = null;
 		try {
-			field = (ManyToManyField) (this.getClass().getField(fieldName).get(this));
+			field = (ManyToManyField<?, ?>) (this.getClass().getField(_fieldName).get(this));
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -354,11 +436,20 @@ public abstract class Model {
 				e.printStackTrace();
 			}
 			
-			ManyToManyField temp_field = (ManyToManyField) field;
+			ManyToManyField<?, ?> temp_field = (ManyToManyField<?, ?>) field;
 			temp_field.setHostId(this.id.val());
 		}
 	}
 	
+	/**
+	 * Returns the Query Set stored in this instances model class objects. This is mainly
+	 * used when the model class of a model object is unknown because the objects field
+	 * does not exist in this class (kirkModels.orm.Model). It is meant to b added to the 
+	 * specific model class extending Model.
+	 * @param type
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
 	public static <T extends Model> QuerySet<T> getObjectsForGenericType(Class<T> type){
 		Field objectsTemp = null;
 		try {
@@ -388,13 +479,18 @@ public abstract class Model {
 	}
 	
 	/**
+	 * This function is used in MigrationGenerator to get operations to be 
+	 * added to the migration file if needed.
+	 */
+	/**
 	 * get the difference between database state and the current
 	 * class definition
 	 * @return
 	 */
+	@SuppressWarnings("rawtypes")
 	public ArrayList<Operation> getOperationDifferences(MetaTable _tableDef) {
 		ArrayList<Operation> operations = new ArrayList<Operation>();
-		ArrayList<String> fieldsDealtWith = new ArrayList<String>(); //field names that have already been handeled
+		ArrayList<String> fieldsDealtWith = new ArrayList<String>(); //field names that have already been handled
 		
 		for (MetaTableColumn column : _tableDef.columns) {
 			Object field = this.getFieldGeneric(column.getColumnName());
@@ -429,10 +525,10 @@ public abstract class Model {
 						 */
 						if (field instanceof ForeignKey) {
 							if (_tableDef.getForeignKeyConstraint(((SavableField) field).label) == null) {
-								operations.add(new AddForeignKey((ForeignKey) field));
+								operations.add(new AddForeignKey((ForeignKey<?>) field));
 							}
 						}
-						ArrayList<ColumnOperation> operationsForCurrentField = this.getOperationsForField((SavableField) field, column);
+						ArrayList<ColumnOperation> operationsForCurrentField = this.getOperationsForField((SavableField<?>) field, column);
 						operations.addAll(operationsForCurrentField);
 					}
 				} else if (field instanceof ManyToManyField) {
@@ -456,7 +552,7 @@ public abstract class Model {
 				//this field needs to be added
 				operations.add(new AddColumn(this.getField(fieldName)));
 				if (this.getField(fieldName) instanceof ForeignKey) {
-					operations.add(new AddForeignKey((ForeignKey) this.getField(fieldName)));
+					operations.add(new AddForeignKey((ForeignKey<?>) this.getField(fieldName)));
 				}
 				fieldsDealtWith.add(fieldName);
 			}
@@ -465,29 +561,50 @@ public abstract class Model {
 		return operations;
 	}
 	
-	public ArrayList<ColumnOperation> getOperationsForField(SavableField _newField, MetaTableColumn _column) {
+	/**
+	 * <p>Returns the operations as {@code kirkModels.orm.backend.sync.queries.ColumnOperation} objects 
+	 * needed to get _column as a table up to date with _newField. This essentially will give return 
+	 * the operation which will be displayed in the migration file generated by 
+	 * {@code kirkModels.orm.backend.sync.MigrationGenerator}.</p>
+	 * 
+	 * @param _newField
+	 * @param _column
+	 * @return
+	 */
+	public ArrayList<ColumnOperation> getOperationsForField(SavableField<?> _newField, MetaTableColumn _column) {
 		ArrayList<ColumnOperation> operations = new ArrayList<ColumnOperation>();
 		
+		// Get differences between the two fields.
 		HashMap<String, Object> diffs = _newField.getDifferences(_column);
+		
 		for (String operationDesc : diffs.keySet()) {
 			if (operationDesc.equals("type")) {
+				// If the type of the field has changed, add a column type change to operations
 				operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.TYPE));
 			} else if (operationDesc.equals("nullable")) {
+				// If the null constraint has changed, add that change as a kirkModels.orm.backend.sync.queries.ColumnDefinitionChange to operations
 				if (_newField.isNull) {
 					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.NULL_YES));
 				} else {
 					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.NULL_NO));
 				}
 			} else if (operationDesc.equals("default")) {
+				// If the default value has changed, add that change as a kirkModels.orm.backend.sync.queries.ColumnDefinitionChange to operations
 				if (_newField.defaultValue == null) {
 					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.DEFAULT_DROP));
 				} else {
 					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.DEFAULT_CHANGE));
 				}
 			} else if (operationDesc.equals("size")) {
+				// If the size of the field has changed, add that change as a kirkModels.orm.backend.sync.queries.ColumnDefinitionChange to operations
 				if (((CharField) _newField).maxLength > _column.getColumnSize()) {
 					operations.add(new ColumnDefinitionChange(_newField.label, _newField, ColumnDefinitionChange.INCREASE_SIZE));
 				} else {
+					/*
+					 * The size of the field is smaller so instead of decreasing the size, to be safe,
+					 * we will drop the column and add another one with a smaller value. 
+					 * this will cause current data to lose info for this column.
+					 */
 					operations.add(new DropField(_newField.label, DropField.CASCADE));
 					operations.add(new AddColumn(_newField));
 				}
